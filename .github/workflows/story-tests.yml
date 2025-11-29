@@ -38,22 +38,18 @@ jobs:
         run: |
           sed -i 's/^testing_status:.*/testing_status: fail/' docs/mission_destination/stories/ST-03_map_identity_fields.md
 
-      # ---------------------------------------------------
-      # 🔥 THIS IS THE NEW PART — write updated status BACK to GitHub
-      # ---------------------------------------------------
-           - name: Commit testing_status change
+      - name: Commit and push testing_status change
         if: always()
         run: |
+          set -e
           git config user.name github-actions
           git config user.email github-actions@users.noreply.github.com
 
-          # If no file changes, exit cleanly
           if git diff --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
           git add docs/mission_destination/stories/ST-03_map_identity_fields.md
-          git commit -m 'Update ST-03 testing_status from CI'
+          git commit -m "Update ST-03 testing_status from CI"
           git push
-
