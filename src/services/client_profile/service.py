@@ -1,4 +1,5 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
+
 from src.domain.models.client_profile import ClientProfile, ClientIdentifier, ClientAddress
 
 class ClientProfileService:
