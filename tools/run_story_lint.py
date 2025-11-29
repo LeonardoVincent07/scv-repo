@@ -57,6 +57,7 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
+    
 }
 
 

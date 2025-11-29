@@ -144,6 +144,12 @@ _register_story(
     check_client_profile_data_model_adherence,
 )
 
+_register_story(
+    "ST-20",
+    REPO_ROOT / "docs" / "mission_destination" / "stories" / "ST-20_assemble_base_profile.md",
+    check_client_profile_data_model_adherence,
+)
+
 
 # ---------------------------------------------------------------------------
 # Helpers: evidence + front-matter update
