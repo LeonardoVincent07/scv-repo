@@ -46,6 +46,384 @@ jobs:
 
 
 
+==================== FILE: .github\workflows\story-tests.yml ====================
+name: Story Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        id: tests
+        run: pytest
+
+
+
+==================== FILE: docs\mission_destination\initial_logical_data_model.md ====================
+# Initial Logical Data Model (LDM)
+**MissionDestination**
+**Single Client View (SCV)**
+
+## 1. Purpose
+This document defines the **Initial Logical Data Model** for the Single Client View (SCV) application.
+It establishes the **canonical semantic representation of a client**, which all ingestion,
+normalisation, matching, merging, lineage, quality, and API features will converge toward.
+
+The Initial Logical Data Model is:
+- technology-agnostic
+- storage-agnostic
+- canonical across all source systems
+- stable across all Stories
+- the semantic target for the behaviours defined in Epics, Features, and Stories
+
+It is **not** a physical database schema.  
+It is the logical definition of what a â€œclientâ€ means inside the SCV domain.
+
+## 2. Canonical Entities
+
+### 2.1 ClientProfile
+Represents the unified, deduplicated profile of a client.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| client_id | str | Internal SCV identifier |
+| name | str | Canonical client name |
+| email | Optional[str] | Canonical email |
+| country | Optional[str] | Country associated with the client |
+| identifiers | List[ClientIdentifier] | Identifiers from upstream systems |
+| addresses | List[ClientAddress] | Normalised address objects |
+| lineage | Dict[str, Any] | Provenance metadata |
+| quality | Dict[str, float] | Freshness, completeness, confidence |
+| metadata | Dict[str, str] | Timestamps, merge strategies, flags |
+| raw_sources | Dict[str, Dict[str, Any]] | Raw source payloads |
+
+### 2.2 ClientIdentifier
+| Field | Type | Description |
+|-------|------|-------------|
+| system | str | Upstream system name |
+| value | str | Identifier in that system |
+
+### 2.3 ClientAddress
+| Field | Type | Description |
+|-------|------|-------------|
+| line1 | Optional[str] | Address line 1 |
+| line2 | Optional[str] | Address line 2 |
+| city | Optional[str] | City |
+| postcode | Optional[str] | Postal code |
+| country | Optional[str] | ISO country |
+| source | Optional[str] | System contributing the address |
+
+## 3. Python Representation
+
+```python
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any
+
+@dataclass
+class ClientIdentifier:
+    system: str
+    value: str
+
+@dataclass
+class ClientAddress:
+    line1: Optional[str] = None
+    line2: Optional[str] = None
+    city: Optional[str] = None
+    postcode: Optional[str] = None
+    country: Optional[str] = None
+    source: Optional[str] = None
+
+@dataclass
+class ClientProfile:
+    client_id: str
+    name: str
+
+    email: Optional[str] = None
+    country: Optional[str] = None
+
+    identifiers: List[ClientIdentifier] = field(default_factory=list)
+    addresses: List[ClientAddress] = field(default_factory=list)
+
+    lineage: Dict[str, Any] = field(default_factory=dict)
+    quality: Dict[str, float] = field(default_factory=dict)
+    metadata: Dict[str, str] = field(default_factory=dict)
+
+    raw_sources: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+```
+
+## 4. Next Steps
+- Add this model to `src/domain/models/client_profile.py`
+- Keep structure stable through MVP
+- Extend only if new Stories introduce semantic requirements
+
+
+
+==================== FILE: docs\mission_destination\initial_story_sequence.md ====================
+\# Initial Story Sequence (SCV)
+
+\*\*MissionDestination\*\*  
+
+\*\*Single Client View (SCV)\*\*
+
+
+
+---
+
+
+
+\## 1. Purpose
+
+
+
+This document defines the \*\*initial execution order for all Stories\*\* in the Single Client View (SCV) MissionDestination.
+
+
+
+The ordering is derived from:
+
+
+
+\- the SCV Epics and Features,
+
+\- the Initial Logical Data Model (LDM),
+
+\- dependency analysis across services and APIs,
+
+\- and the need to build up capability incrementally in a stable way.
+
+
+
+It is a \*\*MissionDestination artefact\*\*: it describes \*how the business semantics are best realised over time\*, not runtime performance (MissionDynamics).
+
+
+
+This sequence underpins:
+
+
+
+\- developer and agent workflows,
+
+\- CI/test evolution,
+
+\- and the progressive construction of the canonical SCV capability.
+
+
+
+---
+
+
+
+\## 2. Relationship to Other Artefacts
+
+
+
+This Story Sequence should be read together with:
+
+
+
+\- \*\*MissionFramework\*\* (technology guardrails, testing strategy, CI blueprint, policy-as-code)
+
+\- \*\*Meta-prompts\*\* (code, test, CI)
+
+\- \*\*Instruction prompts\*\* (how Stories are executed)
+
+\- \*\*MissionDestination\*\*:
+
+&nbsp; - Epics, Features, Stories
+
+&nbsp; - Initial Logical Data Model (LDM)
+
+\- \*\*Mission Build Plan\*\* (the overall step-by-step setup of the project)
+
+
+
+The sequence assumes that:
+
+
+
+1\. The repo structure exists.  
+
+2\. MissionFramework and meta-prompts are in place.  
+
+3\. The Initial Logical Data Model for SCV (`ClientProfile`, `ClientIdentifier`, `ClientAddress`) is defined.  
+
+
+
+Only then is it valid to implement Stories in this order.
+
+
+
+---
+
+
+
+\## 3. Golden Story Sequence (MVP Build Order)
+
+
+
+The following is the \*\*recommended implementation sequence\*\* for the SCV Stories.
+
+
+
+Each entry references the Story ID; the Story definition remains the single source of truth for behaviour and acceptance criteria.
+
+
+
+1\. \*\*ST-03 â€“ Map identity fields\*\*  
+
+2\. \*\*ST-04 â€“ Map identifiers\*\*  
+
+3\. \*\*ST-20 â€“ Assemble base profile\*\*  
+
+
+
+4\. \*\*ST-09 â€“ Match by tax ID\*\*  
+
+5\. \*\*ST-10 â€“ Match by registration number\*\*  
+
+
+
+6\. \*\*ST-16 â€“ Build search index\*\*  
+
+7\. \*\*ST-17 â€“ Normalise search fields\*\*  
+
+8\. \*\*ST-32 â€“ Implement basic search API\*\*  
+
+
+
+9\. \*\*ST-18 â€“ Implement fuzzy search queries\*\*  
+
+10\. \*\*ST-19 â€“ Implement search ranking\*\*  
+
+
+
+11\. \*\*ST-13 â€“ Merge identity attributes\*\*  
+
+12\. \*\*ST-14 â€“ Merge addresses\*\*  
+
+13\. \*\*ST-15 â€“ Record merge lineage\*\*  
+
+
+
+14\. \*\*ST-21 â€“ Assemble profile metadata\*\*  
+
+15\. \*\*ST-22 â€“ Expose lineage in profile\*\*  
+
+16\. \*\*ST-24 â€“ Flag merge conflicts\*\*  
+
+17\. \*\*ST-25 â€“ Present merge logic / rationale\*\*  
+
+
+
+18\. \*\*ST-28 â€“ Compute data freshness\*\*  
+
+19\. \*\*ST-29 â€“ Compute data completeness\*\*  
+
+20\. \*\*ST-26 â€“ Store lineage history\*\*  
+
+21\. \*\*ST-27 â€“ Timestamp lineage events\*\*  
+
+
+
+22\. \*\*ST-07 â€“ Detect upstream deltas\*\*  
+
+23\. \*\*ST-08 â€“ Apply upstream deltas to SCV\*\*  
+
+
+
+24\. \*\*ST-05 â€“ Bulk load from CRM\*\*  
+
+25\. \*\*ST-06 â€“ Bulk load from KYC\*\*  
+
+
+
+26\. \*\*ST-33 â€“ Refine search API ranking\*\*  
+
+27\. \*\*ST-34 â€“ Implement basic client profile API\*\*  
+
+28\. \*\*ST-35 â€“ Expose lineage via client profile API\*\*  
+
+
+
+29\. \*\*ST-11 â€“ Fuzzy name matching\*\*  
+
+30\. \*\*ST-12 â€“ Attribute-level confidence scoring\*\*  
+
+31\. \*\*ST-23 â€“ Lineage drill-down / field-level provenance\*\*  
+
+
+
+32\. \*\*ST-30 â€“ Audit ingestion operations\*\*  
+
+33\. \*\*ST-31 â€“ Audit merge operations\*\*  
+
+
+
+34\. \*\*ST-01 â€“ Register CRM source system\*\*  
+
+35\. \*\*ST-02 â€“ Register KYC source system\*\*
+
+
+
+---
+
+
+
+\## 4. Usage and Change Control
+
+
+
+\- This sequence is the \*\*default build order\*\* for human developers and agents.  
+
+\- No Story should be implemented \*\*significantly out of sequence\*\* without re-running dependency analysis.  
+
+\- If the Story set changes (new Stories, retired Stories, structural changes to Epics/Features), this document \*\*must be updated\*\* to reflect the new ordering.  
+
+
+
+For each Story:
+
+
+
+1\. Read the Story definition under `docs/mission\_destination/stories/`.  
+
+2\. Implement the corresponding code slice(s) in `src/` as per the code meta-prompt.  
+
+3\. Implement the corresponding tests in `tests/` as per the test meta-prompt.  
+
+4\. Ensure CI passes and MissionFramework guardrails are satisfied.  
+
+5\. Only then move to the next Story in this sequence.
+
+
+
+---
+
+
+
+
+
+
 ==================== FILE: docs\mission_destination\epics\E01_client_ingestion_and_normalisation.md ====================
 ---
 epic_id: EP-01
@@ -767,7 +1145,7 @@ acceptance_criteria:
 
 overall_status: Planned
 
-testing_status: not_run
+testing_status: fail
 halo_adherence: fail
 guardrail_adherence: fail
 code_quality_adherence: fail
@@ -2132,36 +2510,88 @@ Regulatory, compliance, and internal policy requirements expressed as executable
 
 
 ==================== FILE: docs\mission_framework\technology guardrails\mf02_technology_guardrails.md ====================
+# Technology Guardrails
+## MissionFramework
 
-# MissionFramework Element: Technology Guardrails
-
-## Overview
-Constraints that define what is allowed or prohibited technologically to maintain coherence and safety across all generated components.
-
----
-
-## Codify
-- Guardrails documented as rule sets in mission_framework/technology_guardrails.
-- Rules define permitted patterns, forbidden patterns, naming conventions, and folder constraints.
+### 1. Purpose
+This document defines the mandatory technology constraints for all implementations within this MissionSmith application. These guardrails ensure consistency, predictability, auditability, and safe automation across all Story implementations.
 
 ---
 
-## Automate
-- Static analysis and rule-checkers validate guardrails during CI.
-- Meta-prompts prevent Copilot from breaking guardrails (e.g., creating files).
+## 2. Language and Framework Constraints
+- Python is the primary implementation language.
+- Only standard library + explicitly approved libraries may be used.
+- No dynamic code generation at runtime.
+- No reflection-based manipulation of internal structures.
 
 ---
 
-## Intercept
-- CI fails fast on guardrail violations.
-- Clear error messages returned indicating specific rule breaches.
+## 3. Architectural Layering Rules
+
+### 3.1 Domain Layer Rules (Canonical Logical Data Model)
+**All services MUST operate using the canonical Logical Data Model (LDM).**
+- Domain logic MUST construct, read, and write typed domain objects defined in `src/domain/models/`.
+- Services MUST NOT return dictionaries, JSON, or ad-hoc structures.
+- Domain objects are the single internal representation of business truth.
+
+### 3.2 API Representation Rules
+**APIs are the ONLY layer permitted to serialise domain models.**
+- API slices MAY convert domain objects to dict/JSON.
+- API slices MUST NOT contain business logic.
+- API slices MUST NOT mutate domain semantics.
+
+### 3.3 No Bypassing Rule
+- No slice may bypass services and interact directly with raw upstream payloads.
+- Domain entities MUST NOT be constructed directly in API or adapter layers.
+- All transformations MUST flow through services.
 
 ---
 
-## Prove
-- MissionLog records guardrail adherence status.
-- Summary dashboards show guardrail compliance over time.
+## 4. Implementation Slice Rules
+- Each Story is implemented in exactly one code slice.
+- A code slice corresponds to a single Python file in the appropriate folder.
+- No Story is allowed to modify more than one slice.
+- No cross-slice coupling except through domain models.
+- No circular imports.
 
+---
+
+## 5. Testing Guardrails
+- Tests MUST be deterministic.
+- Tests MUST be written using the test meta-prompt.
+- Tests MUST verify domain behaviour, not presentation layer behaviour.
+- Every Story MUST include:
+  - Positive tests
+  - Negative tests
+  - Edge-case tests
+  - Compliance with MissionFramework rules
+
+---
+
+## 6. CI/CD Enforcement Rules
+- CI MUST run all tests for every push.
+- CI MUST enforce formatting and linting.
+- CI MUST fail if:
+  - API implements business logic
+  - Domain model is bypassed
+  - A Story modifies multiple slices
+  - Any guardrail is violated
+
+---
+
+## 7. Security and Safety Rules
+- No direct file system access except via approved paths under `tools/`.
+- No network calls unless explicitly authorised.
+- No outbound or inbound external data inside Story implementations during MVP.
+
+---
+
+## 8. Change Control
+- Any change to these guardrails requires:
+  - Update to meta-prompts
+  - Update to related tests
+  - Update to dependency rules if applicable
+  - Commit message referencing a Story or refactor item
 
 
 
@@ -2519,6 +2949,19 @@ MissionHalo sits alongside MissionFramework as part of the system-wide governanc
 
 
 
+==================== FILE: docs\prompts\ci_pipeline-instruction_prompt_template.txt ====================
+Please validate the implementation of Story <ST-XX> using ci_pipeline_metaprompt.
+
+Story file:
+  <path to story file>
+
+Code file:
+  <path to code file>
+
+Test file:
+  <path to test file>
+
+
 ==================== FILE: docs\prompts\ci_pipeline_metaprompt.md ====================
 
 # MissionSmith CI/CD Pipeline Meta-Prompt (MVP)
@@ -2732,6 +3175,18 @@ Your role is to implement the pipeline in faithful alignment with the Pipeline B
 
 
 
+==================== FILE: docs\prompts\code_story_instruction_prompt_template.txt ====================
+Please implement Story <ST-XX> using story_code_metaprompt.
+
+Story file:
+  <path to story file>
+
+Code file:
+  <path to code file>
+
+
+
+
 ==================== FILE: docs\prompts\story_code_metaprompt.md ====================
 
 # MissionSmith Story Implementation Meta-Prompt (MVP â€“ Guided + Flexible, Corrected)
@@ -2889,6 +3344,17 @@ A Story implementation is complete when:
 ---
 
 ## END OF META-PROMPT
+
+
+
+==================== FILE: docs\prompts\story_test_instruction_prompt_template.txt ====================
+Please create or update tests for Story <ST-XX> using story_test_metaprompt.
+
+Story file:
+  <path to story file>
+
+Test file:
+  <path to test file>
 
 
 
@@ -3064,10 +3530,10 @@ A Storyâ€™s tests are complete when:
 
 
 
-==================== FILE: src\_init_.py ====================
+==================== FILE: src\__init__.py ====================
 
 
-==================== FILE: src\api\_init_.py ====================
+==================== FILE: src\api\__init__.py ====================
 
 
 ==================== FILE: src\api\http\client_profile_api.py ====================
@@ -3094,33 +3560,179 @@ class ClientProfileAPI:
 
 
 
-==================== FILE: src\domain\_init_.py ====================
+==================== FILE: src\domain\__init__.py ====================
 
 
-==================== FILE: src\domain\models\_init_.py ====================
+==================== FILE: src\domain\models\client_profile.py ====================
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any
 
 
-==================== FILE: src\services\_init_.py ====================
+@dataclass
+class ClientIdentifier:
+    """
+    Represents an identifier for a client from a specific upstream system.
+    """
+    system: str        # e.g. "CRM", "KYC"
+    value: str         # e.g. "12345"
+
+
+@dataclass
+class ClientAddress:
+    """
+    Represents a normalised address for a client.
+    Optional in MVP, but needed for merge, lineage, and quality features.
+    """
+    line1: Optional[str] = None
+    line2: Optional[str] = None
+    city: Optional[str] = None
+    postcode: Optional[str] = None
+    country: Optional[str] = None
+    source: Optional[str] = None   # Upstream system this address came from
+
+
+@dataclass
+class ClientProfile:
+    """
+    Canonical Single Client View logical data model.
+    This is the semantic target for all ingestion, normalisation, match/merge,
+    lineage propagation, quality scoring, and profile assembly stories.
+    """
+    client_id: str
+    name: str
+
+    email: Optional[str] = None
+    country: Optional[str] = None
+
+    identifiers: List[ClientIdentifier] = field(default_factory=list)
+    addresses: List[ClientAddress] = field(default_factory=list)
+
+    # Where each field came from, and under what conditions
+    lineage: Dict[str, Any] = field(default_factory=dict)
+
+    # Data quality indicators (freshness, completeness, confidence)
+    quality: Dict[str, float] = field(default_factory=dict)
+
+    # Additional metadata (timestamps, merge strategy flags, raw source info)
+    metadata: Dict[str, str] = field(default_factory=dict)
+
+    # Optional raw inputs (keyed by upstream system)
+    raw_sources: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
+
+
+==================== FILE: src\domain\models\__init__.py ====================
+
+
+==================== FILE: src\services\__init__.py ====================
 
 
 ==================== FILE: src\services\client_profile\service.py ====================
+from typing import Dict, Any, List, Optional
+from src.domain.models.client_profile import ClientProfile, ClientIdentifier, ClientAddress
+
 class ClientProfileService:
     """
     Single Client View â€“ Client Profile Service.
 
-    Responsibilities (to be implemented from stories):
-    - Assemble a consolidated client profile from multiple sources.
-    - Apply basic validation / enrichment.
+    Implements ST-03: Map core identity fields from multiple sources to canonical model.
     """
 
-    def get_client_profile(self, client_id: str) -> dict:
-        """
-        Placeholder implementation.
+    def __init__(self):
+        # In a real implementation, these would be injected repositories or data sources
+        self.sources = [
+            self._mock_crm_source,
+            self._mock_kyc_source
+        ]
 
-        This method will be implemented by Copilot according to
-        the MissionDestination story definitions.
+    def get_client_profile(self, client_id: str) -> Dict[str, Any]:
         """
-        raise NotImplementedError("To be implemented from story definitions.")
+        Map core identity fields from all sources for the given client_id.
+        Returns a canonical ClientProfile as dict.
+        """
+        # Aggregate raw data from all sources
+        raw_records = [source(client_id) for source in self.sources]
+
+        # Map fields to canonical model, prioritising CRM > KYC for demo
+        canonical = {}
+        lineage = {}
+        for field in ["name", "email", "country"]:
+            for rec in raw_records:
+                if field in rec and rec[field]:
+                    canonical[field] = rec[field]
+                    lineage[field] = rec.get("_source", "unknown")
+                    break
+            else:
+                canonical[field] = None
+                lineage[field] = None
+
+        # Identifiers
+        identifiers = []
+        for rec in raw_records:
+            if "identifier" in rec and rec["identifier"]:
+                identifiers.append(ClientIdentifier(system=rec["_source"], value=rec["identifier"]))
+
+        # Addresses (optional, demo only)
+        addresses = []
+        for rec in raw_records:
+            if "address" in rec and rec["address"]:
+                addr = rec["address"]
+                addresses.append(ClientAddress(
+                    line1=addr.get("line1"),
+                    line2=addr.get("line2"),
+                    city=addr.get("city"),
+                    postcode=addr.get("postcode"),
+                    country=addr.get("country"),
+                    source=rec["_source"]
+                ))
+
+        profile = ClientProfile(
+            client_id=client_id,
+            name=canonical["name"] or "",
+            email=canonical["email"],
+            country=canonical["country"],
+            identifiers=identifiers,
+            addresses=addresses,
+            lineage=lineage,
+            raw_sources={rec["_source"]: rec for rec in raw_records}
+        )
+        return profile.__dict__
+
+    def _mock_crm_source(self, client_id: str) -> Dict[str, Any]:
+        # Simulate a CRM system record
+        if client_id == "123":
+            return {
+                "_source": "CRM",
+                "identifier": "crm-123",
+                "name": "Alice Example",
+                "email": "alice@example.com",
+                "country": "UK",
+                "address": {
+                    "line1": "1 Main St",
+                    "city": "London",
+                    "postcode": "E1 1AA",
+                    "country": "UK"
+                }
+            }
+        return {"_source": "CRM"}
+
+    def _mock_kyc_source(self, client_id: str) -> Dict[str, Any]:
+        # Simulate a KYC system record
+        if client_id == "123":
+            return {
+                "_source": "KYC",
+                "identifier": "kyc-123",
+                "name": "Alice Example",
+                "email": None,
+                "country": "United Kingdom",
+                "address": {
+                    "line1": "1 Main Street",
+                    "city": "London",
+                    "postcode": "E1 1AA",
+                    "country": "United Kingdom"
+                }
+            }
+        return {"_source": "KYC"}
 
 
 
@@ -3145,10 +3757,10 @@ class ClientSearchService:
 
 
 
-==================== FILE: tests\_init_.py ====================
+==================== FILE: tests\__init__.py ====================
 
 
-==================== FILE: tests\api\_init_.py ====================
+==================== FILE: tests\api\__init__.py ====================
 
 
 
@@ -3170,7 +3782,7 @@ def test_client_profile_api_uses_service_stub():
 
 
 
-==================== FILE: tests\services\_init_.py ====================
+==================== FILE: tests\services\__init__.py ====================
 
 
 ==================== FILE: tests\services\client_profile\test_client_profile_service.py ====================
@@ -3187,10 +3799,17 @@ class TestClientProfileService:
     - Real test cases will be generated from story definitions.
     """
 
-    def test_get_client_profile_not_implemented(self):
+    def test_get_client_profile_maps_identity_fields(self):
         service = ClientProfileService()
-        with pytest.raises(NotImplementedError):
-            service.get_client_profile("dummy-id")
+        # Use the mock data for client_id '123' (see service implementation)
+        profile = service.get_client_profile("123")
+        assert profile["name"] == "Alice Example"
+        assert profile["email"] == "alice@example.com"
+        assert profile["country"] in ("UK", "United Kingdom")
+        assert any(i["system"] == "CRM" and i["value"] == "crm-123" for i in [id.__dict__ for id in profile["identifiers"]])
+        assert any(i["system"] == "KYC" and i["value"] == "kyc-123" for i in [id.__dict__ for id in profile["identifiers"]])
+        assert "CRM" in profile["raw_sources"]
+        assert "KYC" in profile["raw_sources"]
 
 
 
@@ -3209,6 +3828,127 @@ class TestClientSearchService:
         with pytest.raises(NotImplementedError):
             service.search("dummy query")
 
+
+
+
+==================== FILE: tools\run_story_tests.py ====================
+#!/usr/bin/env python
+"""
+Run tests for a story and update its testing_status front-matter.
+
+MVP: hard-wired to ST-03 and runs the full pytest suite.
+If pytest exits 0 -> testing_status: pass
+Else            -> testing_status: fail
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+
+# Paths are relative to repo root
+REPO_ROOT = Path(__file__).resolve().parents[1]
+STORY_ID = "ST-03"
+STORY_FILE = REPO_ROOT / "docs" / "mission_destination" / "stories" / "ST-03_map_identity_fields.md"
+
+
+def run_pytest() -> int:
+    """Run pytest and return exit code."""
+    print(">>> Running pytest â€¦")
+    result = subprocess.run(
+        ["pytest"],
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    print(f">>> pytest finished with exit code {result.returncode}")
+    return result.returncode
+
+
+def update_testing_status(status: str) -> None:
+    """Set testing_status: <status> in the story front-matter."""
+    if status not in {"pass", "fail"}:
+        raise ValueError(f"Invalid status {status!r}; expected 'pass' or 'fail'")
+
+    if not STORY_FILE.exists():
+        raise FileNotFoundError(f"Story file not found: {STORY_FILE}")
+
+    lines = STORY_FILE.read_text(encoding="utf-8").splitlines()
+    new_lines = []
+    replaced = False
+
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith("testing_status:"):
+            indent = line[: len(line) - len(stripped)]
+            new_line = f"{indent}testing_status: {status}"
+            new_lines.append(new_line)
+            replaced = True
+        else:
+            new_lines.append(line)
+
+    if not replaced:
+        # If for some reason the key is missing, append it just before last_updated or at end
+        inserted = False
+        for i, line in enumerate(new_lines):
+            if line.lstrip().startswith("last_updated:"):
+                new_lines.insert(i, f"testing_status: {status}")
+                inserted = True
+                break
+        if not inserted:
+            new_lines.append(f"testing_status: {status}")
+
+    STORY_FILE.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    print(f">>> Updated {STORY_FILE.relative_to(REPO_ROOT)} -> testing_status: {status}")
+
+
+def main(argv: list[str]) -> int:
+    # Optional arg e.g. ST-03; we ignore anything else for now but keep the interface
+    if len(argv) > 1 and argv[1] not in {STORY_ID, STORY_ID.lower()}:
+        print(f"WARNING: Only {STORY_ID} is supported in this MVP; ignoring argument {argv[1]!r}")
+
+    exit_code = run_pytest()
+    status = "pass" if exit_code == 0 else "fail"
+    update_testing_status(status)
+    print(f">>> Story {STORY_ID} testing_status set to {status}")
+    return exit_code
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+
+
+
+==================== FILE: tools\update_testing_status.py ====================
+import sys
+from pathlib import Path
+import re
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: update_testing_status.py <story_path> <status>")
+        sys.exit(1)
+
+    story_path = Path(sys.argv[1])
+    status = sys.argv[2]
+
+    if status not in {"not_run", "pass", "fail"}:
+        print(f"Invalid status: {status}")
+        sys.exit(1)
+
+    text = story_path.read_text(encoding="utf-8")
+
+    # Replace the first occurrence of 'testing_status: ...'
+    pattern = r"(^testing_status:\s*).*$"
+    replacement = rf"\1{status}"
+    new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    if count == 0:
+        print("No testing_status line found to update.")
+        sys.exit(1)
+
+    story_path.write_text(new_text, encoding="utf-8")
+
+if __name__ == "__main__":
+    main()
 
 
 
