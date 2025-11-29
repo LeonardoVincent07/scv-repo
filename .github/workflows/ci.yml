@@ -1,4 +1,4 @@
-name: CI
+name: Story CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  story-tests:
+  story-checks:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,18 +23,27 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Fallback: ensure pytest exists even if not in requirements.txt
+          python -m pip install pytest
 
-      - name: Run Story tests and update Story statuses
+      - name: Run Story tests and update testing_status
         run: |
           python tools/run_story_tests.py
 
+      - name: Run Story guardrails and update guardrail_adherence
+        run: |
+          python tools/run_story_guardrails.py
+
       - name: Ensure Story statuses are up to date (no drift)
         run: |
-          # If running the script changed any Story files, CI fails.
-          # This forces developers (or agents) to run the script locally and commit the updated front matter.
+          # If running the scripts changed any Story files, CI fails.
+          # This forces updated status fields to be committed before pushing.
           if ! git diff --quiet docs/mission_destination/stories; then
-            echo "Story front-matter testing_status is not in sync with test results."
-            echo "Run 'python tools/run_story_tests.py' locally and commit the Story file changes before pushing."
+            echo "Story status fields (testing_status / guardrail_adherence) are not in sync with checks."
+            echo "Run both locally:"
+            echo "  python tools/run_story_tests.py"
+            echo "  python tools/run_story_guardrails.py"
+            echo "Then commit the updated Story files before pushing."
             echo
             git diff -- docs/mission_destination/stories
             exit 1
