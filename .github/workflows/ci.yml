@@ -23,8 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          # Fallback: ensure pytest exists even if not in requirements.txt
-          python -m pip install pytest
+          python -m pip install pytest bandit ruff
 
       - name: Run Story tests and update testing_status
         run: |
@@ -34,15 +33,25 @@ jobs:
         run: |
           python tools/run_story_guardrails.py
 
+      - name: Run Story security checks and update security_policy_adherence
+        run: |
+          python tools/run_story_security.py
+
+      - name: Run Story lint/code-quality checks and update code_quality_adherence
+        run: |
+          python tools/run_story_lint.py
+
       - name: Ensure Story statuses are up to date (no drift)
         run: |
-          # If running the scripts changed any Story files, CI fails.
+          # If running the Story scripts changed any Story files, CI fails.
           # This forces updated status fields to be committed before pushing.
           if ! git diff --quiet docs/mission_destination/stories; then
-            echo "Story status fields (testing_status / guardrail_adherence) are not in sync with checks."
-            echo "Run both locally:"
+            echo "Story status fields are not in sync with checks."
+            echo "Run locally:"
             echo "  python tools/run_story_tests.py"
             echo "  python tools/run_story_guardrails.py"
+            echo "  python tools/run_story_security.py"
+            echo "  python tools/run_story_lint.py"
             echo "Then commit the updated Story files before pushing."
             echo
             git diff -- docs/mission_destination/stories
@@ -53,3 +62,4 @@ jobs:
         run: |
           mkdir -p missionlog/test_evidence
           echo "CI run at $(date -u)" > missionlog/test_evidence/latest.txt
+
