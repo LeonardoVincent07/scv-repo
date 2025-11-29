@@ -1,0 +1,8 @@
+{
+  "story_id": "ST-30",
+  "pytest_targets": [
+    "tests/services/audit/test_st_30_audit_ingestion.py"
+  ],
+  "exit_code": 0,
+  "status": "pass"
+}

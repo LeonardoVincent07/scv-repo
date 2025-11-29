@@ -1,0 +1,9 @@
+{
+  "story_id": "ST-30",
+  "targets": [
+    "src/services/audit/service.py"
+  ],
+  "passed": true,
+  "message": "No medium/high security issues found by Bandit.",
+  "issues": []
+}

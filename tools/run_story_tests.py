@@ -60,7 +60,16 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
             "tests/services/client_profile/test_st_20_assemble_base_profile.py",
         ],
     },
-
+    "ST-30": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-30_audit_ingestion.md",
+        "pytest_targets": [
+            "tests/services/audit/test_st_30_audit_ingestion.py",
+        ],
+    },
 }
 
 
@@ -189,4 +198,3 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
-

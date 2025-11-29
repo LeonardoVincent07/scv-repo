@@ -1,0 +1,9 @@
+{
+  "story_id": "ST-30",
+  "targets": [
+    "src/services/audit/service.py"
+  ],
+  "passed": true,
+  "message": "No code-quality issues reported by Ruff.",
+  "issues": []
+}

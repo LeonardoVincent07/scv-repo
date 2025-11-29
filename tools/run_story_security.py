@@ -58,17 +58,26 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
         ],
     },
     "ST-20": {
-    "story_file": REPO_ROOT
-    / "docs"
-    / "mission_destination"
-    / "stories"
-    / "ST-20_assemble_base_profile.md",
-    "security_targets": [
-        "src/services/client_profile/service.py",
-        "src/domain/models/client_profile.py",
-    ],
-},
-
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-20_assemble_base_profile.md",
+        "security_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-30": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-30_audit_ingestion.md",
+        "security_targets": [
+            "src/services/audit/service.py",
+        ],
+    },
 }
 
 
