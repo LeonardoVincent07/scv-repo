@@ -20,7 +20,16 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Callable
 
+# ---------------------------------------------------------------------------
+# Repo root + sys.path fix so "src" can be imported
+# ---------------------------------------------------------------------------
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+# Ensure the repo root is on sys.path so that "src. ..." imports work when this
+# script is run as `python tools/run_story_guardrails.py`.
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 # ---------------------------------------------------------------------------
 # Story configuration
