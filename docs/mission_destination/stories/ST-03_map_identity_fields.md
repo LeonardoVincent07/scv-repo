@@ -11,7 +11,7 @@ acceptance_criteria:
 
 overall_status: Planned
 
-testing_status: pass
+testing_status: fail
 halo_adherence: fail
 guardrail_adherence: fail
 code_quality_adherence: fail
