@@ -1,81 +1,160 @@
 #!/usr/bin/env python
 """
-Run tests for a story and update its testing_status front-matter.
+Run tests for one or more Stories, record results, and update testing_status
+in each Story's front matter.
 
-MVP: hard-wired to ST-03 and runs the full pytest suite.
-If pytest exits 0 -> testing_status: pass
-Else            -> testing_status: fail
+MVP:
+- We treat each Story as mapped to one or more pytest targets (files/tests).
+- For each Story:
+    * run pytest on its targets
+    * write evidence to evidence/test_results/<ST-XX>.json
+    * update testing_status: pass|fail in the Story markdown front matter
+
+If you run this locally and then commit, the repo's Story statuses become
+the machine-derived truth.
 """
 
+import json
 import subprocess
 import sys
 from pathlib import Path
+import re
+from typing import Dict, List, Tuple
 
-# Paths are relative to repo root
 REPO_ROOT = Path(__file__).resolve().parents[1]
-STORY_ID = "ST-03"
-STORY_FILE = REPO_ROOT / "docs" / "mission_destination" / "stories" / "ST-03_map_identity_fields.md"
+
+# ---- Story configuration -----------------------------------------------------
+
+# For now we only have real tests for ST-03.
+# As you implement more Stories, add entries here.
+STORY_CONFIG: Dict[str, Dict[str, object]] = {
+    "ST-03": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-03_map_identity_fields.md",
+        # Pytest targets for this Story. These should ONLY contain tests for ST-03.
+        "pytest_targets": [
+            "tests/services/client_profile/test_client_profile_service.py",
+        ],
+    },
+}
 
 
-def run_pytest() -> int:
-    """Run pytest and return exit code."""
-    print(">>> Running pytest …")
-    result = subprocess.run(
-        ["pytest"],
-        cwd=REPO_ROOT,
-        check=False,
-    )
-    print(f">>> pytest finished with exit code {result.returncode}")
+# ---- Core helpers ------------------------------------------------------------
+
+def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> int:
+    """
+    Run pytest for the given Story and return its exit code.
+    """
+    cmd = ["pytest", "-q", *pytest_targets]
+    print(f">>> Running tests for {story_id}: {' '.join(cmd)}")
+    result = subprocess.run(cmd, cwd=REPO_ROOT, check=False)
+    print(f">>> {story_id} pytest exit code: {result.returncode}")
     return result.returncode
 
 
-def update_testing_status(status: str) -> None:
-    """Set testing_status: <status> in the story front-matter."""
+def write_test_result_evidence(
+    story_id: str,
+    pytest_targets: List[str],
+    exit_code: int,
+    status: str,
+) -> Path:
+    """
+    Write a small JSON evidence file with the Story's test result.
+    """
+    results_dir = REPO_ROOT / "evidence" / "test_results"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    evidence_path = results_dir / f"{story_id}.json"
+    payload = {
+        "story_id": story_id,
+        "pytest_targets": pytest_targets,
+        "exit_code": exit_code,
+        "status": status,
+    }
+    evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f">>> Wrote test evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}")
+    return evidence_path
+
+
+def update_story_testing_status(story_file: Path, status: str) -> None:
+    """
+    Replace the first 'testing_status: ...' line in the Story's front matter.
+    """
     if status not in {"pass", "fail"}:
         raise ValueError(f"Invalid status {status!r}; expected 'pass' or 'fail'")
 
-    if not STORY_FILE.exists():
-        raise FileNotFoundError(f"Story file not found: {STORY_FILE}")
+    if not story_file.exists():
+        raise FileNotFoundError(f"Story file not found: {story_file}")
 
-    lines = STORY_FILE.read_text(encoding="utf-8").splitlines()
-    new_lines = []
-    replaced = False
+    text = story_file.read_text(encoding="utf-8")
 
-    for line in lines:
-        stripped = line.lstrip()
-        if stripped.startswith("testing_status:"):
-            indent = line[: len(line) - len(stripped)]
-            new_line = f"{indent}testing_status: {status}"
-            new_lines.append(new_line)
-            replaced = True
-        else:
-            new_lines.append(line)
+    pattern = r"(^testing_status:\s*).*$"
+    replacement = rf"\1{status}"
+    new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
 
-    if not replaced:
-        # If for some reason the key is missing, append it just before last_updated or at end
-        inserted = False
-        for i, line in enumerate(new_lines):
-            if line.lstrip().startswith("last_updated:"):
-                new_lines.insert(i, f"testing_status: {status}")
-                inserted = True
-                break
-        if not inserted:
-            new_lines.append(f"testing_status: {status}")
+    if count == 0:
+        raise RuntimeError(
+            f"Story file {story_file} does not contain a testing_status line to update."
+        )
 
-    STORY_FILE.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
-    print(f">>> Updated {STORY_FILE.relative_to(REPO_ROOT)} -> testing_status: {status}")
+    story_file.write_text(new_text, encoding="utf-8")
+    rel = story_file.relative_to(REPO_ROOT)
+    print(f">>> Updated {rel} -> testing_status: {status}")
 
+
+def run_for_story(story_id: str) -> Tuple[int, str]:
+    """
+    Execute end-to-end for a single Story:
+    - run pytest on its configured targets
+    - derive status
+    - write evidence
+    - update front matter
+    Returns (exit_code, status).
+    """
+    config = STORY_CONFIG[story_id]
+    story_file: Path = config["story_file"]  # type: ignore[assignment]
+    pytest_targets: List[str] = config["pytest_targets"]  # type: ignore[assignment]
+
+    exit_code = run_pytest_for_story(story_id, pytest_targets)
+    status = "pass" if exit_code == 0 else "fail"
+
+    write_test_result_evidence(story_id, pytest_targets, exit_code, status)
+    update_story_testing_status(story_file, status)
+
+    print(f">>> Story {story_id} testing_status set to {status}")
+    return exit_code, status
+
+
+# ---- CLI entrypoint ----------------------------------------------------------
 
 def main(argv: list[str]) -> int:
-    # Optional arg e.g. ST-03; we ignore anything else for now but keep the interface
-    if len(argv) > 1 and argv[1] not in {STORY_ID, STORY_ID.lower()}:
-        print(f"WARNING: Only {STORY_ID} is supported in this MVP; ignoring argument {argv[1]!r}")
+    """
+    Usage:
+      python tools/run_story_tests.py        # run for all configured Stories
+      python tools/run_story_tests.py ST-03  # run for a single Story
+    """
+    # Normalise args
+    requested_ids: List[str]
+    if len(argv) > 1:
+        story_id = argv[1].upper()
+        if story_id not in STORY_CONFIG:
+            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
+            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
+            return 1
+        requested_ids = [story_id]
+    else:
+        requested_ids = sorted(STORY_CONFIG.keys())
 
-    exit_code = run_pytest()
-    status = "pass" if exit_code == 0 else "fail"
-    update_testing_status(status)
-    print(f">>> Story {STORY_ID} testing_status set to {status}")
-    return exit_code
+    overall_exit = 0
+    for sid in requested_ids:
+        print(f"\n=== Running tests for Story {sid} ===")
+        exit_code, status = run_for_story(sid)
+        overall_exit = max(overall_exit, exit_code)
+
+    return overall_exit
 
 
 if __name__ == "__main__":
