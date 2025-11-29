@@ -1,0 +1,10 @@
+{
+  "story_id": "ST-03",
+  "targets": [
+    "src/services/client_profile/service.py",
+    "src/domain/models/client_profile.py"
+  ],
+  "passed": true,
+  "message": "No medium/high security issues found by Bandit.",
+  "issues": []
+}

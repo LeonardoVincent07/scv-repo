@@ -15,7 +15,7 @@ testing_status: pass
 halo_adherence: fail
 guardrail_adherence: pass
 code_quality_adherence: fail
-security_policy_adherence: fail
+security_policy_adherence: pass
 implementation_presence: false
 
 last_updated: <auto>
