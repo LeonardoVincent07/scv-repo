@@ -1,0 +1,10 @@
+Please validate the implementation of Story <ST-XX> using ci_pipeline_metaprompt.
+
+Story file:
+  <path to story file>
+
+Code file:
+  <path to code file>
+
+Test file:
+  <path to test file>

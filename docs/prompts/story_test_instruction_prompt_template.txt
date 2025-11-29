@@ -1,0 +1,7 @@
+Please create or update tests for Story <ST-XX> using story_test_metaprompt.
+
+Story file:
+  <path to story file>
+
+Test file:
+  <path to test file>
