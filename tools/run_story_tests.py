@@ -1,32 +1,31 @@
 #!/usr/bin/env python
 """
 Run tests for one or more Stories, record results, and update testing_status
-in each Story's front matter.
+in each Story's front-matter.
 
 MVP:
-- We treat each Story as mapped to one or more pytest targets (files/tests).
+- Each Story is mapped to one or more pytest targets (files/tests).
 - For each Story:
     * run pytest on its targets
     * write evidence to evidence/test_results/<ST-XX>.json
     * update testing_status: pass|fail in the Story markdown front matter
-
-If you run this locally and then commit, the repo's Story statuses become
-the machine-derived truth.
 """
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
-import re
 from typing import Dict, List, Tuple
 
+# Repo root = parent of /tools
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# ---- Story configuration -----------------------------------------------------
+# ---------------------------------------------------------------------------
+# Story configuration
+# ---------------------------------------------------------------------------
 
-# For now we only have real tests for ST-03.
-# As you implement more Stories, add entries here.
+# As more Stories gain real tests, add them here.
 STORY_CONFIG: Dict[str, Dict[str, object]] = {
     "ST-03": {
         "story_file": REPO_ROOT
@@ -34,7 +33,7 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         / "mission_destination"
         / "stories"
         / "ST-03_map_identity_fields.md",
-        # Pytest targets for this Story. These should ONLY contain tests for ST-03.
+        # Pytest targets for this Story (should only contain tests for ST-03)
         "pytest_targets": [
             "tests/services/client_profile/test_client_profile_service.py",
         ],
@@ -42,13 +41,17 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
 }
 
 
-# ---- Core helpers ------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Core helpers
+# ---------------------------------------------------------------------------
 
 def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> int:
     """
     Run pytest for the given Story and return its exit code.
+
+    Uses `sys.executable -m pytest` so it works reliably on Windows, Mac, Linux.
     """
-    cmd = ["pytest", "-q", *pytest_targets]
+    cmd = [sys.executable, "-m", "pytest", "-q", *pytest_targets]
     print(f">>> Running tests for {story_id}: {' '.join(cmd)}")
     result = subprocess.run(cmd, cwd=REPO_ROOT, check=False)
     print(f">>> {story_id} pytest exit code: {result.returncode}")
@@ -75,13 +78,16 @@ def write_test_result_evidence(
         "status": status,
     }
     evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f">>> Wrote test evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}")
+    print(
+        ">>> Wrote test evidence for "
+        f"{story_id} to {evidence_path.relative_to(REPO_ROOT)}"
+    )
     return evidence_path
 
 
 def update_story_testing_status(story_file: Path, status: str) -> None:
     """
-    Replace the first 'testing_status: ...' line in the Story's front matter.
+    Replace the first 'testing_status: ...' line in the Story's front-matter.
     """
     if status not in {"pass", "fail"}:
         raise ValueError(f"Invalid status {status!r}; expected 'pass' or 'fail'")
@@ -112,6 +118,7 @@ def run_for_story(story_id: str) -> Tuple[int, str]:
     - derive status
     - write evidence
     - update front matter
+
     Returns (exit_code, status).
     """
     config = STORY_CONFIG[story_id]
@@ -128,16 +135,16 @@ def run_for_story(story_id: str) -> Tuple[int, str]:
     return exit_code, status
 
 
-# ---- CLI entrypoint ----------------------------------------------------------
+# ---------------------------------------------------------------------------
+# CLI entrypoint
+# ---------------------------------------------------------------------------
 
 def main(argv: list[str]) -> int:
     """
     Usage:
-      python tools/run_story_tests.py        # run for all configured Stories
-      python tools/run_story_tests.py ST-03  # run for a single Story
+      python tools/run_story_tests.py          # run for all configured Stories
+      python tools/run_story_tests.py ST-03    # run for a single Story
     """
-    # Normalise args
-    requested_ids: List[str]
     if len(argv) > 1:
         story_id = argv[1].upper()
         if story_id not in STORY_CONFIG:
@@ -151,7 +158,7 @@ def main(argv: list[str]) -> int:
     overall_exit = 0
     for sid in requested_ids:
         print(f"\n=== Running tests for Story {sid} ===")
-        exit_code, status = run_for_story(sid)
+        exit_code, _ = run_for_story(sid)
         overall_exit = max(overall_exit, exit_code)
 
     return overall_exit
@@ -159,3 +166,4 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
