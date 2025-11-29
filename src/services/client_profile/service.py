@@ -18,7 +18,7 @@ class ClientProfileService:
 
     def get_client_profile(self, client_id: str) -> Dict[str, Any]:
         """
-        Map core identity fields from all sources for the given client_id.
+        Map core identity fields and identifiers from all sources for the given client_id.
         Returns a canonical ClientProfile as dict.
         """
         # Aggregate raw data from all sources
@@ -37,11 +37,8 @@ class ClientProfileService:
                 canonical[field] = None
                 lineage[field] = None
 
-        # Identifiers
-        identifiers = []
-        for rec in raw_records:
-            if "identifier" in rec and rec["identifier"]:
-                identifiers.append(ClientIdentifier(system=rec["_source"], value=rec["identifier"]))
+        # Identifiers (ST-04)
+        identifiers = self._map_identifiers(raw_records)
 
         # Addresses (optional, demo only)
         addresses = []
@@ -68,6 +65,16 @@ class ClientProfileService:
             raw_sources={rec["_source"]: rec for rec in raw_records}
         )
         return profile.__dict__
+
+    def _map_identifiers(self, raw_records) -> list:
+        """
+        ST-04: Map identifiers from all sources to canonical ClientIdentifier list.
+        """
+        identifiers = []
+        for rec in raw_records:
+            if "identifier" in rec and rec["identifier"]:
+                identifiers.append(ClientIdentifier(system=rec["_source"], value=rec["identifier"]))
+        return identifiers
 
     def _mock_crm_source(self, client_id: str) -> Dict[str, Any]:
         # Simulate a CRM system record

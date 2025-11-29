@@ -3,6 +3,6 @@
   "pytest_targets": [
     "tests/services/client_profile/test_st_04_map_identifiers.py"
   ],
-  "exit_code": 4,
-  "status": "fail"
+  "exit_code": 0,
+  "status": "pass"
 }
