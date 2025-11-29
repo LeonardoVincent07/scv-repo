@@ -23,7 +23,12 @@ class ClientProfileService:
         """
         # Aggregate raw data from all sources
         raw_records = [source(client_id) for source in self.sources]
+        return self.assemble_base_profile(client_id, raw_records)
 
+    def assemble_base_profile(self, client_id: str, raw_records) -> Dict[str, Any]:
+        """
+        ST-20: Assemble base profile fields from raw source records.
+        """
         # Map fields to canonical model, prioritising CRM > KYC for demo
         canonical = {}
         lineage = {}

@@ -1,0 +1,8 @@
+{
+  "story_id": "ST-20",
+  "pytest_targets": [
+    "tests/services/client_profile/test_st_20_assemble_base_profile.py"
+  ],
+  "exit_code": 0,
+  "status": "pass"
+}
