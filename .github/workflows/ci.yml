@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  story-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,9 +24,21 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run tests
+      - name: Run Story tests and update Story statuses
         run: |
-          python -m pytest --maxfail=1 --disable-warnings -q
+          python tools/run_story_tests.py
+
+      - name: Ensure Story statuses are up to date (no drift)
+        run: |
+          # If running the script changed any Story files, CI fails.
+          # This forces developers (or agents) to run the script locally and commit the updated front matter.
+          if ! git diff --quiet docs/mission_destination/stories; then
+            echo "Story front-matter testing_status is not in sync with test results."
+            echo "Run 'python tools/run_story_tests.py' locally and commit the Story file changes before pushing."
+            echo
+            git diff -- docs/mission_destination/stories
+            exit 1
+          fi
 
       - name: Capture CI evidence (placeholder)
         run: |
