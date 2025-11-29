@@ -1201,11 +1201,11 @@ acceptance_criteria:
 
 overall_status: Planned
 
-testing_status: not_run
+testing_status: pass
 halo_adherence: fail
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
 implementation_presence: false
 
 last_updated: <auto>
@@ -1601,11 +1601,11 @@ acceptance_criteria:
 
 overall_status: Planned
 
-testing_status: not_run
+testing_status: pass
 halo_adherence: fail
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
 implementation_presence: false
 
 last_updated: <auto>
@@ -3569,9 +3569,51 @@ A Storyâ€™s tests are complete when:
 }
 
 
+==================== FILE: evidence\guardrails\ST-04.json ====================
+{
+  "story_id": "ST-04",
+  "passed": true,
+  "message": "Output adheres to ClientProfile data model."
+}
+
+
+==================== FILE: evidence\guardrails\ST-20.json ====================
+{
+  "story_id": "ST-20",
+  "passed": true,
+  "message": "Output adheres to ClientProfile data model."
+}
+
+
 ==================== FILE: evidence\lint\ST-03.json ====================
 {
   "story_id": "ST-03",
+  "targets": [
+    "src/services/client_profile/service.py",
+    "src/domain/models/client_profile.py"
+  ],
+  "passed": true,
+  "message": "No code-quality issues reported by Ruff.",
+  "issues": []
+}
+
+
+==================== FILE: evidence\lint\ST-04.json ====================
+{
+  "story_id": "ST-04",
+  "targets": [
+    "src/services/client_profile/service.py",
+    "src/domain/models/client_profile.py"
+  ],
+  "passed": true,
+  "message": "No code-quality issues reported by Ruff.",
+  "issues": []
+}
+
+
+==================== FILE: evidence\lint\ST-20.json ====================
+{
+  "story_id": "ST-20",
   "targets": [
     "src/services/client_profile/service.py",
     "src/domain/models/client_profile.py"
@@ -3595,11 +3637,59 @@ A Storyâ€™s tests are complete when:
 }
 
 
+==================== FILE: evidence\security\ST-04.json ====================
+{
+  "story_id": "ST-04",
+  "targets": [
+    "src/services/client_profile/service.py",
+    "src/domain/models/client_profile.py"
+  ],
+  "passed": true,
+  "message": "No medium/high security issues found by Bandit.",
+  "issues": []
+}
+
+
+==================== FILE: evidence\security\ST-20.json ====================
+{
+  "story_id": "ST-20",
+  "targets": [
+    "src/services/client_profile/service.py",
+    "src/domain/models/client_profile.py"
+  ],
+  "passed": true,
+  "message": "No medium/high security issues found by Bandit.",
+  "issues": []
+}
+
+
 ==================== FILE: evidence\test_results\ST-03.json ====================
 {
   "story_id": "ST-03",
   "pytest_targets": [
     "tests/services/client_profile/test_client_profile_service.py"
+  ],
+  "exit_code": 0,
+  "status": "pass"
+}
+
+
+==================== FILE: evidence\test_results\ST-04.json ====================
+{
+  "story_id": "ST-04",
+  "pytest_targets": [
+    "tests/services/client_profile/test_st_04_map_identifiers.py"
+  ],
+  "exit_code": 0,
+  "status": "pass"
+}
+
+
+==================== FILE: evidence\test_results\ST-20.json ====================
+{
+  "story_id": "ST-20",
+  "pytest_targets": [
+    "tests/services/client_profile/test_st_20_assemble_base_profile.py"
   ],
   "exit_code": 0,
   "status": "pass"
@@ -3724,12 +3814,17 @@ class ClientProfileService:
 
     def get_client_profile(self, client_id: str) -> Dict[str, Any]:
         """
-        Map core identity fields from all sources for the given client_id.
+        Map core identity fields and identifiers from all sources for the given client_id.
         Returns a canonical ClientProfile as dict.
         """
         # Aggregate raw data from all sources
         raw_records = [source(client_id) for source in self.sources]
+        return self.assemble_base_profile(client_id, raw_records)
 
+    def assemble_base_profile(self, client_id: str, raw_records) -> Dict[str, Any]:
+        """
+        ST-20: Assemble base profile fields from raw source records.
+        """
         # Map fields to canonical model, prioritising CRM > KYC for demo
         canonical = {}
         lineage = {}
@@ -3743,11 +3838,8 @@ class ClientProfileService:
                 canonical[field] = None
                 lineage[field] = None
 
-        # Identifiers
-        identifiers = []
-        for rec in raw_records:
-            if "identifier" in rec and rec["identifier"]:
-                identifiers.append(ClientIdentifier(system=rec["_source"], value=rec["identifier"]))
+        # Identifiers (ST-04)
+        identifiers = self._map_identifiers(raw_records)
 
         # Addresses (optional, demo only)
         addresses = []
@@ -3774,6 +3866,16 @@ class ClientProfileService:
             raw_sources={rec["_source"]: rec for rec in raw_records}
         )
         return profile.__dict__
+
+    def _map_identifiers(self, raw_records) -> list:
+        """
+        ST-04: Map identifiers from all sources to canonical ClientIdentifier list.
+        """
+        identifiers = []
+        for rec in raw_records:
+            if "identifier" in rec and rec["identifier"]:
+                identifiers.append(ClientIdentifier(system=rec["_source"], value=rec["identifier"]))
+        return identifiers
 
     def _mock_crm_source(self, client_id: str) -> Dict[str, Any]:
         # Simulate a CRM system record
@@ -3890,6 +3992,77 @@ class TestClientProfileService:
 
 
 
+==================== FILE: tests\services\client_profile\test_st_04_map_identifiers.py ====================
+import pytest
+from src.services.client_profile.service import ClientProfileService
+from src.domain.models.client_profile import ClientIdentifier
+
+def test_identifiers_mapped_from_all_sources():
+    service = ClientProfileService()
+    # Known client_id present in both CRM and KYC mock sources
+    profile = service.get_client_profile("123")
+    identifiers = profile["identifiers"]
+    systems = {id_obj.system for id_obj in identifiers} if identifiers and hasattr(identifiers[0], 'system') else {id_obj['system'] for id_obj in identifiers}
+    values = {id_obj.value for id_obj in identifiers} if identifiers and hasattr(identifiers[0], 'value') else {id_obj['value'] for id_obj in identifiers}
+    assert systems == {"CRM", "KYC"}
+    assert values == {"crm-123", "kyc-123"}
+    assert len(identifiers) == 2
+
+def test_identifiers_empty_for_unknown_client():
+    service = ClientProfileService()
+    profile = service.get_client_profile("notfound")
+    assert profile["identifiers"] == []
+
+def test_identifier_types():
+    service = ClientProfileService()
+    profile = service.get_client_profile("123")
+    identifiers = profile["identifiers"]
+    # Should be list of ClientIdentifier or dicts with system/value keys
+    for id_obj in identifiers:
+        if isinstance(id_obj, ClientIdentifier):
+            assert hasattr(id_obj, "system")
+            assert hasattr(id_obj, "value")
+        else:
+            assert "system" in id_obj
+            assert "value" in id_obj
+
+
+
+==================== FILE: tests\services\client_profile\test_st_20_assemble_base_profile.py ====================
+import pytest
+from src.services.client_profile.service import ClientProfileService
+
+def test_assemble_base_profile_fields_set():
+    service = ClientProfileService()
+    # Known client_id present in both CRM and KYC mock sources
+    profile = service.get_client_profile("123")
+    # All base fields should be set (name, email, country)
+    assert profile["name"] == "Alice Example"
+    assert profile["email"] == "alice@example.com"
+    assert profile["country"] == "UK"
+    assert profile["client_id"] == "123"
+    # Should have identifiers and addresses
+    assert isinstance(profile["identifiers"], list)
+    assert isinstance(profile["addresses"], list)
+    # Should have lineage and raw_sources
+    assert isinstance(profile["lineage"], dict)
+    assert isinstance(profile["raw_sources"], dict)
+
+def test_assemble_base_profile_unknown_client():
+    service = ClientProfileService()
+    profile = service.get_client_profile("notfound")
+    # All base fields should be None or empty
+    assert profile["name"] == ""
+    assert profile["email"] is None
+    assert profile["country"] is None
+    assert profile["client_id"] == "notfound"
+    assert profile["identifiers"] == []
+    assert profile["addresses"] == []
+    assert isinstance(profile["lineage"], dict)
+    assert isinstance(profile["raw_sources"], dict)
+
+
+
 ==================== FILE: tests\services\client_search\test_client_search_service.py ====================
 import pytest
 from src.services.client_search.service import ClientSearchService
@@ -3917,7 +4090,7 @@ in each Story's front matter.
 For the MVP, the guardrail we enforce is:
 - Story output must adhere to the canonical data model.
 
-Specifically for ST-03:
+Specifically for ST-03 / ST-04:
 - ClientProfileService.get_client_profile(...) must return a structure
   that matches the ClientProfile dataclass fields and types.
 """
@@ -3967,9 +4140,9 @@ def _register_story(
 # Guardrail checks
 # ---------------------------------------------------------------------------
 
-def check_st_03_data_model_adherence() -> Tuple[bool, str]:
+def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
     """
-    Guardrail for ST-03: Map identity fields.
+    Guardrail for ClientProfile-producing Stories (ST-03, ST-04).
 
     Rules:
     - get_client_profile(...) must return a dict
@@ -4034,7 +4207,7 @@ def check_st_03_data_model_adherence() -> Tuple[bool, str]:
     return True, "Output adheres to ClientProfile data model."
 
 
-# Register ST-03
+# Register ST-03 and ST-04 (same guardrail, same model)
 _register_story(
     "ST-03",
     REPO_ROOT
@@ -4042,7 +4215,23 @@ _register_story(
     / "mission_destination"
     / "stories"
     / "ST-03_map_identity_fields.md",
-    check_st_03_data_model_adherence,
+    check_client_profile_data_model_adherence,
+)
+
+_register_story(
+    "ST-04",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-04_map_identifiers.md",
+    check_client_profile_data_model_adherence,
+)
+
+_register_story(
+    "ST-20",
+    REPO_ROOT / "docs" / "mission_destination" / "stories" / "ST-20_assemble_base_profile.md",
+    check_client_profile_data_model_adherence,
 )
 
 
@@ -4163,13 +4352,8 @@ in each Story's front matter.
 
 MVP:
 - Use Ruff to lint the Story's Python files.
-- If any errors are reported, mark as fail.
+- If any issues are reported, mark as fail.
 - Otherwise mark as pass.
-
-This mirrors:
-- run_story_tests.py              -> testing_status
-- run_story_guardrails.py         -> guardrail_adherence
-- run_story_security.py           -> security_policy_adherence
 """
 
 from __future__ import annotations
@@ -4188,6 +4372,7 @@ from typing import Any, Dict, List, Tuple
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
 
 # ---------------------------------------------------------------------------
 # Story configuration
@@ -4208,7 +4393,33 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
-    # Add more Stories here as they go live
+    "ST-04": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-04_map_identifiers.md",
+        "lint_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-20": {
+    "story_file": REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-20_assemble_base_profile.md",
+    "lint_targets": [
+        "src/services/client_profile/service.py",
+        "src/domain/models/client_profile.py",
+    ],
+},
+
+  
+
+
+
 }
 
 
@@ -4403,7 +4614,6 @@ if __name__ == "__main__":
 
 
 
-
 ==================== FILE: tools\run_story_security.py ====================
 #!/usr/bin/env python
 """
@@ -4414,9 +4624,6 @@ MVP:
 - Use Bandit to scan the Story's Python files for security issues.
 - If any Medium/High severity issues are found, mark as fail.
 - Otherwise mark as pass.
-
-This mirrors run_story_tests.py (testing_status) and
-run_story_guardrails.py (guardrail_adherence).
 """
 
 from __future__ import annotations
@@ -4435,6 +4642,7 @@ from typing import Any, Dict, List, Tuple
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
 
 # ---------------------------------------------------------------------------
 # Story configuration
@@ -4455,7 +4663,29 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
-    # Add more Stories here as they go live
+    "ST-04": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-04_map_identifiers.md",
+        "security_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-20": {
+    "story_file": REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-20_assemble_base_profile.md",
+    "security_targets": [
+        "src/services/client_profile/service.py",
+        "src/domain/models/client_profile.py",
+    ],
+},
+
 }
 
 
@@ -4666,13 +4896,13 @@ if __name__ == "__main__":
 Run tests for one or more Stories, record results, and update testing_status
 in each Story's front-matter.
 
-MVP:
-- Each Story is mapped to one or more pytest targets (files/tests).
-- For each Story:
-    * run pytest on its targets
-    * write evidence to evidence/test_results/<ST-XX>.json
-    * update testing_status: pass|fail in the Story markdown front matter
+For each Story:
+- Run pytest on its configured targets
+- Write evidence to evidence/test_results/<ST-XX>.json
+- Update testing_status: pass|fail in the Story markdown front matter
 """
+
+from __future__ import annotations
 
 import json
 import re
@@ -4683,6 +4913,7 @@ from typing import Dict, List, Tuple
 
 # Repo root = parent of /tools
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 # ---------------------------------------------------------------------------
 # Story configuration
@@ -4701,6 +4932,28 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
             "tests/services/client_profile/test_client_profile_service.py",
         ],
     },
+    "ST-04": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-04_map_identifiers.md",
+        # Separate test file focused on identifier behaviour for ST-04
+        "pytest_targets": [
+            "tests/services/client_profile/test_st_04_map_identifiers.py",
+        ],
+    },
+    "ST-20": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-20_assemble_base_profile.md",
+        "pytest_targets": [
+            "tests/services/client_profile/test_st_20_assemble_base_profile.py",
+        ],
+    },
+
 }
 
 
@@ -4802,7 +5055,7 @@ def run_for_story(story_id: str) -> Tuple[int, str]:
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
-def main(argv: list[str]) -> int:
+def main(argv: List[str]) -> int:
     """
     Usage:
       python tools/run_story_tests.py          # run for all configured Stories
