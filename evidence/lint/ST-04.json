@@ -1,0 +1,10 @@
+{
+  "story_id": "ST-04",
+  "targets": [
+    "src/services/client_profile/service.py",
+    "src/domain/models/client_profile.py"
+  ],
+  "passed": true,
+  "message": "No code-quality issues reported by Ruff.",
+  "issues": []
+}

@@ -10,11 +10,11 @@ acceptance_criteria:
 
 overall_status: Planned
 
-testing_status: not_run
+testing_status: fail
 halo_adherence: fail
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
 implementation_presence: false
 
 last_updated: <auto>

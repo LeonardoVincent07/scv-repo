@@ -1,0 +1,8 @@
+{
+  "story_id": "ST-04",
+  "pytest_targets": [
+    "tests/services/client_profile/test_st_04_map_identifiers.py"
+  ],
+  "exit_code": 4,
+  "status": "fail"
+}

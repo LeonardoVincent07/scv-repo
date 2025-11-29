@@ -6,7 +6,7 @@ in each Story's front matter.
 For the MVP, the guardrail we enforce is:
 - Story output must adhere to the canonical data model.
 
-Specifically for ST-03:
+Specifically for ST-03 / ST-04:
 - ClientProfileService.get_client_profile(...) must return a structure
   that matches the ClientProfile dataclass fields and types.
 """
@@ -56,9 +56,9 @@ def _register_story(
 # Guardrail checks
 # ---------------------------------------------------------------------------
 
-def check_st_03_data_model_adherence() -> Tuple[bool, str]:
+def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
     """
-    Guardrail for ST-03: Map identity fields.
+    Guardrail for ClientProfile-producing Stories (ST-03, ST-04).
 
     Rules:
     - get_client_profile(...) must return a dict
@@ -123,7 +123,7 @@ def check_st_03_data_model_adherence() -> Tuple[bool, str]:
     return True, "Output adheres to ClientProfile data model."
 
 
-# Register ST-03
+# Register ST-03 and ST-04 (same guardrail, same model)
 _register_story(
     "ST-03",
     REPO_ROOT
@@ -131,7 +131,17 @@ _register_story(
     / "mission_destination"
     / "stories"
     / "ST-03_map_identity_fields.md",
-    check_st_03_data_model_adherence,
+    check_client_profile_data_model_adherence,
+)
+
+_register_story(
+    "ST-04",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-04_map_identifiers.md",
+    check_client_profile_data_model_adherence,
 )
 
 

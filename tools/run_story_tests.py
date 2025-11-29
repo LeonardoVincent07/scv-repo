@@ -3,13 +3,13 @@
 Run tests for one or more Stories, record results, and update testing_status
 in each Story's front-matter.
 
-MVP:
-- Each Story is mapped to one or more pytest targets (files/tests).
-- For each Story:
-    * run pytest on its targets
-    * write evidence to evidence/test_results/<ST-XX>.json
-    * update testing_status: pass|fail in the Story markdown front matter
+For each Story:
+- Run pytest on its configured targets
+- Write evidence to evidence/test_results/<ST-XX>.json
+- Update testing_status: pass|fail in the Story markdown front matter
 """
+
+from __future__ import annotations
 
 import json
 import re
@@ -20,6 +20,7 @@ from typing import Dict, List, Tuple
 
 # Repo root = parent of /tools
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 # ---------------------------------------------------------------------------
 # Story configuration
@@ -36,6 +37,17 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         # Pytest targets for this Story (should only contain tests for ST-03)
         "pytest_targets": [
             "tests/services/client_profile/test_client_profile_service.py",
+        ],
+    },
+    "ST-04": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-04_map_identifiers.md",
+        # Separate test file focused on identifier behaviour for ST-04
+        "pytest_targets": [
+            "tests/services/client_profile/test_st_04_map_identifiers.py",
         ],
     },
 }
@@ -139,7 +151,7 @@ def run_for_story(story_id: str) -> Tuple[int, str]:
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
-def main(argv: list[str]) -> int:
+def main(argv: List[str]) -> int:
     """
     Usage:
       python tools/run_story_tests.py          # run for all configured Stories

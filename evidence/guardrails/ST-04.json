@@ -1,0 +1,5 @@
+{
+  "story_id": "ST-04",
+  "passed": true,
+  "message": "Output adheres to ClientProfile data model."
+}

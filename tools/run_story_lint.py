@@ -5,13 +5,8 @@ in each Story's front matter.
 
 MVP:
 - Use Ruff to lint the Story's Python files.
-- If any errors are reported, mark as fail.
+- If any issues are reported, mark as fail.
 - Otherwise mark as pass.
-
-This mirrors:
-- run_story_tests.py              -> testing_status
-- run_story_guardrails.py         -> guardrail_adherence
-- run_story_security.py           -> security_policy_adherence
 """
 
 from __future__ import annotations
@@ -30,6 +25,7 @@ from typing import Any, Dict, List, Tuple
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
 
 # ---------------------------------------------------------------------------
 # Story configuration
@@ -50,7 +46,17 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
-    # Add more Stories here as they go live
+    "ST-04": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-04_map_identifiers.md",
+        "lint_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
 }
 
 
@@ -242,4 +248,3 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
-
