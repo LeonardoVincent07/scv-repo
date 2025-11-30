@@ -1,0 +1,9 @@
+{
+  "ST-00-backend-api-availability": {
+    "description": "Backend API availability (health endpoint and service startup).",
+    "backend": [
+      "backend/main.py"
+    ],
+    "frontend": []
+  }
+}

@@ -1,3 +1,8 @@
+# Story: ST-00-backend-api-availability
+# Feature: FT-00-backend-fundamentals
+# Epic: E00
+# Purpose: Backend bootstrapping and health endpoint.
+
 from typing import Any, Dict, List
 import json
 import os
