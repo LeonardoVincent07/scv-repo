@@ -1,8 +1,11 @@
 from typing import Any, Dict, List
 import json
+import os
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from .db import Base, engine, SessionLocal
@@ -19,7 +22,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Single Client View (SCV) Backend")
 
 # ------------------------------------
-# CORS (required for frontend)
+# CORS (kept for optional Vite dev server use)
 # ------------------------------------
 app.add_middleware(
     CORSMiddleware,
@@ -31,6 +34,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ------------------------------------
+# Serve built frontend (Vite dist)
+# ------------------------------------
+FRONTEND_DIST = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "app_frontend", "dist")
+)
+
+if os.path.isdir(FRONTEND_DIST):
+    # Serve static assets (JS/CSS, etc.)
+    app.mount(
+        "/assets",
+        StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")),
+        name="assets",
+    )
+
+    @app.get("/", include_in_schema=False)
+    async def serve_react_index():
+        """Serve the built React single-page app."""
+        index_path = os.path.join(FRONTEND_DIST, "index.html")
+        return FileResponse(index_path)
+
 
 # ------------------------------------
 # DB session dependency
