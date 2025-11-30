@@ -1,0 +1,6 @@
+git checkout main
+git pull
+git add .
+git commit -m "Sync"
+git push
+
