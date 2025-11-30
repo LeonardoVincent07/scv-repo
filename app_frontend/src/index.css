@@ -1,18 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* app_frontend/src/index.css */
 
+/* This pulls in Tailwind v4 (base, components, utilities) */
+@import "tailwindcss";
+
+/* Simple global defaults – Tailwind utilities handle the rest */
 :root {
-  color: #111827;
-  background-color: #f3f4f6;
-  font-family: Lato, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 }
 
-body {
-  @apply bg-gray-100 text-gray-900;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-#root {
+body {
+  margin: 0;
   min-height: 100vh;
 }
+
