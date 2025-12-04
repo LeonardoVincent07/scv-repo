@@ -78,6 +78,17 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/services/audit/service.py",
         ],
     },
+     "ST-00": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-backend-api-availability.md",
+        "security_targets": [
+            "app_backend/main.py",
+        ],
+    },
+
 }
 
 

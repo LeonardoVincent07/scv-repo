@@ -70,6 +70,21 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
             "tests/services/audit/test_st_30_audit_ingestion.py",
         ],
     },
+    "ST-00": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-backend-api-availability.md",
+        "pytest_targets": [
+            "tests/api/http/test_st_00_backend_api_availability.py",
+        ],
+    },
+
+
+
+
+
 }
 
 

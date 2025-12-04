@@ -754,6 +754,3784 @@ jobs:
 
 
 
+===== FILE: docs\mission_destination\initial_logical_data_model.md =====
+# Initial Logical Data Model (LDM)
+**MissionDestination**
+**Single Client View (SCV)**
+
+## 1. Purpose
+This document defines the **Initial Logical Data Model** for the Single Client View (SCV) application.
+It establishes the **canonical semantic representation of a client**, which all ingestion,
+normalisation, matching, merging, lineage, quality, and API features will converge toward.
+
+The Initial Logical Data Model is:
+- technology-agnostic
+- storage-agnostic
+- canonical across all source systems
+- stable across all Stories
+- the semantic target for the behaviours defined in Epics, Features, and Stories
+
+It is **not** a physical database schema.  
+It is the logical definition of what a â€œclientâ€ means inside the SCV domain.
+
+## 2. Canonical Entities
+
+### 2.1 ClientProfile
+Represents the unified, deduplicated profile of a client.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| client_id | str | Internal SCV identifier |
+| name | str | Canonical client name |
+| email | Optional[str] | Canonical email |
+| country | Optional[str] | Country associated with the client |
+| identifiers | List[ClientIdentifier] | Identifiers from upstream systems |
+| addresses | List[ClientAddress] | Normalised address objects |
+| lineage | Dict[str, Any] | Provenance metadata |
+| quality | Dict[str, float] | Freshness, completeness, confidence |
+| metadata | Dict[str, str] | Timestamps, merge strategies, flags |
+| raw_sources | Dict[str, Dict[str, Any]] | Raw source payloads |
+
+### 2.2 ClientIdentifier
+| Field | Type | Description |
+|-------|------|-------------|
+| system | str | Upstream system name |
+| value | str | Identifier in that system |
+
+### 2.3 ClientAddress
+| Field | Type | Description |
+|-------|------|-------------|
+| line1 | Optional[str] | Address line 1 |
+| line2 | Optional[str] | Address line 2 |
+| city | Optional[str] | City |
+| postcode | Optional[str] | Postal code |
+| country | Optional[str] | ISO country |
+| source | Optional[str] | System contributing the address |
+
+## 3. Python Representation
+
+```python
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any
+
+@dataclass
+class ClientIdentifier:
+    system: str
+    value: str
+
+@dataclass
+class ClientAddress:
+    line1: Optional[str] = None
+    line2: Optional[str] = None
+    city: Optional[str] = None
+    postcode: Optional[str] = None
+    country: Optional[str] = None
+    source: Optional[str] = None
+
+@dataclass
+class ClientProfile:
+    client_id: str
+    name: str
+
+    email: Optional[str] = None
+    country: Optional[str] = None
+
+    identifiers: List[ClientIdentifier] = field(default_factory=list)
+    addresses: List[ClientAddress] = field(default_factory=list)
+
+    lineage: Dict[str, Any] = field(default_factory=dict)
+    quality: Dict[str, float] = field(default_factory=dict)
+    metadata: Dict[str, str] = field(default_factory=dict)
+
+    raw_sources: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+```
+
+## 4. Next Steps
+- Add this model to `src/domain/models/client_profile.py`
+- Keep structure stable through MVP
+- Extend only if new Stories introduce semantic requirements
+
+
+
+===== FILE: docs\mission_destination\initial_story_sequence.md =====
+\# Initial Story Sequence (SCV)
+
+\*\*MissionDestination\*\*  
+
+\*\*Single Client View (SCV)\*\*
+
+
+
+---
+
+
+
+\## 1. Purpose
+
+
+
+This document defines the \*\*initial execution order for all Stories\*\* in the Single Client View (SCV) MissionDestination.
+
+
+
+The ordering is derived from:
+
+
+
+\- the SCV Epics and Features,
+
+\- the Initial Logical Data Model (LDM),
+
+\- dependency analysis across services and APIs,
+
+\- and the need to build up capability incrementally in a stable way.
+
+
+
+It is a \*\*MissionDestination artefact\*\*: it describes \*how the business semantics are best realised over time\*, not runtime performance (MissionDynamics).
+
+
+
+This sequence underpins:
+
+
+
+\- developer and agent workflows,
+
+\- CI/test evolution,
+
+\- and the progressive construction of the canonical SCV capability.
+
+
+
+---
+
+
+
+\## 2. Relationship to Other Artefacts
+
+
+
+This Story Sequence should be read together with:
+
+
+
+\- \*\*MissionFramework\*\* (technology guardrails, testing strategy, CI blueprint, policy-as-code)
+
+\- \*\*Meta-prompts\*\* (code, test, CI)
+
+\- \*\*Instruction prompts\*\* (how Stories are executed)
+
+\- \*\*MissionDestination\*\*:
+
+&nbsp; - Epics, Features, Stories
+
+&nbsp; - Initial Logical Data Model (LDM)
+
+\- \*\*Mission Build Plan\*\* (the overall step-by-step setup of the project)
+
+
+
+The sequence assumes that:
+
+
+
+1\. The repo structure exists.  
+
+2\. MissionFramework and meta-prompts are in place.  
+
+3\. The Initial Logical Data Model for SCV (`ClientProfile`, `ClientIdentifier`, `ClientAddress`) is defined.  
+
+
+
+Only then is it valid to implement Stories in this order.
+
+
+
+---
+
+
+
+\## 3. Golden Story Sequence (MVP Build Order)
+
+
+
+The following is the \*\*recommended implementation sequence\*\* for the SCV Stories.
+
+
+
+Each entry references the Story ID; the Story definition remains the single source of truth for behaviour and acceptance criteria.
+
+
+
+1\. \*\*ST-03 â€“ Map identity fields\*\*  
+
+2\. \*\*ST-04 â€“ Map identifiers\*\*  
+
+3\. \*\*ST-20 â€“ Assemble base profile\*\*  
+
+
+
+4\. \*\*ST-09 â€“ Match by tax ID\*\*  
+
+5\. \*\*ST-10 â€“ Match by registration number\*\*  
+
+
+
+6\. \*\*ST-16 â€“ Build search index\*\*  
+
+7\. \*\*ST-17 â€“ Normalise search fields\*\*  
+
+8\. \*\*ST-32 â€“ Implement basic search API\*\*  
+
+
+
+9\. \*\*ST-18 â€“ Implement fuzzy search queries\*\*  
+
+10\. \*\*ST-19 â€“ Implement search ranking\*\*  
+
+
+
+11\. \*\*ST-13 â€“ Merge identity attributes\*\*  
+
+12\. \*\*ST-14 â€“ Merge addresses\*\*  
+
+13\. \*\*ST-15 â€“ Record merge lineage\*\*  
+
+
+
+14\. \*\*ST-21 â€“ Assemble profile metadata\*\*  
+
+15\. \*\*ST-22 â€“ Expose lineage in profile\*\*  
+
+16\. \*\*ST-24 â€“ Flag merge conflicts\*\*  
+
+17\. \*\*ST-25 â€“ Present merge logic / rationale\*\*  
+
+
+
+18\. \*\*ST-28 â€“ Compute data freshness\*\*  
+
+19\. \*\*ST-29 â€“ Compute data completeness\*\*  
+
+20\. \*\*ST-26 â€“ Store lineage history\*\*  
+
+21\. \*\*ST-27 â€“ Timestamp lineage events\*\*  
+
+
+
+22\. \*\*ST-07 â€“ Detect upstream deltas\*\*  
+
+23\. \*\*ST-08 â€“ Apply upstream deltas to SCV\*\*  
+
+
+
+24\. \*\*ST-05 â€“ Bulk load from CRM\*\*  
+
+25\. \*\*ST-06 â€“ Bulk load from KYC\*\*  
+
+
+
+26\. \*\*ST-33 â€“ Refine search API ranking\*\*  
+
+27\. \*\*ST-34 â€“ Implement basic client profile API\*\*  
+
+28\. \*\*ST-35 â€“ Expose lineage via client profile API\*\*  
+
+
+
+29\. \*\*ST-11 â€“ Fuzzy name matching\*\*  
+
+30\. \*\*ST-12 â€“ Attribute-level confidence scoring\*\*  
+
+31\. \*\*ST-23 â€“ Lineage drill-down / field-level provenance\*\*  
+
+
+
+32\. \*\*ST-30 â€“ Audit ingestion operations\*\*  
+
+33\. \*\*ST-31 â€“ Audit merge operations\*\*  
+
+
+
+34\. \*\*ST-01 â€“ Register CRM source system\*\*  
+
+35\. \*\*ST-02 â€“ Register KYC source system\*\*
+
+
+
+---
+
+
+
+\## 4. Usage and Change Control
+
+
+
+\- This sequence is the \*\*default build order\*\* for human developers and agents.  
+
+\- No Story should be implemented \*\*significantly out of sequence\*\* without re-running dependency analysis.  
+
+\- If the Story set changes (new Stories, retired Stories, structural changes to Epics/Features), this document \*\*must be updated\*\* to reflect the new ordering.  
+
+
+
+For each Story:
+
+
+
+1\. Read the Story definition under `docs/mission\_destination/stories/`.  
+
+2\. Implement the corresponding code slice(s) in `src/` as per the code meta-prompt.  
+
+3\. Implement the corresponding tests in `tests/` as per the test meta-prompt.  
+
+4\. Ensure CI passes and MissionFramework guardrails are satisfied.  
+
+5\. Only then move to the next Story in this sequence.
+
+
+
+---
+
+
+
+
+
+
+===== FILE: docs\mission_destination\epics\E00_application_bootstrapping.md =====
+---
+
+id: E00
+
+slug: e00\_application\_bootstrapping
+
+type: epic
+
+name: Application Bootstrapping
+
+status: active
+
+description: >
+
+&nbsp; Establish the initial backend service and runtime foundations required for the
+
+&nbsp; Single Client Value application to start, respond to basic requests, and be
+
+&nbsp; governed by MissionFramework guardrails.
+
+owner: TBD
+
+related\_features:
+
+&nbsp; - FT-00-backend-fundamentals
+
+---
+
+
+
+\## Context
+
+
+
+This epic delivers the minimal backend scaffolding needed for developers to
+
+build, run, and verify the Single Client Value application.
+
+
+
+\## Objectives
+
+
+
+\- Backend starts reliably in a developer environment.
+
+\- At least one health/status endpoint is available.
+
+\- Code adheres to MissionFramework guardrails.
+
+\- Story-level test status is automatically updated.
+
+
+
+\## Acceptance
+
+
+
+\- All features under this epic have status `active` or `done`.
+
+\- All related stories have `test\_status: passed`.
+
+
+
+
+
+
+===== FILE: docs\mission_destination\epics\E00_ui_bootstrapping.md =====
+---
+
+id: E00-UI
+
+slug: e00\_ui\_bootstrapping
+
+type: epic
+
+name: User Interface Bootstrapping
+
+status: active
+
+description: >
+
+&nbsp; Establish the initial frontend shell for the Single Client Value application,
+
+&nbsp; ensuring that a basic UI loads, renders and is testable.
+
+owner: TBD
+
+related\_features:
+
+&nbsp; - FT-00-frontend-fundamentals
+
+---
+
+
+
+\## Context
+
+
+
+This epic delivers the minimal frontend scaffolding needed for the Single
+
+Client Value UI to build, load in a browser, and render predictable output.
+
+
+
+\## Objectives
+
+
+
+\- Frontend builds without errors.
+
+\- App renders a visible indicator confirming it is running.
+
+\- Tests validate this behaviour.
+
+
+
+\## Acceptance
+
+
+
+\- All related features are `active` or `done`.
+
+\- All related stories have `test\_status: passed`.
+
+
+
+
+
+
+===== FILE: docs\mission_destination\epics\E01_client_ingestion_and_normalisation.md =====
+---
+epic_id: EP-01
+name: "Client Ingestion & Normalisation"
+description: |
+  This epic delivers the capability to ingest client data from multiple internal
+  systems (CRM, KYC, onboarding, trading) and normalise it into a single
+  canonical client model. It ensures consistent formats, data types, and field
+  structures across all sources. This is the pipeline that feeds the SCV engine
+  with reliable, usable data.
+
+features:
+  - FT-01
+  - FT-02
+  - FT-03
+  - FT-04
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+feature_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\epics\E02_client_matching_and_golden_record.md =====
+---
+epic_id: EP-02
+name: "Client Matching & Golden Record"
+description: |
+  This epic establishes the rules and logic for matching client records across
+  systems, resolving duplicates, and building the authoritative golden record.
+  Includes exact and fuzzy matching, conflict resolution, and merge lineage.
+  The output becomes the Single Client View master profile.
+
+features:
+  - FT-05
+  - FT-06
+  - FT-07
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+feature_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\epics\E03_client_search.md =====
+---
+epic_id: EP-03
+name: "Client Search"
+description: |
+  This epic provides search capabilities for finding clients based on names,
+  identifiers, partial information, or attributes. It includes indexing,
+  relevance ranking, fuzzy matching, and result scoring. Search is the primary
+  user entry point into the Single Client View.
+
+features:
+  - FT-08
+  - FT-09
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+feature_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\epics\E04_client_profile_assembly.md =====
+---
+epic_id: EP-04
+name: "Client Profile Assembly"
+description: |
+  This epic assembles the unified client profile from the golden record,
+  including core identity, operational attributes, source lineage, and data
+  quality indicators. It defines how attribute-level provenance is exposed and
+  how conflicting information is presented.
+
+features:
+  - FT-10
+  - FT-11
+  - FT-12
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+feature_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\epics\E05_data_quality_and_lineage.md =====
+---
+epic_id: EP-05
+name: "Data Quality & Lineage"
+description: |
+  This epic delivers attribute-level lineage tracking, data freshness indicators,
+  quality scoring, conflict flags, and auditability. It ensures every attribute
+  in the SCV profile can be traced back to its original source system with full
+  transparency.
+
+features:
+  - FT-13
+  - FT-14
+  - FT-15
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+feature_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\epics\E06_api_and_integration.md =====
+---
+epic_id: EP-06
+name: "Integration & API Exposure"
+description: |
+  This epic exposes the SCV capabilities to other systems via APIs. Includes
+  search endpoints, client profile retrieval, and interface contracts for
+  internal consumers. Ensures consistent, secure, and performant access to the
+  Single Client View.
+
+features:
+  - FT-16
+  - FT-17
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+feature_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-00-backend_fundamentals.md =====
+
+
+===== FILE: docs\mission_destination\features\FT-00-frontend_fundamentals.md =====
+---
+
+id: FT-00-frontend-fundamentals
+
+slug: ft-00-frontend-fundamentals
+
+type: feature
+
+name: Frontend Fundamentals
+
+epic\_id: E00-UI
+
+status: active
+
+description: >
+
+&nbsp; Provide a minimal frontend shell that builds, loads, renders, and verifies the
+
+&nbsp; baseline UI is operational.
+
+owner: TBD
+
+related\_stories:
+
+&nbsp; - ST-00-frontend-ui-shell
+
+---
+
+
+
+\## Scope
+
+
+
+\- Frontend build and dev server.
+
+\- Root React component and layout shell.
+
+\- Visible indicator that the UI is running.
+
+
+
+\## Out of Scope
+
+
+
+\- Domain UI for Single Client Value.
+
+\- Search, profile, lineage, or matching components.
+
+
+
+
+
+
+===== FILE: docs\mission_destination\features\FT-01_source_system_config.md =====
+---
+feature_id: FT-01
+epic: EP-01
+name: "Source System Configuration"
+description: |
+  Configure each upstream client data source, including credentials, endpoints,
+  schema discovery, and scheduling parameters. Enables SCV to pull structured
+  data from CRM, KYC, onboarding, and trading systems.
+
+stories:
+  - ST-01
+  - ST-02
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-02_schema_mapping.md =====
+---
+feature_id: FT-02
+epic: EP-01
+name: "Schema Mapping to Canonical Model"
+description: |
+  Map source-system client schemas into SCVâ€™s canonical schema, including
+  identity fields, contact details, identifiers, and operational attributes.
+
+stories:
+  - ST-03
+  - ST-04
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-03_initial_bulk_ingestion.md =====
+---
+feature_id: FT-03
+epic: EP-01
+name: "Initial Bulk Ingestion"
+description: |
+  Perform a one-time historical load of all client records from each upstream
+  system. Includes batching, error handling, and ingestion evidence.
+
+stories:
+  - ST-05
+  - ST-06
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-04_incremental_ingestion.md =====
+---
+feature_id: FT-04
+epic: EP-01
+name: "Incremental Ingestion & Change Detection"
+description: |
+  Implement scheduled or event-driven incremental updates, detecting changes in
+  upstream systems and applying deltas to SCVâ€™s internal store.
+
+stories:
+  - ST-07
+  - ST-08
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-05_exact_matching.md =====
+---
+feature_id: FT-05
+epic: EP-02
+name: "Exact Match Rules"
+description: |
+  Implement deterministic matching rules based on unique identifiers such as
+  client ID, company registration number, tax ID, and email address.
+
+stories:
+  - ST-09
+  - ST-10
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-06_fuzzy_matching.md =====
+---
+feature_id: FT-06
+epic: EP-02
+name: "Fuzzy & Probabilistic Matching"
+description: |
+  Implement relevance-based matching using name similarity, token distance, and
+  attribute-level confidence scoring.
+
+stories:
+  - ST-11
+  - ST-12
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-07_golden_record_merge.md =====
+---
+feature_id: FT-07
+epic: EP-02
+name: "Golden Record Construction"
+description: |
+  Apply merge rules across conflicting source attributes, selecting canonical
+  values and recording lineage for each field.
+
+stories:
+  - ST-13
+  - ST-14
+  - ST-15
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-08_search_indexing.md =====
+---
+feature_id: FT-08
+epic: EP-03
+name: "Search Index & Normalisation"
+description: |
+  Build a performant search index for names, identifiers, and attributes.
+
+stories:
+  - ST-16
+  - ST-17
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-09_fuzzy_search.md =====
+---
+feature_id: FT-09
+epic: EP-03
+name: "Fuzzy Search & Ranking"
+description: |
+  Provide fuzzy search, relevance ranking, and partial-match scoring.
+
+stories:
+  - ST-18
+  - ST-19
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-10_profile_assembly.md =====
+---
+feature_id: FT-10
+epic: EP-04
+name: "Assemble Canonical Profile"
+description: |
+  Construct the unified client profile including identity, identifiers,
+  operational attributes, and metadata.
+
+stories:
+  - ST-20
+  - ST-21
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-11_lineage_exposure.md =====
+---
+feature_id: FT-11
+epic: EP-04
+name: "Lineage Exposure"
+description: |
+  Display attribute-level provenance showing which source system contributed
+  each value.
+
+stories:
+  - ST-22
+  - ST-23
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-12_conflict_presentation.md =====
+---
+feature_id: FT-12
+epic: EP-04
+name: "Conflict Presentation"
+description: |
+  Highlight conflicting source attributes, display confidence scores, and show
+  merge logic outcomes.
+
+stories:
+  - ST-24
+  - ST-25
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-13_lineage_tracking.md =====
+---
+feature_id: FT-13
+epic: EP-05
+name: "Lineage Tracking"
+description: |
+  Track attribute-level lineage with timestamped provenance and update history.
+
+stories:
+  - ST-26
+  - ST-27
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-14_quality_scoring.md =====
+---
+feature_id: FT-14
+epic: EP-05
+name: "Data Quality Scoring"
+description: |
+  Compute quality indicators including completeness, consistency, and
+  freshness scores.
+
+stories:
+  - ST-28
+  - ST-29
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-15_auditability.md =====
+---
+feature_id: FT-15
+epic: EP-05
+name: "Auditability & Evidence"
+description: |
+  Generate audit logs for ingestion, matching, merging, and profile assembly,
+  and store evidence snapshots.
+
+stories:
+  - ST-30
+  - ST-31
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-16_search_api.md =====
+---
+feature_id: FT-16
+epic: EP-06
+name: "Search API"
+description: |
+  Expose a REST endpoint for searching clients by name, identifier, or
+  attributes. Includes pagination and ranked results.
+
+stories:
+  - ST-32
+  - ST-33
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\features\FT-17_profile_api.md =====
+---
+feature_id: FT-17
+epic: EP-06
+name: "Client Profile API"
+description: |
+  Expose the canonical client profile via REST, including full lineage metadata
+  and data quality indicators.
+
+stories:
+  - ST-34
+  - ST-35
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-00-backend-api-availability.md =====
+---
+
+id: ST-00-backend-api-availability
+
+slug: st-00-backend-api-availability
+
+type: story
+
+name: Provide Basic API Endpoint Availability
+
+epic\_id: E00
+
+feature\_id: FT-00-backend-fundamentals
+
+status: in\_progress
+
+test\_status: not\_run
+
+owner: TBD
+
+---
+
+
+
+\## Description
+
+
+
+As a developer,  
+
+I want the backend to expose a health endpoint,  
+
+so that I can confirm the service is running and operational.
+
+
+
+\## Acceptance Criteria
+
+
+
+\- AC1: Backend starts using the documented command (e.g. `uvicorn backend.main:app`).
+
+\- AC2: A `/health` endpoint is available.
+
+\- AC3: Calling `/health` returns HTTP 200.
+
+\- AC4: Response contains a simple JSON payload (e.g. `{ "status": "ok" }`).
+
+\- AC5: A backend test verifies AC2â€“AC4.
+
+\- AC6: Test runner updates `test\_status:` to `passed` when tests succeed.
+
+
+
+\## Implementation Notes
+
+
+
+Touchpoints:
+
+\- `backend/main.py`
+
+
+
+
+
+
+===== FILE: docs\mission_destination\stories\ST-00-frontend-ui-shell.md =====
+---
+
+id: ST-00-frontend-ui-shell
+
+slug: st-00-frontend-ui-shell
+
+type: story
+
+name: Render Basic UI Shell
+
+epic\_id: E00-UI
+
+feature\_id: FT-00-frontend-fundamentals
+
+status: in\_progress
+
+test\_status: not\_run
+
+owner: TBD
+
+---
+
+
+
+\## Description
+
+
+
+As a user,  
+
+I want to see a basic Single Client Value UI shell,  
+
+so that I know the frontend is running and ready for extension.
+
+
+
+\## Acceptance Criteria
+
+
+
+\- AC1: Frontend dev server starts using the documented command (e.g. `npm run dev`).
+
+\- AC2: App loads in browser without errors.
+
+\- AC3: Root component renders a visible message indicating the app is running.
+
+\- AC4: A frontend test verifies the message appears.
+
+\- AC5: Test runner updates `test\_status:` on success.
+
+
+
+\## Implementation Notes
+
+
+
+Touchpoints:
+
+\- `app\_frontend/src/main.jsx`
+
+\- `app\_frontend/src/App.jsx`
+
+
+
+
+
+
+===== FILE: docs\mission_destination\stories\ST-01_register_crm_source.md =====
+---
+story_id: ST-01
+feature: FT-01
+name: "Register CRM source"
+description: |
+  Register CRM system as ingestible source.
+
+acceptance_criteria:
+  - Connection succeeds
+  - Schema retrieved
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-02_register_kyc_source.md =====
+---
+story_id: ST-02
+feature: FT-01
+name: "Register KYC source"
+description: |
+  Register KYC system.
+
+acceptance_criteria:
+  - Connection ok
+  - Schema ok
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-03_map_identity_fields.md =====
+---
+story_id: ST-03
+feature: FT-02
+name: "Map identity fields"
+description: |
+  Map core identity fields.
+
+acceptance_criteria:
+  - Fields mapped
+  - Types correct
+
+overall_status: Planned
+
+testing_status: pass
+halo_adherence: fail
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-04_map_identifiers.md =====
+---
+story_id: ST-04
+feature: FT-02
+name: "Map identifiers"
+description: |
+  Map identifiers.
+
+acceptance_criteria:
+  - ID mapping valid
+
+overall_status: Planned
+
+testing_status: pass
+halo_adherence: fail
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-05_bulk_load_crm.md =====
+---
+story_id: ST-05
+feature: FT-03
+name: "Bulk load CRM"
+description: |
+  Initial CRM load.
+
+acceptance_criteria:
+  - Records loaded
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-06_bulk_load_kyc.md =====
+---
+story_id: ST-06
+feature: FT-03
+name: "Bulk load KYC"
+description: |
+  Initial KYC load.
+
+acceptance_criteria:
+  - Records loaded
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-07_detect_upstream_deltas.md =====
+---
+story_id: ST-07
+feature: FT-04
+name: "Detect upstream deltas"
+description: |
+  Detect deltas.
+
+acceptance_criteria:
+  - Changes detected
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-08_apply_deltas.md =====
+---
+story_id: ST-08
+feature: FT-04
+name: "Apply deltas"
+description: |
+  Apply detected deltas.
+
+acceptance_criteria:
+  - Deltas applied
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-09_match_by_tax_id.md =====
+---
+story_id: ST-09
+feature: FT-05
+name: "Match by tax ID"
+description: |
+  Exact match by tax ID.
+
+acceptance_criteria:
+  - Matches correct
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-10_match_by_registration_number.md =====
+---
+story_id: ST-10
+feature: FT-05
+name: "Match by registration number"
+description: |
+  Exact match.
+
+acceptance_criteria:
+  - Matches correct
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-11_fuzzy_name_match.md =====
+---
+story_id: ST-11
+feature: FT-06
+name: "Fuzzy name match"
+description: |
+  Implement fuzzy name.
+
+acceptance_criteria:
+  - Similarity score valid
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-12_attribute_confidence.md =====
+---
+story_id: ST-12
+feature: FT-06
+name: "Attribute confidence"
+description: |
+  Compute confidence.
+
+acceptance_criteria:
+  - Confidence computed
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-13_merge_identity.md =====
+---
+story_id: ST-13
+feature: FT-07
+name: "Merge identity"
+description: |
+  Merge identity attributes.
+
+acceptance_criteria:
+  - Conflicts resolved
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-14_merge_addresses.md =====
+---
+story_id: ST-14
+feature: FT-07
+name: "Merge addresses"
+description: |
+  Merge address attributes.
+
+acceptance_criteria:
+  - Address selected
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-15_record_lineage.md =====
+---
+story_id: ST-15
+feature: FT-07
+name: "Record lineage"
+description: |
+  Lineage for merges.
+
+acceptance_criteria:
+  - Lineage stored
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-16_build_index.md =====
+---
+story_id: ST-16
+feature: FT-08
+name: "Build index"
+description: |
+  Build search index.
+
+acceptance_criteria:
+  - Index built
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-17_normalise_search_fields.md =====
+---
+story_id: ST-17
+feature: FT-08
+name: "Normalise search fields"
+description: |
+  Normalise fields.
+
+acceptance_criteria:
+  - Fields normalised
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-18_fuzzy_search_queries.md =====
+---
+story_id: ST-18
+feature: FT-09
+name: "Fuzzy search queries"
+description: |
+  Fuzzy queries.
+
+acceptance_criteria:
+  - Ranked results
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-19_search_ranking.md =====
+---
+story_id: ST-19
+feature: FT-09
+name: "Search ranking"
+description: |
+  Ranking logic.
+
+acceptance_criteria:
+  - Correct ordering
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-20_assemble_base_profile.md =====
+---
+story_id: ST-20
+feature: FT-10
+name: "Assemble base profile"
+description: |
+  Assemble profile.
+
+acceptance_criteria:
+  - Profile fields set
+
+overall_status: Planned
+
+testing_status: pass
+halo_adherence: fail
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-21_assemble_metadata.md =====
+---
+story_id: ST-21
+feature: FT-10
+name: "Assemble metadata"
+description: |
+  Assemble metadata.
+
+acceptance_criteria:
+  - Metadata added
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-22_expose_lineage.md =====
+---
+story_id: ST-22
+feature: FT-11
+name: "Expose lineage"
+description: |
+  Lineage display.
+
+acceptance_criteria:
+  - Lineage visible
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-23_drill-down_lineage.md =====
+---
+story_id: ST-23
+feature: FT-11
+name: "Drill-down lineage"
+description: |
+  Drill-down.
+
+acceptance_criteria:
+  - Source-level detail
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-24_flag_conflicts.md =====
+---
+story_id: ST-24
+feature: FT-12
+name: "Flag conflicts"
+description: |
+  Conflict flags.
+
+acceptance_criteria:
+  - Flags correct
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-25_show_merge_logic.md =====
+---
+story_id: ST-25
+feature: FT-12
+name: "Show merge logic"
+description: |
+  Show logic.
+
+acceptance_criteria:
+  - Logic displayed
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-26_store_lineage_history.md =====
+---
+story_id: ST-26
+feature: FT-13
+name: "Store lineage history"
+description: |
+  Store history.
+
+acceptance_criteria:
+  - History stored
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-27_timestamp_lineage.md =====
+---
+story_id: ST-27
+feature: FT-13
+name: "Timestamp lineage"
+description: |
+  Timestamp entries.
+
+acceptance_criteria:
+  - Timestamps correct
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-28_compute_freshness.md =====
+---
+story_id: ST-28
+feature: FT-14
+name: "Compute freshness"
+description: |
+  Freshness score.
+
+acceptance_criteria:
+  - Score correct
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-29_compute_completeness.md =====
+---
+story_id: ST-29
+feature: FT-14
+name: "Compute completeness"
+description: |
+  Completeness.
+
+acceptance_criteria:
+  - Completeness correct
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-30_audit_ingestion.md =====
+---
+story_id: ST-30
+feature: FT-15
+name: "Audit ingestion"
+description: |
+  Audit ingestion.
+
+acceptance_criteria:
+  - Audit entries
+
+overall_status: Planned
+
+testing_status: pass
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: pass
+security_policy_adherence: pass
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-31_audit_merge.md =====
+---
+story_id: ST-31
+feature: FT-15
+name: "Audit merge"
+description: |
+  Audit merge.
+
+acceptance_criteria:
+  - Audit recorded
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-32_search_api_basic.md =====
+---
+story_id: ST-32
+feature: FT-16
+name: "Search API basic"
+description: |
+  Search endpoint.
+
+acceptance_criteria:
+  - JSON response
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-33_search_api_ranking.md =====
+---
+story_id: ST-33
+feature: FT-16
+name: "Search API ranking"
+description: |
+  Ranking via API.
+
+acceptance_criteria:
+  - Ranked results
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-34_profile_api_basic.md =====
+---
+story_id: ST-34
+feature: FT-17
+name: "Profile API basic"
+description: |
+  Profile endpoint.
+
+acceptance_criteria:
+  - Profile returned
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_destination\stories\ST-35_profile_api_lineage.md =====
+---
+story_id: ST-35
+feature: FT-17
+name: "Profile API lineage"
+description: |
+  Lineage in API.
+
+acceptance_criteria:
+  - Lineage included
+
+overall_status: Planned
+
+testing_status: not_run
+halo_adherence: fail
+guardrail_adherence: fail
+code_quality_adherence: fail
+security_policy_adherence: fail
+implementation_presence: false
+
+last_updated: <auto>
+---
+
+
+
+===== FILE: docs\mission_framework\mission_control_status_model.md =====
+# Mission Control â€” Status Tracking Model
+
+This document defines how Mission Control tracks and updates the delivery status of **Epics**, **Features**, and **Stories** across the entire MissionSmith lifecycle. All status information is stored in **YAML front matter** within each artefact and is automatically updated through **commit processing**, **guardrail evaluation**, and **CI evidence ingestion**.
+
+---
+
+# 1. Status Model Overview
+Each artefact (Epic, Feature, Story) maintains a consistent set of machine-evaluated statuses:
+
+- **overall_status**
+- **testing_status**
+- **halo_adherence**
+- **guardrail_adherence**
+- **code_quality_adherence**
+- **security_policy_adherence**
+- **implementation_presence** (Stories only)
+
+An artefact can only exist in one of three states:
+- **Planned**
+- **In Progress**
+- **Complete**
+
+Statuses are always derived from machine-readable evidence.
+
+---
+
+# 2. Story Status Model (Atomic Unit)
+Stories are independent of one another. Story status is determined solely by its own implementation and checks.
+
+## 2.1 Planned
+- No commits to the storyâ€™s implementation slice
+- No tests exist
+- No adherence checks have run
+
+## 2.2 In Progress
+A Story becomes In Progress when any of the following occur:
+- Commits modify the storyâ€™s implementation slice
+- A test file exists but tests donâ€™t pass
+- One or more adherence checks fail
+- Required evidence is missing
+
+## 2.3 Complete
+A Story is Complete only when:
+- Implementation presence is detected
+- All tests pass
+- Guardrail checks pass
+- Halo checks pass
+- Code quality checks pass
+- Security policy checks pass
+
+---
+
+# 3. Feature Status Model
+Feature status is aggregated from child Stories.
+
+## 3.1 Planned
+- All Stories in the Feature are Planned
+
+## 3.2 In Progress
+- At least one Story is In Progress or Complete
+- Not all Stories are Complete
+
+## 3.3 Complete
+- All Stories in the Feature are Complete
+
+---
+
+# 4. Epic Status Model
+Epic status is aggregated from child Features.
+
+## 4.1 Planned
+- All Features are Planned
+
+## 4.2 In Progress
+- At least one Feature is In Progress or Complete
+- Not all Features are Complete
+
+## 4.3 Complete
+- All Features are Complete
+
+---
+
+# 5. Front Matter Structure
+
+## 5.1 Story Front Matter
+```yaml
+story_id: ST-123
+feature: FT-45
+
+overall_status: Planned | In Progress | Complete
+
+testing_status: pass | fail | not_run
+halo_adherence: pass | fail
+guardrail_adherence: pass | fail
+code_quality_adherence: pass | fail
+security_policy_adherence: pass | fail
+implementation_presence: true | false
+
+last_updated: 2025-01-01T12:00:00Z
+```
+
+## 5.2 Feature Front Matter
+```yaml
+feature_id: FT-45
+epic: EP-7
+
+overall_status: Planned | In Progress | Complete
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses:
+  ST-123: Complete
+  ST-124: In Progress
+  ST-125: Planned
+
+last_updated: 2025-01-01T12:00:00Z
+```
+
+## 5.3 Epic Front Matter
+```yaml
+epic_id: EP-7
+
+overall_status: Planned | In Progress | Complete
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+feature_statuses:
+  FT-45: Complete
+  FT-46: In Progress
+  FT-47: Planned
+
+last_updated: 2025-01-01T12:00:00Z
+```
+
+---
+
+# 6. Status Computation Rules
+1. Front matter updates occur when:
+   - Story implementation slices change
+   - Tests run and generate evidence
+   - Guardrail checks execute
+   - CI pipelines update MissionLog
+
+2. Statuses propagate bottom-up:
+   - Story â†’ Feature â†’ Epic
+
+3. No manual modification of status fields.
+4. MissionLog reflects live state directly from front matter.
+
+---
+
+# 7. MissionLog Reporting
+MissionLog provides:
+- Epic / Feature / Story roll-ups
+- Per-status dashboards (testing, guardrails, halo, quality, security)
+- Evidence lineage
+- Completion graphs
+- Compliance summaries
+
+MissionLog stores no separate state; it visualises repo truth.
+
+---
+
+# 8. Principles
+- Everything lives in the repo
+- Status is always derived, never declared
+- Stories are atomic
+- Features & Epics are compositional
+- Front matter is the single source of truth
+- MissionLog is read-only
+- Automated consistency across levels
+
+
+
+
+===== FILE: docs\mission_framework\analytics\mf07_analytics.md =====
+
+# MissionFramework Element: Analytics
+
+## Overview
+Lightweight telemetry and metrics to track behaviour, performance, and usage.
+
+---
+
+## Codify
+- Define minimal analytics schema (events, metrics, identifiers).
+- Store in mission_framework/analytics.
+
+---
+
+## Automate
+- Code generation emits basic telemetry hooks.
+- Logging patterns conform to schema.
+
+---
+
+## Intercept
+- CI checks for missing telemetry hooks where required.
+- Static analysis flags invalid schemas.
+
+---
+
+## Prove
+- MissionAtlas (or simple dashboards) surface key metrics.
+- MissionLog stores analytics evidence snapshots.
+
+
+
+
+===== FILE: docs\mission_framework\application_self_healing\mf06_application_self_healing.md =====
+
+# MissionFramework Element: Application Self-Healing
+
+## Overview
+Automated detection, response, and recovery from runtime anomalies using minimal MVP mechanisms.
+
+---
+
+## Codify
+- Basic retry and circuit-breaker config defined in YAML.
+- Minimal health-check contract established.
+
+---
+
+## Automate
+- Generated services include retry wrappers and health checks.
+- Monitoring hooks capture failures.
+
+---
+
+## Intercept
+- Guardrails warn if required self-healing hooks missing.
+- CI checks presence of retry/circuit-breaker configs.
+
+---
+
+## Prove
+- MissionLog records health events and auto-recovery outcomes.
+- Evidence snapshots show self-healing execution.
+
+
+
+
+===== FILE: docs\mission_framework\business_data_lineage\mf04_business_data_lineage.md =====
+
+# MissionFramework Element: Business Data Lineage
+
+## Overview
+Traceability of business data across sources, transformations, and outputs.
+
+---
+
+## Codify
+- Define lineage schema (attribute source, timestamp, transformation rules).
+- Stored in mission_framework/business_data_lineage.
+
+---
+
+## Automate
+- Merge logic generates lineage metadata.
+- Services automatically attach lineage info to client profiles.
+
+---
+
+## Intercept
+- Missing lineage triggers guardrail warnings.
+- CI validates completeness of lineage fields.
+
+---
+
+## Prove
+- MissionLog lineage views show source mapping and transformation steps.
+- Attribute-level lineage dashboards provide visual evidence.
+
+
+
+
+===== FILE: docs\mission_framework\design_principles\mf01_design_principples.md =====
+
+# MissionFramework Element: Design Principles
+
+## Overview
+High-level architectural principles that guide how all MissionSmith-generated applications are structured and behave.
+
+---
+
+## Codify
+- Principles defined in YAML/MD under mission_framework/design_principles.
+- Include rules for layering, statelessness, deterministic behaviour, separation of concerns.
+- Machine-readable so guardrails and prompts can reference them.
+
+---
+
+## Automate
+- Story meta-prompts enforce architectural boundaries.
+- CI guardrails check for violations (e.g., direct DB calls, forbidden imports).
+- Code generation scaffolds follow these principles by default.
+
+---
+
+## Intercept
+- Guardrail engine detects structural violations.
+- CI blocks merges that break design principles.
+- Warnings raised for non-critical deviations.
+
+---
+
+## Prove
+- MissionLog displays design-principle compliance per Story/Feature/Epic.
+- Evidence snapshots stored for auditability.
+
+
+
+
+===== FILE: docs\mission_framework\pipeline_blueprint\pipeline_blueprint_mvp.md =====
+
+# Pipeline Blueprint â€” MissionSmith MVP CI/CD Specification
+
+This document defines the mandatory structure, sequencing, governance, and evidence
+requirements for the CI/CD pipeline used by Single Client View (SCV) and all MissionSmith-
+aligned applications.
+
+It belongs under **MissionFramework**, because it defines systemâ€‘wide governance rules for:
+- how change flows through the system,
+- how evidence is produced,
+- how guardrails are enforced,
+- how deployment occurs safely.
+
+Recommended location:
+`scv-repo/docs/mission_framework/pipeline_blueprint/pipeline_blueprint_mvp.md`
+
+---
+
+## 1. Pipeline Overview
+
+The pipeline consists of six sequential stages:
+
+1. Validate Semantic Artefacts  
+2. Generate Tests  
+3. Execute Tests  
+4. Run Guardrails & Framework Checks  
+5. Capture Evidence & Publish MissionLog Snapshot  
+6. Deploy (conditional)
+
+A failure in any stage halts all further stages.
+
+---
+
+## 2. Stage 1 â€” Validate Semantic Artefacts
+
+**Purpose**  
+Ensure Epics, Features, Stories, Prompts, MissionFramework artefacts, and MissionHalo
+documents are structurally valid and machine-readable.
+
+**Checks**
+- YAML front matter correctness  
+- story â†’ feature â†’ epic references resolve  
+- required adherence fields present  
+- no missing or duplicate IDs  
+- correct folder structure  
+- MissionFramework & MissionHalo documents present and readable  
+- prompts exist and are valid  
+
+**Evidence**
+- `evidence/semantic_validation.json`  
+  - pass/fail per artefact  
+  - schema and structure checks  
+
+---
+
+## 3. Stage 2 â€” Generate Tests (from Test Meta-Prompt)
+
+**Purpose**  
+Ensure every Story has a current, valid test suite aligned to acceptance criteria.
+
+**Behaviour**
+- Call Test Meta-Prompt for:
+  - Stories changed,
+  - Stories missing tests,
+  - Stories with implementation changes.
+- Update tests only in authorised slices:
+  `tests/services/<service>/test_service.py`
+
+**Evidence**
+- `evidence/test_generation.json`
+
+---
+
+## 4. Stage 3 â€” Execute Tests
+
+**Purpose**  
+Validate Story behaviour.
+
+**Behaviour**
+- Run pytest  
+- Collect:
+  - test results  
+  - simple coverage metric  
+
+**Evidence**
+- `evidence/test_results.json`  
+- `evidence/test_coverage.json`
+
+---
+
+## 5. Stage 4 â€” Run Guardrails & Framework Checks
+
+**Purpose**  
+Enforce MissionFramework systematically.
+
+### 5.1 Technology Guardrails
+- no new files/folders outside permitted slices  
+- no forbidden imports  
+- no cross-service coupling  
+- naming conventions  
+- no secrets committed  
+
+### 5.2 Policy-as-Code
+- logging format  
+- PII masking  
+- required audit events  
+
+### 5.3 Business Data Lineage
+- lineage metadata exists where required  
+- schema alignment  
+
+### 5.4 Technology Components Lineage
+- dependency graph consistency  
+
+### 5.5 Self-Healing (MVP)
+- retry/circuit-breaker config present where appropriate  
+- health-check functions present  
+
+### 5.6 Analytics
+- telemetry events present  
+- analytics schema alignment  
+
+**Evidence**
+- `evidence/guardrails.json`  
+
+---
+
+## 6. Stage 5 â€” Capture Evidence & Publish Snapshot
+
+**Purpose**  
+Record the complete compliance and behavioural state at this commit.
+
+**Evidence artefact**
+- `evidence/snapshots/<commit_sha>.json`  
+Includes:
+- semantic validation  
+- test results  
+- guardrail outcomes  
+- adherence statuses  
+- version info  
+
+This feeds MissionLog and MissionAtlas.
+
+---
+
+## 7. Stage 6 â€” Deploy (conditional)
+
+Deployment only occurs if:
+- stages 1â€“5 passed  
+- branch is main  
+- semantic versioning rules met  
+
+**Behaviour**
+- build artefact  
+- publish image  
+- deploy to environment  
+- publish deployment evidence  
+
+**Evidence**
+- `evidence/deployment.json`  
+
+---
+
+## 8. Triggering Rules
+
+- PR: run stages 1â€“4  
+- Push to main: run stages 1â€“6  
+- Daily schedule: run 1â€“5  
+- Tag push: full pipeline including deploy  
+
+---
+
+## 9. Versioning Rules (MVP)
+
+- Story implementation change â†’ patch  
+- New Story â†’ minor  
+- New Feature â†’ minor  
+- New Epic â†’ major  
+- Breaking schema/API change â†’ major  
+
+---
+
+## 10. Scope
+
+This is the MVP blueprint.  
+Future versions may add:
+- performance tests  
+- chaos engineering  
+- deeper analytics  
+- dynamic environment creation  
+- multi-agent CI  
+
+
+
+===== FILE: docs\mission_framework\policy_as_code\mf03_policy_as_code.md =====
+
+# MissionFramework Element: Policy as Code
+
+## Overview
+Regulatory, compliance, and internal policy requirements expressed as executable rules to ensure automatic adherence.
+
+---
+
+## Codify
+- Policies defined as machine-readable rules (YAML/Python checks).
+- Includes PII handling, retention, security, audit trails.
+
+---
+
+## Automate
+- Policy checks run during CI.
+- Code generation injects compliance patterns (e.g., masked logs).
+
+---
+
+## Intercept
+- Violations flagged in CI with clear messages.
+- Optional â€œsoft failâ€ for non-critical policies in MVP.
+
+---
+
+## Prove
+- MissionLog provides evidence of policy compliance.
+- Reports include test results, policy execution logs, and snapshots.
+
+
+
+
+===== FILE: docs\mission_framework\technology guardrails\mf02_technology_guardrails.md =====
+# Technology Guardrails
+## MissionFramework
+
+### 1. Purpose
+This document defines the mandatory technology constraints for all implementations within this MissionSmith application. These guardrails ensure consistency, predictability, auditability, and safe automation across all Story implementations.
+
+---
+
+## 2. Language and Framework Constraints
+- Python is the primary implementation language.
+- Only standard library + explicitly approved libraries may be used.
+- No dynamic code generation at runtime.
+- No reflection-based manipulation of internal structures.
+
+---
+
+## 3. Architectural Layering Rules
+
+### 3.1 Domain Layer Rules (Canonical Logical Data Model)
+**All services MUST operate using the canonical Logical Data Model (LDM).**
+- Domain logic MUST construct, read, and write typed domain objects defined in `src/domain/models/`.
+- Services MUST NOT return dictionaries, JSON, or ad-hoc structures.
+- Domain objects are the single internal representation of business truth.
+
+### 3.2 API Representation Rules
+**APIs are the ONLY layer permitted to serialise domain models.**
+- API slices MAY convert domain objects to dict/JSON.
+- API slices MUST NOT contain business logic.
+- API slices MUST NOT mutate domain semantics.
+
+### 3.3 No Bypassing Rule
+- No slice may bypass services and interact directly with raw upstream payloads.
+- Domain entities MUST NOT be constructed directly in API or adapter layers.
+- All transformations MUST flow through services.
+
+---
+
+## 4. Implementation Slice Rules
+- Each Story is implemented in exactly one code slice.
+- A code slice corresponds to a single Python file in the appropriate folder.
+- No Story is allowed to modify more than one slice.
+- No cross-slice coupling except through domain models.
+- No circular imports.
+
+---
+
+## 5. Testing Guardrails
+- Tests MUST be deterministic.
+- Tests MUST be written using the test meta-prompt.
+- Tests MUST verify domain behaviour, not presentation layer behaviour.
+- Every Story MUST include:
+  - Positive tests
+  - Negative tests
+  - Edge-case tests
+  - Compliance with MissionFramework rules
+
+---
+
+## 6. CI/CD Enforcement Rules
+- CI MUST run all tests for every push.
+- CI MUST enforce formatting and linting.
+- CI MUST fail if:
+  - API implements business logic
+  - Domain model is bypassed
+  - A Story modifies multiple slices
+  - Any guardrail is violated
+
+---
+
+## 7. Security and Safety Rules
+- No direct file system access except via approved paths under `tools/`.
+- No network calls unless explicitly authorised.
+- No outbound or inbound external data inside Story implementations during MVP.
+
+---
+
+## 8. Change Control
+- Any change to these guardrails requires:
+  - Update to meta-prompts
+  - Update to related tests
+  - Update to dependency rules if applicable
+  - Commit message referencing a Story or refactor item
+
+
+
+===== FILE: docs\mission_framework\technology_components_lineage\mf05_technology_components_lineage.md =====
+
+# MissionFramework Element: Technology Components Lineage
+
+## Overview
+Visibility into how system components depend on, call, or feed one another.
+
+---
+
+## Codify
+- Dependency graph defined in YAML.
+- Versioning relationships documented at component boundaries.
+
+---
+
+## Automate
+- Schema compatibility checks run in CI.
+- Dependency mismatches flagged automatically.
+
+---
+
+## Intercept
+- CI blocks incompatible component changes.
+- Runtime warnings for deprecated or unsupported paths.
+
+---
+
+## Prove
+- MissionLog displays dependency graphs.
+- Change-impact analysis available for each update.
+
+
+
+
+===== FILE: docs\mission_framework\templates\front_matter\epic_front_matter_template.md =====
+epic\_id: EP-XXX
+
+name: "<Epic name>"
+
+description: |
+
+<High-level business or operational capability.>
+
+<What this epic delivers and its intended outcomes.>
+
+
+
+
+
+features:
+
+\- FT-XXX
+
+\- FT-YYY
+
+\- FT-ZZZ
+
+
+
+
+
+\# Status Fields (auto-managed)
+
+overall\_status: Planned
+
+
+
+
+
+testing\_status: aggregated
+
+halo\_adherence: aggregated
+
+guardrail\_adherence: aggregated
+
+code\_quality\_adherence: aggregated
+
+security\_policy\_adherence: aggregated
+
+
+
+
+
+feature\_statuses: {}
+
+
+
+
+
+last\_updated: <auto>
+
+
+
+
+===== FILE: docs\mission_framework\templates\front_matter\feature_front_matter_template.md =====
+feature\_id: FT-XXX
+
+epic: EP-XXX
+
+name: "<short descriptive feature name>"
+
+description: |
+
+<Purpose of the feature and the capability it delivers.>
+
+<Why it exists and how it supports the epic.>
+
+
+
+
+
+stories:
+
+\- ST-XXX
+
+\- ST-YYY
+
+\- ST-ZZZ
+
+
+
+
+
+\# Status Fields (auto-managed)
+
+overall\_status: Planned
+
+
+
+
+
+testing\_status: aggregated
+
+halo\_adherence: aggregated
+
+guardrail\_adherence: aggregated
+
+code\_quality\_adherence: aggregated
+
+security\_policy\_adherence: aggregated
+
+
+
+
+
+story\_statuses: {}
+
+
+
+
+
+last\_updated: <auto>
+
+
+
+
+===== FILE: docs\mission_framework\templates\front_matter\story_front_matter_template.md =====
+story\_id: ST-XXX
+
+feature: FT-XXX
+
+name: "<short, action-based title>"
+
+description: |
+
+<Human-readable description of the story.>
+
+<What behaviour it implements and why it matters.>
+
+acceptance\_criteria:
+
+\- <Criterion 1>
+
+\- <Criterion 2>
+
+\- <Criterion 3>
+
+
+
+
+
+\# Status Fields (auto-managed)
+
+overall\_status: Planned
+
+
+
+
+
+testing\_status: not\_run
+
+halo\_adherence: fail
+
+guardrail\_adherence: fail
+
+code\_quality\_adherence: fail
+
+security\_policy\_adherence: fail
+
+implementation\_presence: false
+
+
+
+
+
+last\_updated: <auto>
+
+
+
+
+===== FILE: docs\mission_halo\mission_halo_mvp.md =====
+
+# MissionHalo â€” MVP UX Design Principles
+
+## Overview
+MissionHalo ensures that all generated UI components share a consistent look and feel.  
+For the MVP, Halo focuses exclusively on enforcing a unified visual design system:
+- typography  
+- colour palette  
+- spacing  
+- basic component styling  
+- Tailwind-based enforcement  
+
+---
+
+## 1. Colour System
+
+### 1.1 Core Palette
+- **Primary (teal):** rgb(26,153,136) / #1A9988  
+- **Secondary (orange):** rgb(235,86,0) / #EB5600  
+- **Background:** white (#FFFFFF)
+
+### 1.2 Supporting Palette
+- Soft green: rgb(176,192,159) / #B0C09F  
+- Soft yellow: rgb(241,205,86) / #F1CD56  
+- Soft blue-grey: rgb(205,226,235) / #CDE2EB  
+
+Usage:
+- Subtle highlights  
+- Card accents  
+- Status tags  
+
+### 1.3 Grey System
+- Primary text: charcoal  
+- Secondary text: mid-grey  
+- Muted labels/help: light grey  
+- Borders: very light grey  
+
+---
+
+## 2. Typography
+
+### 2.1 Typefaces
+- **Headings:** Raleway  
+- **Body:** Lato  
+
+### 2.2 Rules
+- Max 3 font sizes per screen  
+- No all-caps except tags  
+- Generous line-height for clarity  
+
+---
+
+## 3. Layout & Spacing
+- **Base spacing unit: 8px**  
+- Generous whitespace  
+- Group related items in white cards with soft grey borders  
+- Consistent panel-level padding (16â€“24px)  
+
+---
+
+## 4. Components & Style
+
+### Cards
+- White or light grey background  
+- Subtle border or shadow  
+- Rounded corners  
+
+### Buttons
+- Primary: teal bg, white text  
+- Secondary: white bg, teal border/text  
+- Destructive: orange  
+
+### Navigation
+- Light backgrounds  
+- Teal underline or pill for active tab  
+
+---
+
+## 5. Tone & Copy (MVP-level)
+- Calm, precise, professional  
+- Short labels, literal naming  
+- Error messages state problem + next action  
+
+---
+
+## 6. Enforcement (Halo Adherence)
+Halo adherence = PASS when:
+- Components use Raleway/Lato  
+- Colours come exclusively from MissionHalo palette  
+- Spacing uses Tailwind's 8px-based scale  
+- Components follow card/button patterns above  
+
+Halo adherence = FAIL when:
+- Arbitrary fonts are used  
+- Unapproved colours appear  
+- Spacing grid violated  
+- Components deviate from visual rules  
+
+---
+
+## 7. Tailwind Configuration Snippet
+
+```js
+// tailwind.config.js
+module.exports = {
+  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        heading: ['Raleway', 'system-ui', 'sans-serif'],
+        body: ['Lato', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        halo: {
+          primary: 'rgb(26,153,136)',     // #1A9988
+          secondary: 'rgb(235,86,0)',     // #EB5600
+          softGreen: 'rgb(176,192,159)',  // #B0C09F
+          softYellow: 'rgb(241,205,86)',  // #F1CD56
+          softBlue: 'rgb(205,226,235)',   // #CDE2EB
+        },
+      },
+      borderRadius: {
+        halo: '16px',
+      },
+    },
+  },
+  plugins: [],
+};
+```
+
+---
+
+## Storage Location
+Place this file in:
+
+```
+scv-repo/docs/mission_halo/mission_halo_mvp.md
+```
+
+MissionHalo sits alongside MissionFramework as part of the system-wide governance layer.
+
+
+
+===== FILE: docs\prompts\ci_pipeline-instruction_prompt_template.txt =====
+Please validate the implementation of Story <ST-XX> using ci_pipeline_metaprompt.
+
+Story file:
+  <path to story file>
+
+Code file:
+  <path to code file>
+
+Test file:
+  <path to test file>
+
+
+===== FILE: docs\prompts\ci_pipeline_metaprompt.md =====
+
+# MissionSmith CI/CD Pipeline Meta-Prompt (MVP)
+
+You are the MissionSmith CI/CD Pipeline Generation Engine.
+
+Your role is to:
+- READ the Pipeline Blueprint and MissionFramework documents,
+- GENERATE or UPDATE the CI/CD workflow configuration (e.g. `.github/workflows/ci.yaml`),
+- ENSURE the implemented pipeline matches the blueprint exactly,
+- NEVER invent new rules that are not present in the blueprint or framework.
+
+The Pipeline Blueprint and MissionFramework are the *only* sources of truth for pipeline behaviour.
+This prompt must not redefine rules; it must only interpret and apply them.
+
+---
+
+## 1. Inputs
+
+You will be provided with:
+
+### 1.1 Pipeline Blueprint (MVP)
+Location:
+`docs/mission_framework/pipeline_blueprint/pipeline_blueprint_mvp.md`
+
+This document defines:
+- pipeline stages,
+- sequencing,
+- checks,
+- evidence artefacts,
+- triggering rules,
+- versioning rules.
+
+You must treat this as the authoritative specification of CI/CD behaviour.
+
+### 1.2 MissionFramework Documents
+Location:
+`docs/mission_framework/`
+
+Including (but not limited to):
+- mf01_design_principles.md
+- mf02_technology_guardrails.md
+- mf03_policy_as_code.md
+- mf04_business_data_lineage.md
+- mf05_technology_components_lineage.md
+- mf06_application_self_healing.md
+- mf07_analytics.md
+
+These define:
+- guardrails,
+- policy-as-code,
+- lineage requirements,
+- analytics,
+- self-healing expectations.
+
+### 1.3 Meta-Prompts
+Location:
+`docs/prompts/`
+
+- Story code prompt: `story_code_prompt.md`
+- Test code prompt: `test_code_prompt.md`
+
+These influence:
+- how code is generated,
+- how tests are generated.
+
+You must ensure the pipeline invokes these prompts where the blueprint describes their use (e.g. test generation stage).
+
+### 1.4 Repository Structure
+You may assume a standard layout including:
+- `.github/workflows/` for CI configuration,
+- `src/` for application code,
+- `tests/` for tests,
+- `evidence/` for evidence artefacts,
+- `docs/` for documentation.
+
+You must NOT change this structure unless explicitly required by the blueprint.
+
+---
+
+## 2. Where You May Write
+
+You are allowed to create or modify **only** CI/CD configuration files, primarily:
+
+- `.github/workflows/ci.yaml` (or `.yml`)
+
+You must NOT:
+- create or modify application code,
+- change tests,
+- alter documentation,
+- introduce new non-CI files.
+
+Your scope is strictly the CI/CD workflows needed to implement the Pipeline Blueprint.
+
+---
+
+## 3. How to Use the Pipeline Blueprint
+
+You must:
+
+1. Parse the stages defined in `pipeline_blueprint_mvp.md`.
+2. For each stage:
+   - map it to a job or step (or set of steps) in the CI workflow.
+   - ensure ordering matches the blueprint.
+   - ensure inputs/outputs match the blueprintâ€™s evidence model.
+3. Implement:
+   - stage 1: semantic validation,
+   - stage 2: test generation (via Test Meta-Prompt or equivalent mechanism),
+   - stage 3: test execution,
+   - stage 4: guardrails & MissionFramework checks,
+   - stage 5: evidence aggregation and snapshot,
+   - stage 6: deploy (conditional).
+
+You must not omit a required stage.  
+If a stage is MVP-optional, the blueprint will say so explicitly.
+
+---
+
+## 4. Guardrails for CI/CD Generation
+
+When generating or updating the CI pipeline:
+
+- Do NOT hard-code business rules that belong in MissionFramework or the blueprint.
+- Do NOT introduce extra deployment environments that are not described.
+- Do NOT introduce new manual approval steps beyond what the blueprint states.
+- Do NOT add unrelated jobs (e.g., linting) unless the blueprint calls for them.
+- Do NOT assume a particular CI provider beyond what the repository already uses (MVP: GitHub Actions assumed).
+
+You may:
+- refactor the workflow file to improve clarity,
+- split complex jobs into multiple steps,
+- reuse shared actions or scripts if consistent with the blueprint.
+
+---
+
+## 5. Evidence & MissionLog Integration
+
+You must ensure that the workflow:
+
+- writes evidence artefacts to the `evidence/` directory exactly as the blueprint describes, including:
+  - `semantic_validation.json`
+  - `test_generation.json`
+  - `test_results.json`
+  - `test_coverage.json`
+  - `guardrails.json`
+  - `deployment.json` (for deploy runs)
+  - `snapshots/<commit_sha>.json`
+
+- ensures each job that produces evidence:
+  - has clear success/failure criteria,
+  - fails the pipeline on violation where required.
+
+You do not define evidence structure here; you only ensure it is produced as per the blueprint.
+
+---
+
+## 6. Triggering Rules
+
+You must implement triggers that match the blueprint:
+
+Examples (as per MVP blueprint):
+- On pull requests â†’ run non-deploy stages only.
+- On push to `main` â†’ run the full pipeline including deployment.
+- On schedule (e.g. daily) â†’ run validation and evidence stages without deployment.
+- On tag push â†’ full pipeline including deployment.
+
+Use the exact triggering semantics described in the blueprint.
+
+---
+
+## 7. Output Format
+
+When requested to generate or update the CI/CD pipeline, you must output:
+
+1. A short summary of what you have generated or changed.
+2. The full contents of the CI workflow file.
+
+Format:
+
+```markdown
+### Summary
+<2â€“4 sentences describing the CI/CD workflow, stages, and any key details>
+
+### Updated File: .github/workflows/ci.yaml
+```yaml
+# full workflow content here
+```
+```
+
+No additional commentary.
+
+---
+
+## 8. Completion Criteria
+
+The CI/CD configuration is considered acceptable when:
+
+- All stages described in the Pipeline Blueprint are present.
+- Their ordering is correct.
+- Evidence artefacts are produced as required.
+- Guardrails and policy checks are invoked where expected.
+- Deployment runs only under the conditions described in the blueprint.
+- Triggers (PR, push, schedule, tags) align with the blueprint.
+
+Final enforcement is done by MissionFramework and the runtime guardrails.  
+Your role is to implement the pipeline in faithful alignment with the Pipeline Blueprint.
+
+---
+
+## END OF META-PROMPT
+
+
+
+===== FILE: docs\prompts\code_story_instruction_prompt_template.txt =====
+Please implement Story <ST-XX> using story_code_metaprompt.
+
+Story file:
+  <path to story file>
+
+Code file:
+  <path to code file>
+
+
+
+
+===== FILE: docs\prompts\story_code_metaprompt.md =====
+
+# MissionSmith Story Implementation Meta-Prompt (MVP â€“ Guided + Flexible, Corrected)
+
+You are the **MissionSmith Story Implementation Engine**.  
+You implement one Story at a time using:
+
+- The Story markdown file  
+- The implementation slice  
+- The MissionFramework documents  
+- MissionHalo (UI stories only)
+
+The Meta-Prompt is the **governing authority**.  
+MissionFramework and MissionHalo define the rules.  
+You must **never override or duplicate** rules from those documents.
+
+---
+
+## 1. Inputs
+
+You will be given:
+
+### 1.1 Story File  
+Located under:  
+`docs/mission_destination/stories/`  
+
+It contains the authoritative definition of:
+- behaviour  
+- acceptance criteria  
+- status/adherence fields  
+
+You must implement the Story exactly as written.
+
+### 1.2 Optional Feature/Epic Context  
+Located under:  
+`docs/mission_destination/features/`  
+`docs/mission_destination/epics/`
+
+### 1.3 Implementation Slice  
+A Story must be implemented **in exactly one file**.
+
+**Definition:**  
+> The implementation slice is the specific file where the functional area of the Story already exists.  
+> You may modify only this file unless the Story explicitly allows a wider scope *and* MissionFramework permits it.
+
+If the developer provides the slice path in the instruction prompt, you must use only that file.
+
+### 1.4 MissionFramework (governance rules)  
+Located under:  
+`docs/mission_framework/`
+
+Includes design principles, guardrails, policy-as-code, lineage, self-healing, analytics.  
+If this Meta-Prompt ever appears to conflict with MissionFramework, **MissionFramework wins**.
+
+### 1.5 MissionHalo (UI only)  
+Located at:  
+`docs/mission_halo/mission_halo_mvp.md`
+
+UI implementations must follow:
+- Raleway (headings) / Lato (body)  
+- Halo colour system  
+- 8px spacing grid  
+- Tailwind structure  
+- Component rules  
+
+Non-UI stories ignore MissionHalo.
+
+---
+
+## 2. Where You May Write Code
+
+You may only modify:
+- The single implementation slice file.
+
+You must NOT:
+- create new files  
+- create new folders  
+- rename files  
+- modify other services  
+- change schemas or APIs unless permitted by the Story *and* MissionFramework  
+
+**Option B flexibility:**  
+You may add small helper functions **within the same file** if required to satisfy the Story and allowed by MissionFramework.
+
+---
+
+## 3. How to Implement the Story
+
+1. Read the Story description and acceptance criteria.
+2. Consult MissionFramework documents â€” apply relevant rules.
+3. If UI: consult MissionHalo â€” apply its rules.
+4. Implement the simplest deterministic behaviour that satisfies the Story.
+5. Stay strictly within the implementation slice.
+6. Avoid inventing new behaviours or widening scope.
+
+If the Story is ambiguous:  
+**Choose the simplest compliant interpretation.**
+
+---
+
+## 4. What You Must Not Do
+
+- Do not introduce requirements not in the Story.  
+- Do not violate MissionFramework rules.  
+- Do not drift into other files.  
+- Do not create new architectural patterns.  
+- Do not invent UX outside MissionHalo.  
+- Do not refactor unrelated code.  
+
+If a conflict arises:
+**MissionFramework > Story > Meta-Prompt.**
+
+---
+
+## 5. Output Format (mandatory)
+
+Your response MUST contain:
+
+### 5.1 Summary (2â€“3 sentences)
+Describe:
+- what you implemented  
+- which MissionFramework or MissionHalo considerations applied  
+
+### 5.2 Full updated implementation file
+Output the ENTIRE file.
+
+Format:
+
+```
+### Summary
+<summary>
+
+### Updated File: src/services/<service_name>/service.py
+```python
+# full file content here
+```
+```
+
+Do not output diffs.  
+Do not output multiple files.  
+Do not output commentary beyond the Summary.
+
+---
+
+## 6. Completion Criteria
+
+A Story implementation is complete when:
+- all acceptance criteria are met  
+- code remains within the implementation slice  
+- MissionFramework is respected  
+- UI stories respect MissionHalo  
+- code is deterministic and minimal  
+- tests (generated separately) should pass  
+
+---
+
+## END OF META-PROMPT
+
+
+
+===== FILE: docs\prompts\story_test_instruction_prompt_template.txt =====
+Please create or update tests for Story <ST-XX> using story_test_metaprompt.
+
+Story file:
+  <path to story file>
+
+Test file:
+  <path to test file>
+
+
+
+===== FILE: docs\prompts\story_test_metaprompt.md =====
+
+# MissionSmith Test Implementation Meta-Prompt (MVP)
+
+You are the MissionSmith Test Generation Engine.  
+Your role is to generate deterministic, minimal, verifiable tests for a single Story using:
+
+- the Story markdown file  
+- the corresponding implementation slice  
+- the MissionFramework documents  
+- MissionHalo (UI stories only)
+
+MissionFramework and MissionHalo are the governance authorities.  
+This prompt must never duplicate their rulesâ€”only reference them.
+
+---
+
+## 1. Inputs
+
+### 1.1 Story file
+From:  
+`docs/mission_destination/stories/`  
+
+Contains behaviour and acceptance criteria.  
+Tests must directly reflect these.
+
+### 1.2 Implementation slice
+Example:  
+`src/services/<service_name>/service.py`
+
+### 1.3 MissionFramework documents
+From:  
+`docs/mission_framework/`  
+
+Refer to relevant rules for:
+- design principles  
+- guardrails  
+- policy-as-code  
+- lineage  
+- analytics  
+- self-healing patterns  
+
+Test only *observable* effects of these rules.
+
+### 1.4 MissionHalo (UI only)
+From:  
+`docs/mission_halo/mission_halo_mvp.md`
+
+If the Story involves UI, test for adherence to Haloâ€™s:
+- fonts  
+- colours  
+- spacing  
+- Tailwind patterns  
+
+If not UI: ignore Halo.
+
+---
+
+## 2. Where You May Write Tests
+
+You may modify or create tests only inside:
+
+```
+tests/services/<service_name>/test_service.py
+tests/api/<api_name>/test_<file>.py
+```
+
+You must NOT:
+- create new folders  
+- write cross-service tests  
+- introduce new fixtures beyond existing patterns  
+- test unrelated functionality  
+
+---
+
+## 3. How to Write Tests
+
+### 3.1 Derive tests from acceptance criteria
+Each acceptance criterion â†’ at least one deterministic test.
+
+### 3.2 Use existing test style
+Assume:
+- pytest  
+- no external mocking frameworks  
+- follow file naming conventions  
+
+### 3.3 Keep tests minimal
+One behaviour per test unless grouping is natural.
+
+### 3.4 Deterministic behaviour only
+No randomness, timers, or external dependencies.
+
+### 3.5 Only test what the Story declares
+No speculative tests.  
+No future features.  
+No unrelated MissionFramework rules.  
+
+Test MissionFramework rules *only* when they produce observable effects (e.g. lineage fields required in output).
+
+### 3.6 UI
+If the Story touches UI:
+- snapshot-style structural assertions  
+- Tailwind class checks  
+- ensure MissionHalo visual rules appear in output  
+
+Do not generate browser automation.
+
+---
+
+## 4. What You Must Not Do
+
+- Do not test internal implementation details.  
+- Do not mock unrelated services.  
+- Do not test beyond the Storyâ€™s scope.  
+- Do not over-test.  
+
+---
+
+## 5. Test Structure
+
+Follow the Arrange â†’ Act â†’ Assert pattern:
+
+- **Arrange:** prepare inputs.  
+- **Act:** call the target function.  
+- **Assert:** verify acceptance criteria.  
+
+Assertions must be explicit and minimal.
+
+---
+
+## 6. Output Format
+
+Your response must contain:
+
+### 6.1 Summary (1â€“2 sentences)
+State which acceptance criteria were converted into tests.
+
+### 6.2 Full updated test file
+Output the entire test file.
+
+Format:
+
+```
+### Summary
+<summary>
+
+### Updated File: tests/services/<service_name>/test_service.py
+```python
+# full file content here
+```
+```
+
+Do not output anything else.
+
+---
+
+## 7. Completion Criteria
+
+A Storyâ€™s tests are complete when:
+- all acceptance criteria are covered  
+- tests are deterministic  
+- tests reflect observable MissionFramework behaviour  
+- UI tests reflect MissionHalo  
+- the file is self-contained  
+- the service can be validated in CI  
+
+---
+
+## END OF META-PROMPT
+
+
+
 ===== FILE: tests\__init__.py =====
 
 
