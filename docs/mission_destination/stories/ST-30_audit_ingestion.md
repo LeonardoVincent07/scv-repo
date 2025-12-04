@@ -8,7 +8,7 @@ description: |
 acceptance_criteria:
   - Audit entries
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: pass
 halo_adherence: fail

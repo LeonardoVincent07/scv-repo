@@ -8,7 +8,7 @@ description: |
 acceptance_criteria:
   - ID mapping valid
 
-overall_status: Planned
+overall_status: Complete
 
 testing_status: pass
 halo_adherence: fail

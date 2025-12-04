@@ -14,7 +14,7 @@ features:
   - FT-03
   - FT-04
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: In Progress
 halo_adherence: aggregated

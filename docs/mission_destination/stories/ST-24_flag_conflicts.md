@@ -8,7 +8,7 @@ description: |
 acceptance_criteria:
   - Flags correct
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
 halo_adherence: fail

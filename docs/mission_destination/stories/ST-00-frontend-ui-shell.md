@@ -13,6 +13,7 @@ guardrail_adherence: not_run
 code_quality_adherence: pass
 security_policy_adherence: pass
 implementation_presence: partial
+overall_status: In Progress
 last_updated: 2025-12-04
 ---
 

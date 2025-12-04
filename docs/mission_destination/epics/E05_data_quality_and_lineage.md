@@ -12,7 +12,7 @@ features:
   - FT-14
   - FT-15
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: In Progress
 halo_adherence: aggregated

@@ -8,7 +8,7 @@ description: |
 acceptance_criteria:
   - Profile fields set
 
-overall_status: Planned
+overall_status: Complete
 
 testing_status: pass
 halo_adherence: fail

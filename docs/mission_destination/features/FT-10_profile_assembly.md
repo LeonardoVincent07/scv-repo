@@ -10,7 +10,7 @@ stories:
   - ST-20
   - ST-21
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: In Progress
 halo_adherence: aggregated

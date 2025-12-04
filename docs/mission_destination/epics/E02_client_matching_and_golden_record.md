@@ -12,7 +12,7 @@ features:
   - FT-06
   - FT-07
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: Planned
 halo_adherence: aggregated

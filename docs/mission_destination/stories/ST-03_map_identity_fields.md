@@ -9,7 +9,7 @@ acceptance_criteria:
   - Fields mapped
   - Types correct
 
-overall_status: Planned
+overall_status: Complete
 
 testing_status: pass
 halo_adherence: fail

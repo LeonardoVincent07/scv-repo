@@ -8,7 +8,7 @@ description: |
 acceptance_criteria:
   - Correct ordering
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
 halo_adherence: fail
