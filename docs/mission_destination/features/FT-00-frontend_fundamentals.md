@@ -1,28 +1,23 @@
 ---
+feature_id: FT-00-UI
+epic: E00-UI
+name: "Frontend Fundamentals"
+description: |
+  Provide a minimal frontend shell that builds, loads, renders, and verifies
+  that the baseline UI is operational.
 
-id: FT-00-frontend-fundamentals
+stories:
+  - ST-00-FRONTEND-UI-SHELL
 
-slug: ft-00-frontend-fundamentals
+overall_status: Planned
+testing_status: Planned
+halo_adherence: Planned
+guardrail_adherence: Planned
+code_quality_adherence: Planned
+security_policy_adherence: Planned
 
-type: feature
+last_updated: <auto>
 
-name: Frontend Fundamentals
-
-epic\_id: E00-UI
-
-status: active
-
-description: >
-
-&nbsp; Provide a minimal frontend shell that builds, loads, renders, and verifies the
-
-&nbsp; baseline UI is operational.
-
-owner: TBD
-
-related\_stories:
-
-&nbsp; - ST-00-frontend-ui-shell
 
 ---
 

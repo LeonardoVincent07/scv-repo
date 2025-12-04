@@ -3,7 +3,7 @@ story_id: ST-00
 slug: st-00-backend-api-availability
 name: Provide Basic Backend API Availability
 epic: E00
-feature: FT-00-backend_fundamentals
+feature: FT-00-BE
 status: in_progress
 
 # MissionSmith Status Fields (used by CI + tools/*.py)

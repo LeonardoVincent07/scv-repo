@@ -12,11 +12,11 @@ stories:
 
 overall_status: Planned
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---

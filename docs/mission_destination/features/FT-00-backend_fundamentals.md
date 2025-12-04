@@ -1,5 +1,5 @@
 ---
-feature_id: FT-00
+feature_id: FT-00-BE
 epic: E00
 name: "Backend Fundamentals"
 description: |
@@ -11,13 +11,13 @@ description: |
 stories:
   - ST-00
 
-overall_status: In Progress
-
-testing_status: aggregated
-halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
+overall_status: Planned
+testing_status: Planned
+halo_adherence: Planned
+guardrail_adherence: Planned
+code_quality_adherence: Planned
+security_policy_adherence: Planned
 
 last_updated: <auto>
 ---
+

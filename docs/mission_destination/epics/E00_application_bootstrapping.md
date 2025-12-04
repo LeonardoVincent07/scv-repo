@@ -2,23 +2,18 @@
 epic_id: E00
 slug: e00_application_bootstrapping
 name: "Application Bootstrapping"
-description: |
-  Establish the initial backend service and runtime foundations required for the
-  Single Client View application to start, respond to basic requests, and be
-  governed by MissionFramework guardrails.
 
 features:
-  - FT-00
+  - FT-00-BE
 
-overall_status: In Progress
-
-testing_status: aggregated
-halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
+overall_status: Planned
+testing_status: Planned
+guardrail_adherence: Planned
+code_quality_adherence: Planned
+security_policy_adherence: Planned
 
 last_updated: <auto>
+
 ---
 
 ## Context

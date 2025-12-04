@@ -2,8 +2,8 @@
 story_id: ST-00-FRONTEND-UI-SHELL
 slug: st-00-frontend-ui-shell
 name: Provide Frontend UI Shell Availability
-epic: E00
-feature: FT-00-backend_fundamentals
+epic: E00-UI
+feature: FT-00-UI
 status: in_progress
 
 # MissionSmith Status Fields (used by CI + tools/*.py)

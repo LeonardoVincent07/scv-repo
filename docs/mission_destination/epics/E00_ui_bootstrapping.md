@@ -1,28 +1,20 @@
 ---
+epic_id: E00-UI
+slug: e00_ui_bootstrapping
+name: "User Interface Bootstrapping"
 
-id: E00-UI
+features:
+  - FT-00-UI
 
-slug: e00\_ui\_bootstrapping
+overall_status: Planned
+testing_status: Planned
+guardrail_adherence: Planned
+code_quality_adherence: Planned
+security_policy_adherence: Planned
 
-type: epic
-
-name: User Interface Bootstrapping
-
-status: active
-
-description: >
-
-&nbsp; Establish the initial frontend shell for the Single Client Value application,
-
-&nbsp; ensuring that a basic UI loads, renders and is testable.
-
-owner: TBD
-
-related\_features:
-
-&nbsp; - FT-00-frontend-fundamentals
-
+last_updated: <auto>
 ---
+
 
 
 
