@@ -11,7 +11,7 @@ description: |
 stories:
   - ST-00
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: aggregated
 halo_adherence: aggregated
@@ -19,7 +19,7 @@ guardrail_adherence: aggregated
 code_quality_adherence: aggregated
 security_policy_adherence: aggregated
 
-story_statuses: {}
-
+story_statuses:
+  ST-00: In Progress
 last_updated: <auto>
 ---

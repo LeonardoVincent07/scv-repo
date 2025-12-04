@@ -22,7 +22,10 @@ guardrail_adherence: aggregated
 code_quality_adherence: aggregated
 security_policy_adherence: aggregated
 
-feature_statuses: {}
-
+feature_statuses:
+  FT-01: Planned
+  FT-02: Planned
+  FT-03: Planned
+  FT-04: Planned
 last_updated: <auto>
 ---
