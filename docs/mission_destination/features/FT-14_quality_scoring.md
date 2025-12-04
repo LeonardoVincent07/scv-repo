@@ -18,8 +18,5 @@ guardrail_adherence: aggregated
 code_quality_adherence: aggregated
 security_policy_adherence: aggregated
 
-story_statuses:
-  ST-28: Planned
-  ST-29: Planned
 last_updated: <auto>
 ---

@@ -18,8 +18,6 @@ guardrail_adherence: aggregated
 code_quality_adherence: aggregated
 security_policy_adherence: aggregated
 
-feature_statuses:
-  FT-00: In Progress
 last_updated: <auto>
 ---
 
@@ -39,7 +37,4 @@ build, run, and verify the Single Client View application.
 
 - All features under this epic have status `active` or `done`.
 - All related stories have `testing_status: pass`.
-
-
-
 
