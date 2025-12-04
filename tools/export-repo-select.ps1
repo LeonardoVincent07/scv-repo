@@ -21,6 +21,7 @@ $includePaths = @(
     ".github",
     "infra",
     "missionlog",
+    "docs",
     "tests",
     "tools"
 )
