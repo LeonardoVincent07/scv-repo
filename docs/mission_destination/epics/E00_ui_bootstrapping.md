@@ -6,7 +6,7 @@ name: "User Interface Bootstrapping"
 features:
   - FT-00-UI
 
-overall_status: In Progress
+overall_status: Planned
 testing_status: Planned
 guardrail_adherence: Planned
 code_quality_adherence: Planned

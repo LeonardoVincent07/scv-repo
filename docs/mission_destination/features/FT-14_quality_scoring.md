@@ -10,7 +10,7 @@ stories:
   - ST-28
   - ST-29
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: Planned
 halo_adherence: aggregated

@@ -4,7 +4,7 @@ slug: st-00-backend-api-availability
 name: Provide Basic Backend API Availability
 epic: E00
 feature: FT-00-BE
-status: in_progress
+status: Complete
 
 # MissionSmith Status Fields (used by CI + tools/*.py)
 testing_status: pass
@@ -13,7 +13,7 @@ guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
 implementation_presence: partial
-overall_status: Complete
+overall_status: Planned
 last_updated: 2025-12-04
 ---
 

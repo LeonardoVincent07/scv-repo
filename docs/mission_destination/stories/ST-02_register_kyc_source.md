@@ -9,7 +9,7 @@ acceptance_criteria:
   - Connection ok
   - Schema ok
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
 halo_adherence: fail

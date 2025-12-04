@@ -10,7 +10,7 @@ stories:
   - ST-03
   - ST-04
 
-overall_status: Complete
+overall_status: In Progress
 
 testing_status: Complete
 halo_adherence: aggregated

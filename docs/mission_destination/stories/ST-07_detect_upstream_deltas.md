@@ -8,7 +8,7 @@ description: |
 acceptance_criteria:
   - Changes detected
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
 halo_adherence: fail

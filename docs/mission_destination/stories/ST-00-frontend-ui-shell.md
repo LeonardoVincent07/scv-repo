@@ -4,7 +4,7 @@ slug: st-00-frontend-ui-shell
 name: Provide Frontend UI Shell Availability
 epic: E00-UI
 feature: FT-00-UI
-status: in_progress
+status: Complete
 
 # MissionSmith Status Fields (used by CI + tools/*.py)
 testing_status: pass
@@ -13,7 +13,7 @@ guardrail_adherence: not_run
 code_quality_adherence: pass
 security_policy_adherence: pass
 implementation_presence: partial
-overall_status: In Progress
+overall_status: Planned
 last_updated: 2025-12-04
 ---
 

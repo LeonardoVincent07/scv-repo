@@ -11,7 +11,7 @@ description: |
 stories:
   - ST-00
 
-overall_status: Complete
+overall_status: Planned
 testing_status: Planned
 halo_adherence: Planned
 guardrail_adherence: Planned

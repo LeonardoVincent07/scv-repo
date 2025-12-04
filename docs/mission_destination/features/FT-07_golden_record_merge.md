@@ -11,7 +11,7 @@ stories:
   - ST-14
   - ST-15
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: Planned
 halo_adherence: aggregated
