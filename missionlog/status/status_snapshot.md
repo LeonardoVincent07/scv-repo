@@ -4,8 +4,8 @@
 
 | Epic | Name | Overall |
 |------|------|---------|
-| E00 | Application Bootstrapping | Planned |
-| E00-UI | User Interface Bootstrapping | Planned |
+| E00 | Application Bootstrapping | Complete |
+| E00-UI | User Interface Bootstrapping | Complete |
 | EP-01 | Client Ingestion & Normalisation | In Progress |
 | EP-02 | Client Matching & Golden Record | Planned |
 | EP-03 | Client Search | Planned |
@@ -18,8 +18,8 @@
 
 | Feature | Epic | Name | Overall | Stories |
 |---------|------|------|---------|---------|
-| FT-00-BE | E00 | Backend Fundamentals | Planned | ST-00 |
-| FT-00-UI | E00-UI | Frontend Fundamentals | Planned | ST-00-FRONTEND-UI-SHELL |
+| FT-00-BE | E00 | Backend Fundamentals | Complete | ST-00 |
+| FT-00-UI | E00-UI | Frontend Fundamentals | Complete | ST-00-FRONTEND-UI-SHELL |
 | FT-01 | EP-01 | Source System Configuration | Planned | ST-01, ST-02 |
 | FT-02 | EP-01 | Schema Mapping to Canonical Model | In Progress | ST-03, ST-04 |
 | FT-03 | EP-01 | Initial Bulk Ingestion | Planned | ST-05, ST-06 |
@@ -43,8 +43,8 @@
 
 | Story | Feature | Name | Overall |
 |-------|---------|------|---------|
-| ST-00 | FT-00-BE | Provide Basic Backend API Availability | Planned |
-| ST-00-FRONTEND-UI-SHELL | FT-00-UI | Provide Frontend UI Shell Availability | Planned |
+| ST-00 | FT-00-BE | Provide Basic Backend API Availability | Complete |
+| ST-00-FRONTEND-UI-SHELL | FT-00-UI | Provide Frontend UI Shell Availability | Complete |
 | ST-01 | FT-01 | Register CRM source | Planned |
 | ST-02 | FT-01 | Register KYC source | Planned |
 | ST-03 | FT-02 | Map identity fields | In Progress |
