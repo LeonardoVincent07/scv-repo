@@ -1,19 +1,15 @@
 #!/usr/bin/env python
 """
-Mission Control Status Snapshot
+Mission Control Status Snapshot (overall_status only)
 
-Generates a human-readable markdown snapshot of the current status for:
-- Epics
-- Features
-- Stories
+Reads epics, features, and stories and writes:
 
-Input (read-only):
-  docs/mission_destination/epics/*.md
-  docs/mission_destination/features/*.md
-  docs/mission_destination/stories/*.md
-
-Output:
   missionlog/status/status_snapshot.md
+
+with three tables:
+- Epics:   Epic | Name | Overall
+- Features: Feature | Epic | Name | Overall | Stories
+- Stories: Story | Feature | Name | Overall
 """
 
 from __future__ import annotations
@@ -33,18 +29,13 @@ SNAPSHOT_DIR = REPO_ROOT / "missionlog" / "status"
 SNAPSHOT_PATH = SNAPSHOT_DIR / "status_snapshot.md"
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+# -------------------- helpers -------------------- #
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
 def _extract_scalar(text: str, key: str) -> Optional[str]:
-    """
-    Extract 'key: value' from front matter. Returns value or None.
-    """
     pattern = rf"^{re.escape(key)}:\s*(.+)$"
     m = re.search(pattern, text, flags=re.MULTILINE)
     if not m:
@@ -56,15 +47,6 @@ def _extract_scalar(text: str, key: str) -> Optional[str]:
 
 
 def _extract_yaml_list(text: str, key: str) -> List[str]:
-    """
-    Extract a simple YAML list:
-
-      key:
-        - item1
-        - item2
-
-    Returns [item1, item2].
-    """
     pattern = rf"^{re.escape(key)}:\s*\n(?P<body>(?:\s+- .*\n)+)"
     m = re.search(pattern, text, flags=re.MULTILINE)
     if not m:
@@ -80,17 +62,10 @@ def _extract_yaml_list(text: str, key: str) -> List[str]:
     return items
 
 
-def _safe_status(val: Optional[str]) -> str:
-    """
-    Normalise status-ish values into something readable.
-    We assume rollup_statuses.py has already normalised to:
-      Planned | In Progress | Complete
-    but we guard anyway.
-    """
+def _safe_overall(val: Optional[str]) -> str:
     if not val:
         return ""
     t = val.strip().strip('"\'')
-    # Light normalisation
     lookup = {
         "planned": "Planned",
         "in progress": "In Progress",
@@ -103,19 +78,13 @@ def _safe_status(val: Optional[str]) -> str:
     return lookup.get(t.lower(), t)
 
 
-# ---------------------------------------------------------------------------
-# Data structures
-# ---------------------------------------------------------------------------
+# -------------------- data structures -------------------- #
 
 @dataclass
 class EpicRow:
     epic_id: str
     name: str
     overall: str
-    testing: str
-    guardrail: str
-    code_quality: str
-    security: str
 
 
 @dataclass
@@ -124,10 +93,6 @@ class FeatureRow:
     epic_id: str
     name: str
     overall: str
-    testing: str
-    guardrail: str
-    code_quality: str
-    security: str
     stories: List[str]
 
 
@@ -137,15 +102,9 @@ class StoryRow:
     feature_id: str
     name: str
     overall: str
-    testing: str
-    guardrail: str
-    code_quality: str
-    security: str
 
 
-# ---------------------------------------------------------------------------
-# Collectors
-# ---------------------------------------------------------------------------
+# -------------------- collectors -------------------- #
 
 def collect_epics() -> Dict[str, EpicRow]:
     rows: Dict[str, EpicRow] = {}
@@ -155,25 +114,12 @@ def collect_epics() -> Dict[str, EpicRow]:
 
         epic_id = _extract_scalar(text, "epic_id")
         if not epic_id:
-            continue  # legacy / out-of-scope epic
+            continue
 
         name = _extract_scalar(text, "name") or path.stem
+        overall = _safe_overall(_extract_scalar(text, "overall_status"))
 
-        overall = _safe_status(_extract_scalar(text, "overall_status"))
-        testing = _safe_status(_extract_scalar(text, "testing_status"))
-        guardrail = _safe_status(_extract_scalar(text, "guardrail_adherence"))
-        code_quality = _safe_status(_extract_scalar(text, "code_quality_adherence"))
-        security = _safe_status(_extract_scalar(text, "security_policy_adherence"))
-
-        rows[epic_id] = EpicRow(
-            epic_id=epic_id,
-            name=name,
-            overall=overall,
-            testing=testing,
-            guardrail=guardrail,
-            code_quality=code_quality,
-            security=security,
-        )
+        rows[epic_id] = EpicRow(epic_id=epic_id, name=name, overall=overall)
 
     return rows
 
@@ -186,28 +132,18 @@ def collect_features() -> Dict[str, FeatureRow]:
 
         feature_id = _extract_scalar(text, "feature_id")
         if not feature_id:
-            continue  # legacy / out-of-scope feature
+            continue
 
         epic_id = _extract_scalar(text, "epic") or ""
         name = _extract_scalar(text, "name") or path.stem
-
         stories = _extract_yaml_list(text, "stories")
-
-        overall = _safe_status(_extract_scalar(text, "overall_status"))
-        testing = _safe_status(_extract_scalar(text, "testing_status"))
-        guardrail = _safe_status(_extract_scalar(text, "guardrail_adherence"))
-        code_quality = _safe_status(_extract_scalar(text, "code_quality_adherence"))
-        security = _safe_status(_extract_scalar(text, "security_policy_adherence"))
+        overall = _safe_overall(_extract_scalar(text, "overall_status"))
 
         rows[feature_id] = FeatureRow(
             feature_id=feature_id,
             epic_id=epic_id,
             name=name,
             overall=overall,
-            testing=testing,
-            guardrail=guardrail,
-            code_quality=code_quality,
-            security=security,
             stories=stories,
         )
 
@@ -222,49 +158,35 @@ def collect_stories() -> Dict[str, StoryRow]:
 
         story_id = _extract_scalar(text, "story_id")
         if not story_id:
-            continue  # legacy / out-of-scope story
+            continue
 
         feature_id = _extract_scalar(text, "feature") or ""
         name = _extract_scalar(text, "name") or path.stem
-
-        overall = _safe_status(_extract_scalar(text, "overall_status"))
-        testing = _safe_status(_extract_scalar(text, "testing_status"))
-        guardrail = _safe_status(_extract_scalar(text, "guardrail_adherence"))
-        code_quality = _safe_status(_extract_scalar(text, "code_quality_adherence"))
-        security = _safe_status(_extract_scalar(text, "security_policy_adherence"))
+        overall = _safe_overall(_extract_scalar(text, "overall_status"))
 
         rows[story_id] = StoryRow(
             story_id=story_id,
             feature_id=feature_id,
             name=name,
             overall=overall,
-            testing=testing,
-            guardrail=guardrail,
-            code_quality=code_quality,
-            security=security,
         )
 
     return rows
 
 
-# ---------------------------------------------------------------------------
-# Markdown rendering
-# ---------------------------------------------------------------------------
+# -------------------- markdown rendering -------------------- #
 
 def _render_epics_table(epics: Dict[str, EpicRow]) -> str:
     if not epics:
         return "_No epics found._\n"
 
     lines: List[str] = []
-    lines.append("| Epic | Name | Overall | Testing | Guardrails | Code Quality | Security |")
-    lines.append("|------|------|---------|---------|-----------|--------------|----------|")
+    lines.append("| Epic | Name | Overall |")
+    lines.append("|------|------|---------|")
 
-    for epic_id in sorted(epics.keys()):
-        e = epics[epic_id]
-        lines.append(
-            f"| {e.epic_id} | {e.name} | {e.overall} | {e.testing} | "
-            f"{e.guardrail} | {e.code_quality} | {e.security} |"
-        )
+    for eid in sorted(epics.keys()):
+        e = epics[eid]
+        lines.append(f"| {e.epic_id} | {e.name} | {e.overall} |")
 
     return "\n".join(lines) + "\n"
 
@@ -274,16 +196,13 @@ def _render_features_table(features: Dict[str, FeatureRow]) -> str:
         return "_No features found._\n"
 
     lines: List[str] = []
-    lines.append("| Feature | Epic | Name | Overall | Testing | Guardrails | Code Quality | Security | Stories |")
-    lines.append("|---------|------|------|---------|---------|-----------|--------------|----------|---------|")
+    lines.append("| Feature | Epic | Name | Overall | Stories |")
+    lines.append("|---------|------|------|---------|---------|")
 
     for fid in sorted(features.keys()):
         f = features[fid]
         stories_str = ", ".join(f.stories) if f.stories else ""
-        lines.append(
-            f"| {f.feature_id} | {f.epic_id} | {f.name} | {f.overall} | {f.testing} | "
-            f"{f.guardrail} | {f.code_quality} | {f.security} | {stories_str} |"
-        )
+        lines.append(f"| {f.feature_id} | {f.epic_id} | {f.name} | {f.overall} | {stories_str} |")
 
     return "\n".join(lines) + "\n"
 
@@ -293,15 +212,12 @@ def _render_stories_table(stories: Dict[str, StoryRow]) -> str:
         return "_No stories found._\n"
 
     lines: List[str] = []
-    lines.append("| Story | Feature | Name | Overall | Testing | Guardrails | Code Quality | Security |")
-    lines.append("|-------|---------|------|---------|---------|-----------|--------------|----------|")
+    lines.append("| Story | Feature | Name | Overall |")
+    lines.append("|-------|---------|------|---------|")
 
     for sid in sorted(stories.keys()):
         s = stories[sid]
-        lines.append(
-            f"| {s.story_id} | {s.feature_id} | {s.name} | {s.overall} | {s.testing} | "
-            f"{s.guardrail} | {s.code_quality} | {s.security} |"
-        )
+        lines.append(f"| {s.story_id} | {s.feature_id} | {s.name} | {s.overall} |")
 
     return "\n".join(lines) + "\n"
 
@@ -326,12 +242,10 @@ def build_snapshot_markdown() -> str:
     return "\n".join(parts)
 
 
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
+# -------------------- CLI -------------------- #
 
 def main() -> int:
-    print("=== Generating Mission Control Status Snapshot ===")
+    print("=== Generating Mission Control Status Snapshot (overall only) ===")
     print(f"Repo root: {REPO_ROOT}")
 
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
