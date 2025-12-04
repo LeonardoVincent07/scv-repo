@@ -1,0 +1,2020 @@
+﻿===== CLEAN REPO EXPORT =====
+
+===== FILE: app_backend\main.py =====
+# Story: ST-00-backend-api-availability
+# Feature: FT-00-backend-fundamentals
+# Epic: E00
+# Purpose: Backend bootstrapping and health endpoint.
+
+from typing import Any, Dict, List
+import json
+import os
+
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
+
+from .db import Base, engine, SessionLocal
+from . import models, schemas
+
+# Import your existing SCV domain service
+from src.services.client_profile.service import ClientProfileService
+
+# ------------------------------------
+# Initialise database
+# ------------------------------------
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Single Client View (SCV) Backend")
+
+# ------------------------------------
+# CORS (kept for optional Vite dev server use)
+# ------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ------------------------------------
+# Serve built frontend (Vite dist)
+# ------------------------------------
+FRONTEND_DIST = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "app_frontend", "dist")
+)
+
+if os.path.isdir(FRONTEND_DIST):
+    # Serve static assets (JS/CSS, etc.)
+    app.mount(
+        "/assets",
+        StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")),
+        name="assets",
+    )
+
+    @app.get("/", include_in_schema=False)
+    async def serve_react_index():
+        """Serve the built React single-page app."""
+        index_path = os.path.join(FRONTEND_DIST, "index.html")
+        return FileResponse(index_path)
+
+
+# ------------------------------------
+# DB session dependency
+# ------------------------------------
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# ------------------------------------
+# Load raw records for a client
+# ------------------------------------
+def _load_raw_records_for_client(db: Session, client_id: str) -> List[Dict[str, Any]]:
+    rows: List[models.SourceRecord] = (
+        db.query(models.SourceRecord)
+        .filter(models.SourceRecord.client_id == client_id)
+        .all()
+    )
+
+    records: List[Dict[str, Any]] = []
+    for row in rows:
+        try:
+            payload = json.loads(row.payload_json)
+        except json.JSONDecodeError:
+            continue
+
+        if "_source" not in payload:
+            payload["_source"] = row.system
+
+        records.append(payload)
+
+    return records
+
+
+# ------------------------------------
+# Health check
+# ------------------------------------
+@app.get("/health", tags=["system"])
+def health_check():
+    return {"status": "ok"}
+
+
+# ------------------------------------
+# Ingestion endpoint
+# ------------------------------------
+@app.post("/ingest", response_model=schemas.SourceRecordRead, tags=["ingestion"])
+def ingest_source_record(
+    record_in: schemas.SourceRecordCreate,
+    db: Session = Depends(get_db),
+):
+    existing = (
+        db.query(models.SourceRecord)
+        .filter(
+            models.SourceRecord.client_id == record_in.client_id,
+            models.SourceRecord.system == record_in.system,
+        )
+        .one_or_none()
+    )
+
+    payload_json = json.dumps(record_in.payload)
+
+    if existing:
+        existing.payload_json = payload_json
+        db.add(existing)
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    row = models.SourceRecord(
+        client_id=record_in.client_id,
+        system=record_in.system,
+        payload_json=payload_json,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+# ------------------------------------
+# List raw source records
+# ------------------------------------
+@app.get(
+    "/clients/{client_id}/sources",
+    response_model=list[schemas.SourceRecordRead],
+    tags=["clients"],
+)
+def list_client_sources(
+    client_id: str,
+    db: Session = Depends(get_db),
+):
+    rows = (
+        db.query(models.SourceRecord)
+        .filter(models.SourceRecord.client_id == client_id)
+        .all()
+    )
+    out: List[schemas.SourceRecordRead] = []
+    for row in rows:
+        out.append(
+            schemas.SourceRecordRead(
+                id=row.id,
+                client_id=row.client_id,
+                system=row.system,
+                payload=json.loads(row.payload_json),
+            )
+        )
+    return out
+
+
+# ------------------------------------
+# SCV Profile endpoint (LDM aligned)
+# ------------------------------------
+@app.get("/clients/{client_id}/profile", tags=["clients"])
+def get_client_profile(
+    client_id: str,
+    db: Session = Depends(get_db),
+):
+    raw_records = _load_raw_records_for_client(db, client_id)
+
+    service = ClientProfileService()
+    profile = service.assemble_base_profile(client_id, raw_records)
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile could not be assembled")
+
+    return profile
+
+
+
+
+===== FILE: app_frontend\src\App.css =====
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+
+
+===== FILE: app_frontend\src\App.jsx =====
+import React, { useState } from "react";
+
+const BACKEND_BASE_URL = "http://127.0.0.1:8000";
+
+function App() {
+  const [clientId, setClientId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [sources, setSources] = useState([]);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!clientId.trim()) {
+      setError("Please enter a Client ID.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    setProfile(null);
+    setSources([]);
+
+    try {
+      const profileRes = await fetch(
+        `${BACKEND_BASE_URL}/clients/${encodeURIComponent(clientId)}/profile`
+      );
+      if (!profileRes.ok) {
+        const detail = await profileRes.json().catch(() => ({}));
+        throw new Error(detail.detail || "Failed to fetch profile.");
+      }
+      const profileJson = await profileRes.json();
+
+      const sourcesRes = await fetch(
+        `${BACKEND_BASE_URL}/clients/${encodeURIComponent(clientId)}/sources`
+      );
+      let sourcesJson = [];
+      if (sourcesRes.ok) {
+        sourcesJson = await sourcesRes.json();
+      }
+
+      setProfile(profileJson);
+      setSources(sourcesJson);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Top bar */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-heading text-halo-primary">
+              Single Client View
+            </span>
+            <span className="text-sm font-body text-gray-500">
+              MissionHalo MVP
+            </span>
+          </div>
+          <span className="text-xs font-body text-gray-400">
+            Backend: {BACKEND_BASE_URL}
+          </span>
+        </div>
+      </header>
+
+      {/* Main layout */}
+      <main className="max-w-6xl mx-auto px-4 py-6">
+        {/* Search card */}
+        <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="font-heading text-lg text-gray-800 mb-4">
+            Find client profile
+          </h2>
+
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col md:flex-row gap-4 items-stretch md:items-end"
+          >
+            <div className="flex-1">
+              <label
+                htmlFor="clientId"
+                className="block text-sm font-body text-gray-600 mb-1"
+              >
+                Client ID
+              </label>
+              <input
+                id="clientId"
+                type="text"
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-halo-primary focus:border-halo-primary font-body text-sm"
+                placeholder="e.g. 123"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-md font-body text-sm font-medium bg-halo-primary text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? "Loadingâ€¦" : "Get profile"}
+            </button>
+          </form>
+
+          {error && (
+            <p className="mt-3 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded-md px-3 py-2 font-body">
+              {error}
+            </p>
+          )}
+        </section>
+
+        {/* Content grid */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Profile card */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
+              <h3 className="font-heading text-lg text-gray-800 mb-4 flex items-center justify-between">
+                <span>Client profile</span>
+                {profile && (
+                  <span className="text-xs font-body text-gray-500">
+                    Client ID: {profile.client_id}
+                  </span>
+                )}
+              </h3>
+
+              {!profile && !loading && (
+                <p className="text-sm font-body text-gray-500">
+                  Enter a Client ID and click{" "}
+                  <span className="font-medium">Get profile</span> to see the
+                  assembled Single Client View.
+                </p>
+              )}
+
+              {profile && (
+                <div className="space-y-4">
+                  {/* Core identity */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-heading text-sm text-gray-700 mb-2">
+                      Core identity
+                    </h4>
+                    <dl className="grid grid-cols-2 gap-y-2 text-sm font-body">
+                      <div>
+                        <dt className="text-gray-500">Name</dt>
+                        <dd className="text-gray-900">
+                          {profile.name || "â€”"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-gray-500">Email</dt>
+                        <dd className="text-gray-900">
+                          {profile.email || "â€”"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-gray-500">Country</dt>
+                        <dd className="text-gray-900">
+                          {profile.country || "â€”"}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  {/* Identifiers */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-heading text-sm text-gray-700 mb-2">
+                      Identifiers
+                    </h4>
+                    {profile.identifiers && profile.identifiers.length > 0 ? (
+                      <ul className="space-y-1 text-sm font-body">
+                        {profile.identifiers.map((id, idx) => (
+                          <li
+                            key={idx}
+                            className="flex justify-between border-b border-gray-200 last:border-b-0 pb-1"
+                          >
+                            <span className="text-gray-600">
+                              {id.system || id["system"]}
+                            </span>
+                            <span className="text-gray-900 font-mono">
+                              {id.value || id["value"]}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500 font-body">
+                        No identifiers found.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Addresses */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-heading text-sm text-gray-700 mb-2">
+                      Addresses
+                    </h4>
+                    {profile.addresses && profile.addresses.length > 0 ? (
+                      <ul className="space-y-2 text-sm font-body">
+                        {profile.addresses.map((addr, idx) => (
+                          <li
+                            key={idx}
+                            className="border-b border-gray-200 pb-2 last:border-b-0"
+                          >
+                            <div className="text-gray-900">
+                              {[
+                                addr.line1 || addr["line1"],
+                                addr.line2 || addr["line2"],
+                                addr.city || addr["city"],
+                                addr.postcode || addr["postcode"],
+                                addr.country || addr["country"],
+                              ]
+                                .filter(Boolean)
+                                .join(", ")}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Source: {addr.source || addr["source"] || "â€”"}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500 font-body">
+                        No addresses available.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Raw sources / lineage card */}
+          <div>
+            <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
+              <h3 className="font-heading text-lg text-gray-800 mb-4">
+                Raw sources
+              </h3>
+
+              {!profile && !loading && (
+                <p className="text-sm font-body text-gray-500">
+                  Once a profile is loaded, you&apos;ll see the upstream source
+                  records here.
+                </p>
+              )}
+
+              {sources && sources.length > 0 && (
+                <div className="space-y-3 text-xs font-mono bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-[400px] overflow-auto">
+                  {sources.map((src) => (
+                    <div
+                      key={src.id}
+                      className="bg-white border border-gray-200 rounded-md p-2"
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-body text-xs text-gray-600">
+                          {src.system}
+                        </span>
+                        <span className="font-body text-[10px] text-gray-400">
+                          client_id: {src.client_id}
+                        </span>
+                      </div>
+                      <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
+                        {JSON.stringify(src.payload, null, 2)}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {profile && profile.lineage && (
+                <>
+                  <h4 className="font-heading text-sm text-gray-700 mt-4 mb-2">
+                    Lineage
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-xs font-body max-h-[200px] overflow-auto">
+                    <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
+                      {JSON.stringify(profile.lineage, null, 2)}
+                    </pre>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+export default App;
+
+
+
+
+
+===== FILE: app_frontend\src\index.css =====
+/* app_frontend/src/index.css */
+
+/* This pulls in Tailwind v4 (base, components, utilities) */
+@import "tailwindcss";
+
+/* Simple global defaults â€“ Tailwind utilities handle the rest */
+:root {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+
+
+
+===== FILE: app_frontend\src\main.jsx =====
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+
+
+===== FILE: app_frontend\index.html =====
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SCV Frontend</title>
+
+    <!-- MissionHalo fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;700&family=Raleway:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+
+
+===== FILE: app_frontend\package.json =====
+{
+  "name": "app_frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
+    "vite": "^7.2.4"
+  }
+}
+
+
+
+===== FILE: app_frontend\vite.config.js =====
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+
+
+
+===== FILE: .github\workflows\ci.yml =====
+name: Story CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  story-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          python -m pip install pytest bandit ruff
+
+      - name: Run Story tests and update testing_status
+        run: |
+          python tools/run_story_tests.py
+
+      - name: Run Story guardrails and update guardrail_adherence
+        run: |
+          python tools/run_story_guardrails.py
+
+      - name: Run Story security checks and update security_policy_adherence
+        run: |
+          python tools/run_story_security.py
+
+      - name: Run Story lint/code-quality checks and update code_quality_adherence
+        run: |
+          python tools/run_story_lint.py
+
+      - name: Ensure Story statuses are up to date (no drift)
+        run: |
+          # If running the Story scripts changed any Story files, CI fails.
+          # This forces updated status fields to be committed before pushing.
+          if ! git diff --quiet docs/mission_destination/stories; then
+            echo "Story status fields are not in sync with checks."
+            echo "Run locally:"
+            echo "  python tools/run_story_tests.py"
+            echo "  python tools/run_story_guardrails.py"
+            echo "  python tools/run_story_security.py"
+            echo "  python tools/run_story_lint.py"
+            echo "Then commit the updated Story files before pushing."
+            echo
+            git diff -- docs/mission_destination/stories
+            exit 1
+          fi
+
+      - name: Capture CI evidence (placeholder)
+        run: |
+          mkdir -p missionlog/test_evidence
+          echo "CI run at $(date -u)" > missionlog/test_evidence/latest.txt
+
+
+
+
+===== FILE: .github\workflows\story-tests.yml =====
+name: Story Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        id: tests
+        run: pytest
+
+
+
+===== FILE: tests\__init__.py =====
+
+
+===== FILE: tests\api\__init__.py =====
+
+
+
+
+===== FILE: tests\api\http\requirements.txt =====
+pytest
+
+
+
+===== FILE: tests\api\http\test_client_profile_api.py =====
+import pytest
+from src.api.http.client_profile_api import ClientProfileAPI
+
+
+def test_client_profile_api_uses_service_stub():
+    api = ClientProfileAPI()
+    with pytest.raises(NotImplementedError):
+        api.get_client_profile("dummy-id")
+
+
+
+===== FILE: tests\services\__init__.py =====
+
+
+===== FILE: tests\services\audit\test_st_30_audit_ingestion.py =====
+import pytest
+from src.services.audit.service import AuditIngestionService
+
+def test_record_audit_entry():
+    service = AuditIngestionService()
+    service.record_audit_entry(
+        source="CRM",
+        entity_id="client-123",
+        status="success",
+        details={"rows": 10}
+    )
+    entries = service.get_audit_entries("client-123")
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry["source"] == "CRM"
+    assert entry["entity_id"] == "client-123"
+    assert entry["status"] == "success"
+    assert entry["details"] == {"rows": 10}
+    assert "timestamp" in entry
+
+def test_get_audit_entries_filters_by_entity():
+    service = AuditIngestionService()
+    service.record_audit_entry("CRM", "client-1", "success")
+    service.record_audit_entry("KYC", "client-2", "fail")
+    entries = service.get_audit_entries("client-1")
+    assert all(e["entity_id"] == "client-1" for e in entries)
+    assert len(entries) == 1
+
+def test_get_audit_entries_returns_all():
+    service = AuditIngestionService()
+    service.record_audit_entry("CRM", "client-1", "success")
+    service.record_audit_entry("KYC", "client-2", "fail")
+    entries = service.get_audit_entries()
+    assert len(entries) == 2
+    sources = {e["source"] for e in entries}
+    assert sources == {"CRM", "KYC"}
+
+def test_record_audit_entry_defaults_details():
+    service = AuditIngestionService()
+    service.record_audit_entry("CRM", "client-3", "success")
+    entry = service.get_audit_entries("client-3")[0]
+    assert entry["details"] == {}
+    assert entry["status"] == "success"
+
+
+
+===== FILE: tests\services\client_profile\test_client_profile_service.py =====
+import pytest
+from src.services.client_profile.service import ClientProfileService
+
+
+class TestClientProfileService:
+    """
+    Test scaffold for ClientProfileService.
+
+    NOTE:
+    - Structure and naming follow the MissionSmith scaffold.
+    - Real test cases will be generated from story definitions.
+    """
+
+    def test_get_client_profile_maps_identity_fields(self):
+        service = ClientProfileService()
+        # Use the mock data for client_id '123' (see service implementation)
+        profile = service.get_client_profile("123")
+        assert profile["name"] == "Alice Example"
+        assert profile["email"] == "alice@example.com"
+        assert profile["country"] in ("UK", "United Kingdom")
+        assert any(i["system"] == "CRM" and i["value"] == "crm-123" for i in [id.__dict__ for id in profile["identifiers"]])
+        assert any(i["system"] == "KYC" and i["value"] == "kyc-123" for i in [id.__dict__ for id in profile["identifiers"]])
+        assert "CRM" in profile["raw_sources"]
+        assert "KYC" in profile["raw_sources"]
+
+
+
+===== FILE: tests\services\client_profile\test_st_04_map_identifiers.py =====
+import pytest
+from src.services.client_profile.service import ClientProfileService
+from src.domain.models.client_profile import ClientIdentifier
+
+def test_identifiers_mapped_from_all_sources():
+    service = ClientProfileService()
+    # Known client_id present in both CRM and KYC mock sources
+    profile = service.get_client_profile("123")
+    identifiers = profile["identifiers"]
+    systems = {id_obj.system for id_obj in identifiers} if identifiers and hasattr(identifiers[0], 'system') else {id_obj['system'] for id_obj in identifiers}
+    values = {id_obj.value for id_obj in identifiers} if identifiers and hasattr(identifiers[0], 'value') else {id_obj['value'] for id_obj in identifiers}
+    assert systems == {"CRM", "KYC"}
+    assert values == {"crm-123", "kyc-123"}
+    assert len(identifiers) == 2
+
+def test_identifiers_empty_for_unknown_client():
+    service = ClientProfileService()
+    profile = service.get_client_profile("notfound")
+    assert profile["identifiers"] == []
+
+def test_identifier_types():
+    service = ClientProfileService()
+    profile = service.get_client_profile("123")
+    identifiers = profile["identifiers"]
+    # Should be list of ClientIdentifier or dicts with system/value keys
+    for id_obj in identifiers:
+        if isinstance(id_obj, ClientIdentifier):
+            assert hasattr(id_obj, "system")
+            assert hasattr(id_obj, "value")
+        else:
+            assert "system" in id_obj
+            assert "value" in id_obj
+
+
+
+===== FILE: tests\services\client_profile\test_st_20_assemble_base_profile.py =====
+import pytest
+from src.services.client_profile.service import ClientProfileService
+
+def test_assemble_base_profile_fields_set():
+    service = ClientProfileService()
+    # Known client_id present in both CRM and KYC mock sources
+    profile = service.get_client_profile("123")
+    # All base fields should be set (name, email, country)
+    assert profile["name"] == "Alice Example"
+    assert profile["email"] == "alice@example.com"
+    assert profile["country"] == "UK"
+    assert profile["client_id"] == "123"
+    # Should have identifiers and addresses
+    assert isinstance(profile["identifiers"], list)
+    assert isinstance(profile["addresses"], list)
+    # Should have lineage and raw_sources
+    assert isinstance(profile["lineage"], dict)
+    assert isinstance(profile["raw_sources"], dict)
+
+def test_assemble_base_profile_unknown_client():
+    service = ClientProfileService()
+    profile = service.get_client_profile("notfound")
+    # All base fields should be None or empty
+    assert profile["name"] == ""
+    assert profile["email"] is None
+    assert profile["country"] is None
+    assert profile["client_id"] == "notfound"
+    assert profile["identifiers"] == []
+    assert profile["addresses"] == []
+    assert isinstance(profile["lineage"], dict)
+    assert isinstance(profile["raw_sources"], dict)
+
+
+
+===== FILE: tests\services\client_search\test_client_search_service.py =====
+import pytest
+from src.services.client_search.service import ClientSearchService
+
+
+class TestClientSearchService:
+    """
+    Test scaffold for ClientSearchService.
+    """
+
+    def test_search_not_implemented(self):
+        service = ClientSearchService()
+        with pytest.raises(NotImplementedError):
+            service.search("dummy query")
+
+
+
+
+===== FILE: tools\repo_sync_one_liner.txt =====
+git checkout main
+git pull
+git add .
+git commit -m "Sync"
+git push
+
+
+
+
+===== FILE: tools\run_story_guardrails.py =====
+#!/usr/bin/env python
+"""
+Run guardrail checks for one or more Stories and update guardrail_adherence
+in each Story's front matter.
+
+For the MVP, the guardrail we enforce is:
+- Story output must adhere to the canonical data model.
+
+Specifically for ST-03 / ST-04:
+- ClientProfileService.get_client_profile(...) must return a structure
+  that matches the ClientProfile dataclass fields and types.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Tuple, Callable
+
+# ---------------------------------------------------------------------------
+# Repo root + sys.path fix so "src" can be imported
+# ---------------------------------------------------------------------------
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+# Ensure the repo root is on sys.path so that "src. ..." imports work when this
+# script is run as `python tools/run_story_guardrails.py`.
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+# ---------------------------------------------------------------------------
+# Story configuration
+# ---------------------------------------------------------------------------
+
+# Each entry defines:
+# - story_file: the markdown Story file
+# - check_func: a callable that performs guardrail checks and returns (passed, message)
+STORY_CONFIG: Dict[str, Dict[str, Any]] = {}
+
+
+def _register_story(
+    story_id: str,
+    story_file: Path,
+    check_func: Callable[[], Tuple[bool, str]],
+) -> None:
+    STORY_CONFIG[story_id] = {
+        "story_file": story_file,
+        "check_func": check_func,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Guardrail checks
+# ---------------------------------------------------------------------------
+
+def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
+    """
+    Guardrail for ClientProfile-producing Stories (ST-03, ST-04).
+
+    Rules:
+    - get_client_profile(...) must return a dict
+    - Keys of that dict must be a subset of ClientProfile fields
+    - Required fields (client_id, name) must be present
+    - identifiers must be a List[ClientIdentifier]
+    - addresses must be a List[ClientAddress]
+    - lineage, quality, metadata, raw_sources must be dicts
+    """
+    try:
+        from src.services.client_profile.service import ClientProfileService
+        from src.domain.models.client_profile import (
+            ClientProfile,
+            ClientIdentifier,
+            ClientAddress,
+        )
+    except Exception as exc:  # pragma: no cover
+        return False, f"Import error in guardrail check: {exc!r}"
+
+    service = ClientProfileService()
+
+    # Use the same client_id as the tests; this exercises the normal path
+    profile = service.get_client_profile("123")
+
+    if not isinstance(profile, dict):
+        return False, "get_client_profile must return a dict derived from ClientProfile."
+
+    # 1) Keys must match the ClientProfile dataclass (no unexpected fields)
+    allowed_fields = {f.name for f in dataclasses.fields(ClientProfile)}
+    keys = set(profile.keys())
+    extra_fields = keys - allowed_fields
+    if extra_fields:
+        return False, f"Output contains fields not in ClientProfile: {sorted(extra_fields)}"
+
+    required_fields = {"client_id", "name"}
+    missing = required_fields - keys
+    if missing:
+        return False, f"Output is missing required fields: {sorted(missing)}"
+
+    # 2) identifiers must be a list of ClientIdentifier instances
+    identifiers = profile.get("identifiers")
+    if not isinstance(identifiers, list):
+        return False, "identifiers must be a list of ClientIdentifier."
+    for idx, item in enumerate(identifiers):
+        if not isinstance(item, ClientIdentifier):
+            return False, f"identifiers[{idx}] is not a ClientIdentifier instance."
+
+    # 3) addresses must be a list of ClientAddress instances
+    addresses = profile.get("addresses")
+    if not isinstance(addresses, list):
+        return False, "addresses must be a list of ClientAddress."
+    for idx, addr in enumerate(addresses):
+        if not isinstance(addr, ClientAddress):
+            return False, f"addresses[{idx}] is not a ClientAddress instance."
+
+    # 4) lineage, quality, metadata, raw_sources should be dicts
+    for field_name in ["lineage", "quality", "metadata", "raw_sources"]:
+        value = profile.get(field_name)
+        if not isinstance(value, dict):
+            return False, f"{field_name} must be a dict; got {type(value).__name__}"
+
+    return True, "Output adheres to ClientProfile data model."
+
+
+# Register ST-03 and ST-04 (same guardrail, same model)
+_register_story(
+    "ST-03",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-03_map_identity_fields.md",
+    check_client_profile_data_model_adherence,
+)
+
+_register_story(
+    "ST-04",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-04_map_identifiers.md",
+    check_client_profile_data_model_adherence,
+)
+
+_register_story(
+    "ST-20",
+    REPO_ROOT / "docs" / "mission_destination" / "stories" / "ST-20_assemble_base_profile.md",
+    check_client_profile_data_model_adherence,
+)
+
+
+# ---------------------------------------------------------------------------
+# Helpers: evidence + front-matter update
+# ---------------------------------------------------------------------------
+
+def write_guardrail_evidence(
+    story_id: str,
+    passed: bool,
+    message: str,
+) -> Path:
+    """
+    Write a JSON evidence file for guardrail adherence for this Story.
+    """
+    results_dir = REPO_ROOT / "evidence" / "guardrails"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    evidence_path = results_dir / f"{story_id}.json"
+    payload = {
+        "story_id": story_id,
+        "passed": passed,
+        "message": message,
+    }
+    evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f">>> Wrote guardrail evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}")
+    return evidence_path
+
+
+def update_story_guardrail_adherence(story_file: Path, passed: bool) -> None:
+    """
+    Replace the first 'guardrail_adherence: ...' line in the Story's front matter.
+    """
+    if not story_file.exists():
+        raise FileNotFoundError(f"Story file not found: {story_file}")
+
+    status = "pass" if passed else "fail"
+
+    text = story_file.read_text(encoding="utf-8")
+
+    pattern = r"(^guardrail_adherence:\s*).*$"
+    replacement = rf"\1{status}"
+    new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    if count == 0:
+        raise RuntimeError(
+            f"Story file {story_file} does not contain a guardrail_adherence line to update."
+        )
+
+    story_file.write_text(new_text, encoding="utf-8")
+    rel = story_file.relative_to(REPO_ROOT)
+    print(f">>> Updated {rel} -> guardrail_adherence: {status}")
+
+
+def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
+    """
+    Run the guardrail check for a single Story:
+    - execute the check function
+    - write evidence
+    - update front matter
+    Returns (passed, message).
+    """
+    config = STORY_CONFIG[story_id]
+    story_file: Path = config["story_file"]  # type: ignore[assignment]
+    check_func: Callable[[], Tuple[bool, str]] = config["check_func"]  # type: ignore[assignment]
+
+    print(f">>> Running guardrail checks for Story {story_id}")
+    passed, message = check_func()
+
+    write_guardrail_evidence(story_id, passed, message)
+    update_story_guardrail_adherence(story_file, passed)
+
+    status = "pass" if passed else "fail"
+    print(f">>> Story {story_id} guardrail_adherence set to {status}: {message}")
+    return passed, message
+
+
+# ---------------------------------------------------------------------------
+# CLI entrypoint
+# ---------------------------------------------------------------------------
+
+def main(argv: List[str]) -> int:
+    """
+    Usage:
+      python tools/run_story_guardrails.py          # run for all configured Stories
+      python tools/run_story_guardrails.py ST-03    # run for a single Story
+    """
+    if len(argv) > 1:
+        story_id = argv[1].upper()
+        if story_id not in STORY_CONFIG:
+            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
+            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
+            return 1
+        requested_ids = [story_id]
+    else:
+        requested_ids = sorted(STORY_CONFIG.keys())
+
+    overall_exit = 0
+    for sid in requested_ids:
+        print(f"\n=== Guardrails for Story {sid} ===")
+        passed, _ = run_guardrail_for_story(sid)
+        if not passed:
+            overall_exit = 1
+
+    return overall_exit
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+
+
+
+===== FILE: tools\run_story_lint.py =====
+#!/usr/bin/env python
+"""
+Run linting for one or more Stories and update code_quality_adherence
+in each Story's front matter.
+
+MVP:
+- Use Ruff to lint the Story's Python files.
+- If any issues are reported, mark as fail.
+- Otherwise mark as pass.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+# ---------------------------------------------------------------------------
+# Repo root + sys.path
+# ---------------------------------------------------------------------------
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+
+# ---------------------------------------------------------------------------
+# Story configuration
+# ---------------------------------------------------------------------------
+
+# For each Story:
+# - story_file: markdown Story file
+# - lint_targets: list of Python files to lint with Ruff
+STORY_CONFIG: Dict[str, Dict[str, Any]] = {
+    "ST-03": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-03_map_identity_fields.md",
+        "lint_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-04": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-04_map_identifiers.md",
+        "lint_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-20": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-20_assemble_base_profile.md",
+        "lint_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-30": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-30_audit_ingestion.md",
+        "lint_targets": [
+            "src/services/audit/service.py",
+        ],
+    },
+}
+
+
+# ---------------------------------------------------------------------------
+# Core helpers
+# ---------------------------------------------------------------------------
+
+def run_ruff_for_targets(targets: List[str]) -> Tuple[bool, str, List[Dict[str, Any]]]:
+    """
+    Run Ruff on the given Python files.
+
+    Returns:
+      (passed, message, issues)
+
+    Where issues is a minimal list of findings (code, message, location).
+    """
+    cmd = [
+        sys.executable,
+        "-m",
+        "ruff",
+        "check",
+        "--output-format",
+        "json",
+        *targets,
+    ]
+    print(f">>> Running Ruff: {' '.join(cmd)}")
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        # Ruff not installed / importable in this environment
+        return (
+            False,
+            f"Ruff not available: {exc!r}. Install ruff in this environment.",
+            [],
+        )
+
+    stdout = proc.stdout or ""
+    stderr = proc.stderr or ""
+
+    if not stdout.strip():
+        # No JSON output â€“ treat as failure with diagnostic
+        return (
+            False,
+            f"Ruff did not produce JSON output. rc={proc.returncode}, stderr={stderr.strip()}",
+            [],
+        )
+
+    try:
+        data = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        return (
+            False,
+            f"Failed to parse Ruff JSON output: {exc!r}",
+            [],
+        )
+
+    # Ruff JSON is a list of diagnostics
+    issues: List[Dict[str, Any]] = []
+    for diag in data:
+        issues.append(
+            {
+                "filename": diag.get("filename"),
+                "code": diag.get("code"),
+                "message": diag.get("message"),
+                "location": diag.get("location"),
+            }
+        )
+
+    if issues:
+        return (
+            False,
+            f"Ruff reported {len(issues)} code-quality issue(s).",
+            issues,
+        )
+
+    return True, "No code-quality issues reported by Ruff.", issues
+
+
+def write_lint_evidence(
+    story_id: str,
+    targets: List[str],
+    passed: bool,
+    message: str,
+    issues: List[Dict[str, Any]],
+) -> Path:
+    """
+    Write JSON evidence file for lint/code-quality adherence for this Story.
+    """
+    results_dir = REPO_ROOT / "evidence" / "lint"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    evidence_path = results_dir / f"{story_id}.json"
+    payload = {
+        "story_id": story_id,
+        "targets": targets,
+        "passed": passed,
+        "message": message,
+        "issues": issues,
+    }
+    evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f">>> Wrote lint evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}")
+    return evidence_path
+
+
+def update_story_code_quality_status(story_file: Path, passed: bool) -> None:
+    """
+    Replace the first 'code_quality_adherence: ...' line in the Story's front matter.
+    """
+    if not story_file.exists():
+        raise FileNotFoundError(f"Story file not found: {story_file}")
+
+    status = "pass" if passed else "fail"
+
+    text = story_file.read_text(encoding="utf-8")
+
+    pattern = r"(^code_quality_adherence:\s*).*$"
+    replacement = rf"\1{status}"
+    new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    if count == 0:
+        raise RuntimeError(
+            f"Story file {story_file} does not contain a code_quality_adherence line to update."
+        )
+
+    story_file.write_text(new_text, encoding="utf-8")
+    rel = story_file.relative_to(REPO_ROOT)
+    print(f">>> Updated {rel} -> code_quality_adherence: {status}")
+
+
+def run_lint_for_story(story_id: str) -> Tuple[bool, str]:
+    """
+    Run linting for a single Story:
+    - execute Ruff on its targets
+    - write evidence
+    - update front matter
+
+    Returns (passed, message).
+    """
+    config = STORY_CONFIG[story_id]
+    story_file: Path = config["story_file"]  # type: ignore[assignment]
+    targets: List[str] = config["lint_targets"]  # type: ignore[assignment]
+
+    print(f">>> Running lint/code-quality checks for Story {story_id}")
+    passed, message, issues = run_ruff_for_targets(targets)
+
+    write_lint_evidence(story_id, targets, passed, message, issues)
+    update_story_code_quality_status(story_file, passed)
+
+    status = "pass" if passed else "fail"
+    print(f">>> Story {story_id} code_quality_adherence set to {status}: {message}")
+    return passed, message
+
+
+# ---------------------------------------------------------------------------
+# CLI entrypoint
+# ---------------------------------------------------------------------------
+
+def main(argv: List[str]) -> int:
+    """
+    Usage:
+      python tools/run_story_lint.py          # run for all configured Stories
+      python tools/run_story_lint.py ST-03    # run for a single Story
+    """
+    if len(argv) > 1:
+        story_id = argv[1].upper()
+        if story_id not in STORY_CONFIG:
+            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
+            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
+            return 1
+        requested_ids = [story_id]
+    else:
+        requested_ids = sorted(STORY_CONFIG.keys())
+
+    overall_exit = 0
+    for sid in requested_ids:
+        print(f"\n=== Lint/code-quality for Story {sid} ===")
+        passed, _ = run_lint_for_story(sid)
+        if not passed:
+            overall_exit = 1
+
+    return overall_exit
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+
+
+
+===== FILE: tools\run_story_security.py =====
+#!/usr/bin/env python
+"""
+Run security checks for one or more Stories and update security_policy_adherence
+in each Story's front matter.
+
+MVP:
+- Use Bandit to scan the Story's Python files for security issues.
+- If any Medium/High severity issues are found, mark as fail.
+- Otherwise mark as pass.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+# ---------------------------------------------------------------------------
+# Repo root + sys.path
+# ---------------------------------------------------------------------------
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+
+# ---------------------------------------------------------------------------
+# Story configuration
+# ---------------------------------------------------------------------------
+
+# For each Story:
+# - story_file: markdown Story file
+# - security_targets: list of Python files to scan with Bandit
+STORY_CONFIG: Dict[str, Dict[str, Any]] = {
+    "ST-03": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-03_map_identity_fields.md",
+        "security_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-04": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-04_map_identifiers.md",
+        "security_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-20": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-20_assemble_base_profile.md",
+        "security_targets": [
+            "src/services/client_profile/service.py",
+            "src/domain/models/client_profile.py",
+        ],
+    },
+    "ST-30": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-30_audit_ingestion.md",
+        "security_targets": [
+            "src/services/audit/service.py",
+        ],
+    },
+}
+
+
+# ---------------------------------------------------------------------------
+# Core helpers
+# ---------------------------------------------------------------------------
+
+def run_bandit_for_targets(targets: List[str]) -> Tuple[bool, str, List[Dict[str, Any]]]:
+    """
+    Run Bandit on the given Python files.
+
+    Returns:
+      (passed, message, issues)
+
+    Where issues is a minimal list of findings we care about.
+    """
+    cmd = [
+        sys.executable,
+        "-m",
+        "bandit",
+        "-q",        # quiet banner
+        "-f",
+        "json",      # JSON output
+        "-o",
+        "-",         # write JSON to stdout
+        *targets,
+    ]
+    print(f">>> Running Bandit: {' '.join(cmd)}")
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        # bandit not installed / not importable
+        return (
+            False,
+            f"Bandit not available: {exc!r}. Install bandit in this environment.",
+            [],
+        )
+
+    stdout = proc.stdout or ""
+    stderr = proc.stderr or ""
+
+    # Bandit often returns 0 when no issues, 1 when issues found.
+    # We don't rely solely on returncode; we parse JSON.
+    if not stdout.strip():
+        return (
+            False,
+            f"Bandit did not produce JSON output. rc={proc.returncode}, stderr={stderr.strip()}",
+            [],
+        )
+
+    try:
+        data = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        return (
+            False,
+            f"Failed to parse Bandit JSON output: {exc!r}",
+            [],
+        )
+
+    raw_results = data.get("results", []) or []
+
+    # Keep only medium/high severity & confidence findings.
+    issues: List[Dict[str, Any]] = []
+    for r in raw_results:
+        severity = (r.get("issue_severity") or "").upper()
+        confidence = (r.get("issue_confidence") or "").upper()
+        if severity in {"MEDIUM", "HIGH"} and confidence in {"MEDIUM", "HIGH"}:
+            issues.append(
+                {
+                    "filename": r.get("filename"),
+                    "line_number": r.get("line_number"),
+                    "test_id": r.get("test_id"),
+                    "issue_severity": severity,
+                    "issue_confidence": confidence,
+                    "issue_text": r.get("issue_text"),
+                }
+            )
+
+    if issues:
+        return (
+            False,
+            f"Bandit found {len(issues)} medium/high security issue(s).",
+            issues,
+        )
+
+    return True, "No medium/high security issues found by Bandit.", issues
+
+
+def write_security_evidence(
+    story_id: str,
+    targets: List[str],
+    passed: bool,
+    message: str,
+    issues: List[Dict[str, Any]],
+) -> Path:
+    """
+    Write JSON evidence file for security adherence for this Story.
+    """
+    results_dir = REPO_ROOT / "evidence" / "security"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    evidence_path = results_dir / f"{story_id}.json"
+    payload = {
+        "story_id": story_id,
+        "targets": targets,
+        "passed": passed,
+        "message": message,
+        "issues": issues,
+    }
+    evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f">>> Wrote security evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}")
+    return evidence_path
+
+
+def update_story_security_status(story_file: Path, passed: bool) -> None:
+    """
+    Replace the first 'security_policy_adherence: ...' line in the Story's front matter.
+    """
+    if not story_file.exists():
+        raise FileNotFoundError(f"Story file not found: {story_file}")
+
+    status = "pass" if passed else "fail"
+
+    text = story_file.read_text(encoding="utf-8")
+
+    pattern = r"(^security_policy_adherence:\s*).*$"
+    replacement = rf"\1{status}"
+    new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    if count == 0:
+        raise RuntimeError(
+            f"Story file {story_file} does not contain a security_policy_adherence line to update."
+        )
+
+    story_file.write_text(new_text, encoding="utf-8")
+    rel = story_file.relative_to(REPO_ROOT)
+    print(f">>> Updated {rel} -> security_policy_adherence: {status}")
+
+
+def run_security_for_story(story_id: str) -> Tuple[bool, str]:
+    """
+    Run security scan for a single Story:
+    - execute Bandit on its targets
+    - write evidence
+    - update front matter
+
+    Returns (passed, message).
+    """
+    config = STORY_CONFIG[story_id]
+    story_file: Path = config["story_file"]  # type: ignore[assignment]
+    targets: List[str] = config["security_targets"]  # type: ignore[assignment]
+
+    print(f">>> Running security checks for Story {story_id}")
+    passed, message, issues = run_bandit_for_targets(targets)
+
+    write_security_evidence(story_id, targets, passed, message, issues)
+    update_story_security_status(story_file, passed)
+
+    status = "pass" if passed else "fail"
+    print(f">>> Story {story_id} security_policy_adherence set to {status}: {message}")
+    return passed, message
+
+
+# ---------------------------------------------------------------------------
+# CLI entrypoint
+# ---------------------------------------------------------------------------
+
+def main(argv: List[str]) -> int:
+    """
+    Usage:
+      python tools/run_story_security.py          # run for all configured Stories
+      python tools/run_story_security.py ST-03    # run for a single Story
+    """
+    if len(argv) > 1:
+        story_id = argv[1].upper()
+        if story_id not in STORY_CONFIG:
+            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
+            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
+            return 1
+        requested_ids = [story_id]
+    else:
+        requested_ids = sorted(STORY_CONFIG.keys())
+
+    overall_exit = 0
+    for sid in requested_ids:
+        print(f"\n=== Security for Story {sid} ===")
+        passed, _ = run_security_for_story(sid)
+        if not passed:
+            overall_exit = 1
+
+    return overall_exit
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+
+
+
+===== FILE: tools\run_story_tests.py =====
+#!/usr/bin/env python
+"""
+Run tests for one or more Stories, record results, and update testing_status
+in each Story's front-matter.
+
+For each Story:
+- Run pytest on its configured targets
+- Write evidence to evidence/test_results/<ST-XX>.json
+- Update testing_status: pass|fail in the Story markdown front matter
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+# Repo root = parent of /tools
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+# ---------------------------------------------------------------------------
+# Story configuration
+# ---------------------------------------------------------------------------
+
+# As more Stories gain real tests, add them here.
+STORY_CONFIG: Dict[str, Dict[str, object]] = {
+    "ST-03": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-03_map_identity_fields.md",
+        # Pytest targets for this Story (should only contain tests for ST-03)
+        "pytest_targets": [
+            "tests/services/client_profile/test_client_profile_service.py",
+        ],
+    },
+    "ST-04": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-04_map_identifiers.md",
+        # Separate test file focused on identifier behaviour for ST-04
+        "pytest_targets": [
+            "tests/services/client_profile/test_st_04_map_identifiers.py",
+        ],
+    },
+    "ST-20": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-20_assemble_base_profile.md",
+        "pytest_targets": [
+            "tests/services/client_profile/test_st_20_assemble_base_profile.py",
+        ],
+    },
+    "ST-30": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-30_audit_ingestion.md",
+        "pytest_targets": [
+            "tests/services/audit/test_st_30_audit_ingestion.py",
+        ],
+    },
+}
+
+
+# ---------------------------------------------------------------------------
+# Core helpers
+# ---------------------------------------------------------------------------
+
+def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> int:
+    """
+    Run pytest for the given Story and return its exit code.
+
+    Uses `sys.executable -m pytest` so it works reliably on Windows, Mac, Linux.
+    """
+    cmd = [sys.executable, "-m", "pytest", "-q", *pytest_targets]
+    print(f">>> Running tests for {story_id}: {' '.join(cmd)}")
+    result = subprocess.run(cmd, cwd=REPO_ROOT, check=False)
+    print(f">>> {story_id} pytest exit code: {result.returncode}")
+    return result.returncode
+
+
+def write_test_result_evidence(
+    story_id: str,
+    pytest_targets: List[str],
+    exit_code: int,
+    status: str,
+) -> Path:
+    """
+    Write a small JSON evidence file with the Story's test result.
+    """
+    results_dir = REPO_ROOT / "evidence" / "test_results"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    evidence_path = results_dir / f"{story_id}.json"
+    payload = {
+        "story_id": story_id,
+        "pytest_targets": pytest_targets,
+        "exit_code": exit_code,
+        "status": status,
+    }
+    evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(
+        ">>> Wrote test evidence for "
+        f"{story_id} to {evidence_path.relative_to(REPO_ROOT)}"
+    )
+    return evidence_path
+
+
+def update_story_testing_status(story_file: Path, status: str) -> None:
+    """
+    Replace the first 'testing_status: ...' line in the Story's front-matter.
+    """
+    if status not in {"pass", "fail"}:
+        raise ValueError(f"Invalid status {status!r}; expected 'pass' or 'fail'")
+
+    if not story_file.exists():
+        raise FileNotFoundError(f"Story file not found: {story_file}")
+
+    text = story_file.read_text(encoding="utf-8")
+
+    pattern = r"(^testing_status:\s*).*$"
+    replacement = rf"\1{status}"
+    new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    if count == 0:
+        raise RuntimeError(
+            f"Story file {story_file} does not contain a testing_status line to update."
+        )
+
+    story_file.write_text(new_text, encoding="utf-8")
+    rel = story_file.relative_to(REPO_ROOT)
+    print(f">>> Updated {rel} -> testing_status: {status}")
+
+
+def run_for_story(story_id: str) -> Tuple[int, str]:
+    """
+    Execute end-to-end for a single Story:
+    - run pytest on its configured targets
+    - derive status
+    - write evidence
+    - update front matter
+
+    Returns (exit_code, status).
+    """
+    config = STORY_CONFIG[story_id]
+    story_file: Path = config["story_file"]  # type: ignore[assignment]
+    pytest_targets: List[str] = config["pytest_targets"]  # type: ignore[assignment]
+
+    exit_code = run_pytest_for_story(story_id, pytest_targets)
+    status = "pass" if exit_code == 0 else "fail"
+
+    write_test_result_evidence(story_id, pytest_targets, exit_code, status)
+    update_story_testing_status(story_file, status)
+
+    print(f">>> Story {story_id} testing_status set to {status}")
+    return exit_code, status
+
+
+# ---------------------------------------------------------------------------
+# CLI entrypoint
+# ---------------------------------------------------------------------------
+
+def main(argv: List[str]) -> int:
+    """
+    Usage:
+      python tools/run_story_tests.py          # run for all configured Stories
+      python tools/run_story_tests.py ST-03    # run for a single Story
+    """
+    if len(argv) > 1:
+        story_id = argv[1].upper()
+        if story_id not in STORY_CONFIG:
+            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
+            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
+            return 1
+        requested_ids = [story_id]
+    else:
+        requested_ids = sorted(STORY_CONFIG.keys())
+
+    overall_exit = 0
+    for sid in requested_ids:
+        print(f"\n=== Running tests for Story {sid} ===")
+        exit_code, _ = run_for_story(sid)
+        overall_exit = max(overall_exit, exit_code)
+
+    return overall_exit
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+
+
+
+===== FILE: tools\update_testing_status.py =====
+import sys
+from pathlib import Path
+import re
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: update_testing_status.py <story_path> <status>")
+        sys.exit(1)
+
+    story_path = Path(sys.argv[1])
+    status = sys.argv[2]
+
+    if status not in {"not_run", "pass", "fail"}:
+        print(f"Invalid status: {status}")
+        sys.exit(1)
+
+    text = story_path.read_text(encoding="utf-8")
+
+    # Replace the first occurrence of 'testing_status: ...'
+    pattern = r"(^testing_status:\s*).*$"
+    replacement = rf"\1{status}"
+    new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    if count == 0:
+        print("No testing_status line found to update.")
+        sys.exit(1)
+
+    story_path.write_text(new_text, encoding="utf-8")
+
+if __name__ == "__main__":
+    main()
+
+
+
