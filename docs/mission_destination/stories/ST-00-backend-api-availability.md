@@ -7,11 +7,11 @@ feature: FT-00-backend_fundamentals
 status: in_progress
 
 # MissionSmith Status Fields (used by CI + tools/*.py)
-testing_status: not_run
+testing_status: pass
 halo_adherence: not_run
-guardrail_adherence: not_run
-code_quality_adherence: not_run
-security_policy_adherence: not_run
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
 implementation_presence: partial
 last_updated: 2025-12-04
 ---

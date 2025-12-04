@@ -1,0 +1,5 @@
+{
+  "story_id": "ST-00",
+  "passed": true,
+  "message": "/health returns 200 with JSON {'status': 'ok'}."
+}

@@ -41,20 +41,25 @@ jobs:
         run: |
           python tools/run_story_lint.py
 
-      - name: Ensure Story statuses are up to date (no drift)
+      - name: Roll up Feature & Epic statuses
         run: |
-          # If running the Story scripts changed any Story files, CI fails.
+          python tools/rollup_statuses.py
+
+      - name: Ensure Story / Feature / Epic statuses are up to date (no drift)
+        run: |
+          # If running the Story scripts or status roll-up changed any status fields, CI fails.
           # This forces updated status fields to be committed before pushing.
-          if ! git diff --quiet docs/mission_destination/stories; then
-            echo "Story status fields are not in sync with checks."
+          if ! git diff --quiet docs/mission_destination/stories docs/mission_destination/features docs/mission_destination/epics; then
+            echo "Status fields are not in sync with checks."
             echo "Run locally:"
             echo "  python tools/run_story_tests.py"
             echo "  python tools/run_story_guardrails.py"
             echo "  python tools/run_story_security.py"
             echo "  python tools/run_story_lint.py"
-            echo "Then commit the updated Story files before pushing."
+            echo "  python tools/rollup_statuses.py"
+            echo "Then commit the updated Story/Feature/Epic files before pushing."
             echo
-            git diff -- docs/mission_destination/stories
+            git diff -- docs/mission_destination/stories docs/mission_destination/features docs/mission_destination/epics
             exit 1
           fi
 
@@ -62,4 +67,3 @@ jobs:
         run: |
           mkdir -p missionlog/test_evidence
           echo "CI run at $(date -u)" > missionlog/test_evidence/latest.txt
-

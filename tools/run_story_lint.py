@@ -88,6 +88,17 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "app_backend/main.py",
         ],
     },
+     "ST-00-FRONTEND-UI-SHELL": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-frontend-ui-shell.md",
+        "lint_targets": [
+            "app_backend/main.py",
+        ],
+    },
+
 
 }
 

@@ -1101,66 +1101,47 @@ For each Story:
 
 ===== FILE: docs\mission_destination\epics\E00_application_bootstrapping.md =====
 ---
+epic_id: E00
+slug: e00_application_bootstrapping
+name: "Application Bootstrapping"
+description: |
+  Establish the initial backend service and runtime foundations required for the
+  Single Client View application to start, respond to basic requests, and be
+  governed by MissionFramework guardrails.
 
-id: E00
+features:
+  - FT-00
 
-slug: e00\_application\_bootstrapping
+overall_status: active
 
-type: epic
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
 
-name: Application Bootstrapping
+feature_statuses: {}
 
-status: active
-
-description: >
-
-&nbsp; Establish the initial backend service and runtime foundations required for the
-
-&nbsp; Single Client Value application to start, respond to basic requests, and be
-
-&nbsp; governed by MissionFramework guardrails.
-
-owner: TBD
-
-related\_features:
-
-&nbsp; - FT-00-backend-fundamentals
-
+last_updated: <auto>
 ---
 
-
-
-\## Context
-
-
+## Context
 
 This epic delivers the minimal backend scaffolding needed for developers to
+build, run, and verify the Single Client View application.
 
-build, run, and verify the Single Client Value application.
+## Objectives
 
+- Backend starts reliably in a developer environment.
+- At least one health/status endpoint is available.
+- Code adheres to MissionFramework guardrails.
+- Story-level test status is automatically updated.
 
+## Acceptance
 
-\## Objectives
+- All features under this epic have status `active` or `done`.
+- All related stories have `testing_status: pass`.
 
-
-
-\- Backend starts reliably in a developer environment.
-
-\- At least one health/status endpoint is available.
-
-\- Code adheres to MissionFramework guardrails.
-
-\- Story-level test status is automatically updated.
-
-
-
-\## Acceptance
-
-
-
-\- All features under this epic have status `active` or `done`.
-
-\- All related stories have `test\_status: passed`.
 
 
 
@@ -1412,6 +1393,32 @@ last_updated: <auto>
 
 
 ===== FILE: docs\mission_destination\features\FT-00-backend_fundamentals.md =====
+---
+feature_id: FT-00
+epic: E00
+name: "Backend Fundamentals"
+description: |
+  Establish the initial backend service and runtime foundations required for the
+  Single Client View application to start, respond to basic requests, and be
+  governed by MissionFramework guardrails. This feature delivers a minimal,
+  reliable API surface that other stories can build on.
+
+stories:
+  - ST-00
+
+overall_status: Planned
+
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
+
+story_statuses: {}
+
+last_updated: <auto>
+---
+
 
 
 ===== FILE: docs\mission_destination\features\FT-00-frontend_fundamentals.md =====
@@ -1947,66 +1954,45 @@ last_updated: <auto>
 
 ===== FILE: docs\mission_destination\stories\ST-00-backend-api-availability.md =====
 ---
-
-id: ST-00-backend-api-availability
-
+story_id: ST-00
 slug: st-00-backend-api-availability
+name: Provide Basic Backend API Availability
+epic: E00
+feature: FT-00-backend_fundamentals
+status: in_progress
 
-type: story
-
-name: Provide Basic API Endpoint Availability
-
-epic\_id: E00
-
-feature\_id: FT-00-backend-fundamentals
-
-status: in\_progress
-
-test\_status: not\_run
-
-owner: TBD
-
+# MissionSmith Status Fields (used by CI + tools/*.py)
+testing_status: pass
+halo_adherence: not_run
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
+implementation_presence: partial
+last_updated: 2025-12-04
 ---
 
-
-
-\## Description
-
-
+## Description
 
 As a developer,  
+I want the backend to expose a basic availability endpoint,  
+so that I can confirm the service is running and reachable.
 
-I want the backend to expose a health endpoint,  
+This story establishes the foundational API contract for the backend and enables fast automated verification that the service is alive.
 
-so that I can confirm the service is running and operational.
+## Acceptance Criteria
 
+- **AC1:** Backend can be started using the documented command (e.g. `uvicorn app_backend.main:app`).
+- **AC2:** A `/health` endpoint is available.
+- **AC3:** Calling `/health` returns HTTP **200**.
+- **AC4:** Response JSON contains at least `{ "status": "ok" }`.
+- **AC5:** A backend test exercises AC2â€“AC4.
+- **AC6:** Running the story test updates `testing_status:` to `pass` when successful.
 
+## Implementation Notes
 
-\## Acceptance Criteria
+- Touchpoint: `app_backend/main.py`
+- This endpoint underpins availability checks for the entire platform and is required before any higher-level stories can be executed.
 
-
-
-\- AC1: Backend starts using the documented command (e.g. `uvicorn backend.main:app`).
-
-\- AC2: A `/health` endpoint is available.
-
-\- AC3: Calling `/health` returns HTTP 200.
-
-\- AC4: Response contains a simple JSON payload (e.g. `{ "status": "ok" }`).
-
-\- AC5: A backend test verifies AC2â€“AC4.
-
-\- AC6: Test runner updates `test\_status:` to `passed` when tests succeed.
-
-
-
-\## Implementation Notes
-
-
-
-Touchpoints:
-
-\- `backend/main.py`
 
 
 
@@ -2015,66 +2001,48 @@ Touchpoints:
 
 ===== FILE: docs\mission_destination\stories\ST-00-frontend-ui-shell.md =====
 ---
-
-id: ST-00-frontend-ui-shell
-
+story_id: ST-00-FRONTEND-UI-SHELL
 slug: st-00-frontend-ui-shell
+name: Provide Frontend UI Shell Availability
+epic: E00
+feature: FT-00-backend_fundamentals
+status: in_progress
 
-type: story
-
-name: Render Basic UI Shell
-
-epic\_id: E00-UI
-
-feature\_id: FT-00-frontend-fundamentals
-
-status: in\_progress
-
-test\_status: not\_run
-
-owner: TBD
-
+# MissionSmith Status Fields (used by CI + tools/*.py)
+testing_status: pass
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: pass
+security_policy_adherence: pass
+implementation_presence: partial
+last_updated: 2025-12-04
 ---
 
+## Description
 
+As a developer,  
+I want the frontend UI shell to be built and served by the backend,  
+so that I can confirm the Single Client View application is accessible as a SPA.
 
-\## Description
+This story verifies that the built frontend exists and the backend correctly serves
+the index.html shell at the root path.
 
+## Acceptance Criteria
 
+- **AC1:** `npm run build` produces a frontend `dist/` folder.
+- **AC2:** Backend is configured to serve the frontend build output.
+- **AC3:** `GET /` returns HTTP **200**.
+- **AC4:** HTML contains `<div id="root">`.
+- **AC5:** HTML contains the expected page `<title>` from the built frontend.
+- **AC6:** A backend test verifies AC1â€“AC5.
+- **AC7:** Running the ST-00-FRONTEND-UI-SHELL tests sets `testing_status: pass`.
 
-As a user,  
+## Implementation Notes
 
-I want to see a basic Single Client Value UI shell,  
+- Frontend: `app_frontend/`
+- Backend serving logic: `app_backend/main.py`
+- Test: `tests/api/http/test_st_00_frontend_ui_shell.py`
 
-so that I know the frontend is running and ready for extension.
-
-
-
-\## Acceptance Criteria
-
-
-
-\- AC1: Frontend dev server starts using the documented command (e.g. `npm run dev`).
-
-\- AC2: App loads in browser without errors.
-
-\- AC3: Root component renders a visible message indicating the app is running.
-
-\- AC4: A frontend test verifies the message appears.
-
-\- AC5: Test runner updates `test\_status:` on success.
-
-
-
-\## Implementation Notes
-
-
-
-Touchpoints:
-
-\- `app\_frontend/src/main.jsx`
-
-\- `app\_frontend/src/App.jsx`
 
 
 
@@ -4557,6 +4525,76 @@ def test_client_profile_api_uses_service_stub():
 
 
 
+===== FILE: tests\api\http\test_st_00_backend_api_availability.py =====
+import pytest
+from fastapi.testclient import TestClient
+
+# Import the FastAPI app exactly as defined in app_backend/main.py
+from app_backend.main import app
+
+
+def test_health_endpoint_returns_200_and_status_ok():
+    """
+    ST-00: Backend API availability test.
+
+    Verifies:
+    - /health endpoint exists (AC2)
+    - Returns HTTP 200 (AC3)
+    - Returns JSON containing { "status": "ok" } (AC4)
+    """
+    client = TestClient(app)
+
+    response = client.get("/health")
+
+    # AC3: HTTP 200
+    assert response.status_code == 200
+
+    data = response.json()
+
+    # AC4: JSON contains "status": "ok"
+    assert isinstance(data, dict)
+    assert data.get("status") == "ok"
+
+
+
+===== FILE: tests\api\http\test_st_00_frontend_ui_shell.py =====
+# tests/api/http/test_st_00_frontend_ui_shell.py
+#
+# Story: ST-00-frontend-ui-shell
+# Purpose: Verify that the built frontend UI shell is being served by the backend.
+
+import os
+
+from fastapi.testclient import TestClient
+
+from app_backend.main import app, FRONTEND_DIST  # type: ignore[import]
+
+client = TestClient(app)
+
+
+def test_frontend_shell_index_is_served():
+    """
+    AC2/AC3-ish smoke test:
+    - Index page is served at "/"
+    - HTML contains the root mount point and expected title
+    """
+
+    # If the dist folder doesn't exist, this is a clear setup failure:
+    # the frontend hasn't been built.
+    assert os.path.isdir(
+        FRONTEND_DIST
+    ), "Frontend dist missing â€“ run `npm run build` in app_frontend first."
+
+    response = client.get("/")
+    assert response.status_code == 200
+
+    body = response.text
+    # From app_frontend/index.html
+    assert "<div id=\"root\">" in body
+    assert "<title>SCV Frontend</title>" in body
+
+
+
 ===== FILE: tests\services\__init__.py =====
 
 
@@ -4724,6 +4762,146 @@ class TestClientSearchService:
 
 
 
+===== FILE: tools\generate_story_config_snippets.py =====
+#!/usr/bin/env python
+"""
+Generate STORY_CONFIG snippets for a new Story.
+
+This does NOT modify any files.
+It just prints the blocks you should paste into:
+
+- tools/run_story_tests.py
+- tools/run_story_lint.py
+- tools/run_story_security.py
+
+Usage:
+
+  python tools/generate_story_config_snippets.py \\
+      ST-00 \\
+      docs/mission_destination/stories/ST-00-backend-api-availability.md \\
+      tests/api/http/test_st_00_backend_api_availability.py \\
+      app_backend/main.py
+
+You can pass multiple targets as comma-separated lists, e.g.:
+
+  python tools/generate_story_config_snippets.py \\
+      ST-99 \\
+      docs/mission_destination/stories/ST-99_some_story.md \\
+      tests/services/foo/test_st_99_foo.py,tests/api/http/test_st_99_foo_api.py \\
+      src/services/foo/service.py,src/domain/models/foo.py
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+
+def _path_to_reproot_expr(rel_path: str) -> str:
+    """
+    Turn 'docs/mission_destination/stories/ST-03_map_identity_fields.md'
+    into:
+
+        REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-03_map_identity_fields.md"
+    """
+    parts = rel_path.replace("\\", "/").split("/")
+    indent = " " * 8
+    joined = ('"\n' + indent + '/ "').join(parts)
+    return f"REPO_ROOT\n{indent}/ \"{joined}\""
+
+
+def _format_list(name: str, items: list[str], indent_base: int = 8) -> str:
+    indent = " " * indent_base
+    inner = "\n".join(f'{indent}    "{item}",' for item in items)
+    return f'{indent}"{name}": [\n{inner}\n{indent}],'
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) < 5:
+        print(
+            "Usage:\n"
+            "  python tools/generate_story_config_snippets.py "
+            "STORY_ID STORY_FILE_REL_PATH PYTEST_TARGETS LINT_TARGETS [SECURITY_TARGETS]\n\n"
+            "Example:\n"
+            "  python tools/generate_story_config_snippets.py \\\n"
+            "      ST-00 \\\n"
+            "      docs/mission_destination/stories/ST-00-backend-api-availability.md \\\n"
+            "      tests/api/http/test_st_00_backend_api_availability.py \\\n"
+            "      app_backend/main.py\n"
+        )
+        return 1
+
+    story_id = argv[1].upper()
+    story_file_rel = argv[2]
+
+    pytest_targets = [t.strip() for t in argv[3].split(",") if t.strip()]
+    lint_targets = [t.strip() for t in argv[4].split(",") if t.strip()]
+
+    if len(argv) >= 6:
+        security_targets = [t.strip() for t in argv[5].split(",") if t.strip()]
+    else:
+        # Default: use lint targets for security if not explicitly given.
+        security_targets = list(lint_targets)
+
+    story_file_expr = _path_to_reproot_expr(story_file_rel)
+
+    print("\n" + "=" * 72)
+    print(f"STORY CONFIG SNIPPETS FOR {story_id}")
+    print("=" * 72 + "\n")
+
+    # ------------------------------------------------------------------
+    # run_story_tests.py
+    # ------------------------------------------------------------------
+    print("# Paste into tools/run_story_tests.py inside STORY_CONFIG:")
+    print()
+    print(f'    "{story_id}": {{')
+    print(f"        \"story_file\": {story_file_expr},")
+    print(_format_list("pytest_targets", pytest_targets, indent_base=8))
+    print("    },")
+    print()
+
+    # ------------------------------------------------------------------
+    # run_story_lint.py
+    # ------------------------------------------------------------------
+    print("# Paste into tools/run_story_lint.py inside STORY_CONFIG:")
+    print()
+    print(f'    "{story_id}": {{')
+    print(f"        \"story_file\": {story_file_expr},")
+    print(_format_list("lint_targets", lint_targets, indent_base=8))
+    print("    },")
+    print()
+
+    # ------------------------------------------------------------------
+    # run_story_security.py
+    # ------------------------------------------------------------------
+    print("# Paste into tools/run_story_security.py inside STORY_CONFIG:")
+    print()
+    print(f'    "{story_id}": {{')
+    print(f"        \"story_file\": {story_file_expr},")
+    print(_format_list("security_targets", security_targets, indent_base=8))
+    print("    },")
+    print()
+
+    # ------------------------------------------------------------------
+    # Guardrails note
+    # ------------------------------------------------------------------
+    print("# NOTE: run_story_guardrails.py uses explicit _register_story(...) calls.")
+    print("# If this Story should have guardrails, add a _register_story(...) block")
+    print("# there manually, choosing an appropriate check function.")
+    print()
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+
+
+
 ===== FILE: tools\repo_sync_one_liner.txt =====
 git checkout main
 git pull
@@ -4740,11 +4918,13 @@ git push
 Run guardrail checks for one or more Stories and update guardrail_adherence
 in each Story's front matter.
 
-For the MVP, the guardrail we enforce is:
-- Story output must adhere to the canonical data model.
+For the MVP, the guardrails we enforce are:
 
-Specifically for ST-03 / ST-04:
-- ClientProfileService.get_client_profile(...) must return a structure
+- For ST-00 (backend API availability):
+  /health must return HTTP 200 with JSON {"status": "ok"}.
+
+- For ST-03 / ST-04 (Client Profile stories):
+  ClientProfileService.get_client_profile(...) must return a structure
   that matches the ClientProfile dataclass fields and types.
 """
 
@@ -4763,7 +4943,7 @@ from typing import Any, Dict, List, Tuple, Callable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# Ensure the repo root is on sys.path so that "src. ..." imports work when this
+# Ensure the repo root is on sys.path so that imports work when this
 # script is run as `python tools/run_story_guardrails.py`.
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -4793,12 +4973,52 @@ def _register_story(
 # Guardrail checks
 # ---------------------------------------------------------------------------
 
+def check_backend_health_endpoint() -> Tuple[bool, str]:
+    """
+    Guardrail for ST-00-backend-api-availability.
+
+    Rules:
+    - Import the FastAPI app from app_backend.main
+    - Call /health via TestClient
+    - Must return HTTP 200
+    - JSON body must contain {"status": "ok"}
+    """
+    try:
+        from fastapi.testclient import TestClient
+        from app_backend.main import app
+    except Exception as exc:  # pragma: no cover
+        return False, f"Import error in health guardrail check: {exc!r}"
+
+    try:
+        client = TestClient(app)
+        response = client.get("/health")
+    except Exception as exc:  # pragma: no cover
+        return False, f"Error calling /health in guardrail check: {exc!r}"
+
+    if response.status_code != 200:
+        return False, f"/health returned HTTP {response.status_code}, expected 200."
+
+    try:
+        data = response.json()
+    except Exception as exc:  # pragma: no cover
+        return False, f"/health did not return valid JSON: {exc!r}"
+
+    if not isinstance(data, dict):
+        return False, f"/health JSON payload must be an object; got {type(data).__name__}."
+
+    status_value = data.get("status")
+    if status_value != "ok":
+        return False, f"/health JSON status must be 'ok'; got {status_value!r}."
+
+    return True, "/health returns 200 with JSON {'status': 'ok'}."
+
+
 def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
     """
     Guardrail for ClientProfile-producing Stories (ST-03, ST-04).
 
     Rules:
-    - get_client_profile(...) must return a dict
+    - get_client_profile(.) must return a dict
     - Keys of that dict must be a subset of ClientProfile fields
     - Required fields (client_id, name) must be present
     - identifiers must be a List[ClientIdentifier]
@@ -4860,7 +5080,20 @@ def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
     return True, "Output adheres to ClientProfile data model."
 
 
-# Register ST-03 and ST-04 (same guardrail, same model)
+# ---------------------------------------------------------------------------
+# Register stories and their guardrails
+# ---------------------------------------------------------------------------
+
+_register_story(
+    "ST-00",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-00-backend-api-availability.md",
+    check_backend_health_endpoint,
+)
+
 _register_story(
     "ST-03",
     REPO_ROOT
@@ -4878,12 +5111,6 @@ _register_story(
     / "mission_destination"
     / "stories"
     / "ST-04_map_identifiers.md",
-    check_client_profile_data_model_adherence,
-)
-
-_register_story(
-    "ST-20",
-    REPO_ROOT / "docs" / "mission_destination" / "stories" / "ST-20_assemble_base_profile.md",
     check_client_profile_data_model_adherence,
 )
 
@@ -5078,6 +5305,28 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/services/audit/service.py",
         ],
     },
+     "ST-00": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-backend-api-availability.md",
+        "lint_targets": [
+            "app_backend/main.py",
+        ],
+    },
+     "ST-00-FRONTEND-UI-SHELL": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-frontend-ui-shell.md",
+        "lint_targets": [
+            "app_backend/main.py",
+        ],
+    },
+
+
 }
 
 
@@ -5353,6 +5602,28 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/services/audit/service.py",
         ],
     },
+     "ST-00": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-backend-api-availability.md",
+        "security_targets": [
+            "app_backend/main.py",
+        ],
+    },
+     "ST-00-FRONTEND-UI-SHELL": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-frontend-ui-shell.md",
+        "security_targets": [
+            "app_backend/main.py",
+        ],
+    },
+
+
 }
 
 
@@ -5630,6 +5901,33 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
             "tests/services/audit/test_st_30_audit_ingestion.py",
         ],
     },
+    "ST-00": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-backend-api-availability.md",
+        "pytest_targets": [
+            "tests/api/http/test_st_00_backend_api_availability.py",
+        ],
+         
+    },
+    "ST-00-FRONTEND-UI-SHELL": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-frontend-ui-shell.md",
+        "pytest_targets": [
+            "tests/api/http/test_st_00_frontend_ui_shell.py",
+        ],
+    },
+
+
+
+
+
+
 }
 
 

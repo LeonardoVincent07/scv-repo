@@ -1,0 +1,8 @@
+{
+  "story_id": "ST-00-FRONTEND-UI-SHELL",
+  "pytest_targets": [
+    "tests/api/http/test_st_00_frontend_ui_shell.py"
+  ],
+  "exit_code": 0,
+  "status": "pass"
+}

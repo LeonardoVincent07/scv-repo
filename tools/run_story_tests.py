@@ -79,7 +79,19 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         "pytest_targets": [
             "tests/api/http/test_st_00_backend_api_availability.py",
         ],
+         
     },
+    "ST-00-FRONTEND-UI-SHELL": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-00-frontend-ui-shell.md",
+        "pytest_targets": [
+            "tests/api/http/test_st_00_frontend_ui_shell.py",
+        ],
+    },
+
 
 
 

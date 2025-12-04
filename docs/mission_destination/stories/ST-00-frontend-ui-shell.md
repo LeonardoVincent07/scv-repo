@@ -1,64 +1,46 @@
 ---
-
-id: ST-00-frontend-ui-shell
-
+story_id: ST-00-FRONTEND-UI-SHELL
 slug: st-00-frontend-ui-shell
+name: Provide Frontend UI Shell Availability
+epic: E00
+feature: FT-00-backend_fundamentals
+status: in_progress
 
-type: story
-
-name: Render Basic UI Shell
-
-epic\_id: E00-UI
-
-feature\_id: FT-00-frontend-fundamentals
-
-status: in\_progress
-
-test\_status: not\_run
-
-owner: TBD
-
+# MissionSmith Status Fields (used by CI + tools/*.py)
+testing_status: pass
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: pass
+security_policy_adherence: pass
+implementation_presence: partial
+last_updated: 2025-12-04
 ---
 
+## Description
 
+As a developer,  
+I want the frontend UI shell to be built and served by the backend,  
+so that I can confirm the Single Client View application is accessible as a SPA.
 
-\## Description
+This story verifies that the built frontend exists and the backend correctly serves
+the index.html shell at the root path.
 
+## Acceptance Criteria
 
+- **AC1:** `npm run build` produces a frontend `dist/` folder.
+- **AC2:** Backend is configured to serve the frontend build output.
+- **AC3:** `GET /` returns HTTP **200**.
+- **AC4:** HTML contains `<div id="root">`.
+- **AC5:** HTML contains the expected page `<title>` from the built frontend.
+- **AC6:** A backend test verifies AC1–AC5.
+- **AC7:** Running the ST-00-FRONTEND-UI-SHELL tests sets `testing_status: pass`.
 
-As a user,  
+## Implementation Notes
 
-I want to see a basic Single Client Value UI shell,  
+- Frontend: `app_frontend/`
+- Backend serving logic: `app_backend/main.py`
+- Test: `tests/api/http/test_st_00_frontend_ui_shell.py`
 
-so that I know the frontend is running and ready for extension.
-
-
-
-\## Acceptance Criteria
-
-
-
-\- AC1: Frontend dev server starts using the documented command (e.g. `npm run dev`).
-
-\- AC2: App loads in browser without errors.
-
-\- AC3: Root component renders a visible message indicating the app is running.
-
-\- AC4: A frontend test verifies the message appears.
-
-\- AC5: Test runner updates `test\_status:` on success.
-
-
-
-\## Implementation Notes
-
-
-
-Touchpoints:
-
-\- `app\_frontend/src/main.jsx`
-
-\- `app\_frontend/src/App.jsx`
 
 
 

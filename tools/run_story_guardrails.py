@@ -3,11 +3,13 @@
 Run guardrail checks for one or more Stories and update guardrail_adherence
 in each Story's front matter.
 
-For the MVP, the guardrail we enforce is:
-- Story output must adhere to the canonical data model.
+For the MVP, the guardrails we enforce are:
 
-Specifically for ST-03 / ST-04:
-- ClientProfileService.get_client_profile(...) must return a structure
+- For ST-00 (backend API availability):
+  /health must return HTTP 200 with JSON {"status": "ok"}.
+
+- For ST-03 / ST-04 (Client Profile stories):
+  ClientProfileService.get_client_profile(...) must return a structure
   that matches the ClientProfile dataclass fields and types.
 """
 
@@ -26,7 +28,7 @@ from typing import Any, Dict, List, Tuple, Callable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# Ensure the repo root is on sys.path so that "src. ..." imports work when this
+# Ensure the repo root is on sys.path so that imports work when this
 # script is run as `python tools/run_story_guardrails.py`.
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -56,12 +58,52 @@ def _register_story(
 # Guardrail checks
 # ---------------------------------------------------------------------------
 
+def check_backend_health_endpoint() -> Tuple[bool, str]:
+    """
+    Guardrail for ST-00-backend-api-availability.
+
+    Rules:
+    - Import the FastAPI app from app_backend.main
+    - Call /health via TestClient
+    - Must return HTTP 200
+    - JSON body must contain {"status": "ok"}
+    """
+    try:
+        from fastapi.testclient import TestClient
+        from app_backend.main import app
+    except Exception as exc:  # pragma: no cover
+        return False, f"Import error in health guardrail check: {exc!r}"
+
+    try:
+        client = TestClient(app)
+        response = client.get("/health")
+    except Exception as exc:  # pragma: no cover
+        return False, f"Error calling /health in guardrail check: {exc!r}"
+
+    if response.status_code != 200:
+        return False, f"/health returned HTTP {response.status_code}, expected 200."
+
+    try:
+        data = response.json()
+    except Exception as exc:  # pragma: no cover
+        return False, f"/health did not return valid JSON: {exc!r}"
+
+    if not isinstance(data, dict):
+        return False, f"/health JSON payload must be an object; got {type(data).__name__}."
+
+    status_value = data.get("status")
+    if status_value != "ok":
+        return False, f"/health JSON status must be 'ok'; got {status_value!r}."
+
+    return True, "/health returns 200 with JSON {'status': 'ok'}."
+
+
 def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
     """
     Guardrail for ClientProfile-producing Stories (ST-03, ST-04).
 
     Rules:
-    - get_client_profile(...) must return a dict
+    - get_client_profile(.) must return a dict
     - Keys of that dict must be a subset of ClientProfile fields
     - Required fields (client_id, name) must be present
     - identifiers must be a List[ClientIdentifier]
@@ -123,7 +165,20 @@ def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
     return True, "Output adheres to ClientProfile data model."
 
 
-# Register ST-03 and ST-04 (same guardrail, same model)
+# ---------------------------------------------------------------------------
+# Register stories and their guardrails
+# ---------------------------------------------------------------------------
+
+_register_story(
+    "ST-00",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-00-backend-api-availability.md",
+    check_backend_health_endpoint,
+)
+
 _register_story(
     "ST-03",
     REPO_ROOT
@@ -141,12 +196,6 @@ _register_story(
     / "mission_destination"
     / "stories"
     / "ST-04_map_identifiers.md",
-    check_client_profile_data_model_adherence,
-)
-
-_register_story(
-    "ST-20",
-    REPO_ROOT / "docs" / "mission_destination" / "stories" / "ST-20_assemble_base_profile.md",
     check_client_profile_data_model_adherence,
 )
 

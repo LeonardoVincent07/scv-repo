@@ -1,0 +1,9 @@
+{
+  "story_id": "ST-00",
+  "targets": [
+    "app_backend/main.py"
+  ],
+  "passed": true,
+  "message": "No code-quality issues reported by Ruff.",
+  "issues": []
+}
