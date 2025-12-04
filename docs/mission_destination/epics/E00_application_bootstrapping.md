@@ -1,64 +1,45 @@
 ---
+epic_id: E00
+slug: e00_application_bootstrapping
+name: "Application Bootstrapping"
+description: |
+  Establish the initial backend service and runtime foundations required for the
+  Single Client View application to start, respond to basic requests, and be
+  governed by MissionFramework guardrails.
 
-id: E00
+features:
+  - FT-00
 
-slug: e00\_application\_bootstrapping
+overall_status: active
 
-type: epic
+testing_status: aggregated
+halo_adherence: aggregated
+guardrail_adherence: aggregated
+code_quality_adherence: aggregated
+security_policy_adherence: aggregated
 
-name: Application Bootstrapping
+feature_statuses: {}
 
-status: active
-
-description: >
-
-&nbsp; Establish the initial backend service and runtime foundations required for the
-
-&nbsp; Single Client Value application to start, respond to basic requests, and be
-
-&nbsp; governed by MissionFramework guardrails.
-
-owner: TBD
-
-related\_features:
-
-&nbsp; - FT-00-backend-fundamentals
-
+last_updated: <auto>
 ---
 
-
-
-\## Context
-
-
+## Context
 
 This epic delivers the minimal backend scaffolding needed for developers to
+build, run, and verify the Single Client View application.
 
-build, run, and verify the Single Client Value application.
+## Objectives
 
+- Backend starts reliably in a developer environment.
+- At least one health/status endpoint is available.
+- Code adheres to MissionFramework guardrails.
+- Story-level test status is automatically updated.
 
+## Acceptance
 
-\## Objectives
+- All features under this epic have status `active` or `done`.
+- All related stories have `testing_status: pass`.
 
-
-
-\- Backend starts reliably in a developer environment.
-
-\- At least one health/status endpoint is available.
-
-\- Code adheres to MissionFramework guardrails.
-
-\- Story-level test status is automatically updated.
-
-
-
-\## Acceptance
-
-
-
-\- All features under this epic have status `active` or `done`.
-
-\- All related stories have `test\_status: passed`.
 
 
 
