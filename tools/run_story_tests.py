@@ -50,6 +50,18 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
             "tests/services/client_profile/test_st_04_map_identifiers.py",
         ],
     },
+    "ST-09": {
+    "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-09_match_by_tax_id.md",
+    "pytest_targets": [
+        "tests/services/client_profile/test_st_09_match_by_tax_id.py",
+    ],
+},
+
+
     "ST-20": {
         "story_file": REPO_ROOT
         / "docs"

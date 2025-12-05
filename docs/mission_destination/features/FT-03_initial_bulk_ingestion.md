@@ -10,7 +10,7 @@ stories:
   - ST-05
   - ST-06
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: Planned
 halo_adherence: aggregated

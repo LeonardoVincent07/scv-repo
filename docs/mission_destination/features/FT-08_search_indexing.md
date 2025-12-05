@@ -9,7 +9,7 @@ stories:
   - ST-16
   - ST-17
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: Planned
 halo_adherence: aggregated

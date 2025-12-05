@@ -1,0 +1,5 @@
+{
+  "story_id": "ST-09",
+  "passed": true,
+  "message": "ST-09: match_by_tax_id returns only profiles with the requested tax_id."
+}

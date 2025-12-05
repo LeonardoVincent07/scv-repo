@@ -11,6 +11,10 @@ For the MVP, the guardrails we enforce are:
 - For ST-03 / ST-04 (Client Profile stories):
   ClientProfileService.get_client_profile(...) must return a structure
   that matches the ClientProfile dataclass fields and types.
+
+- For ST-09 (Match by tax ID):
+  ClientProfileService.match_by_tax_id(...) must return only profiles
+  whose raw_sources contain the requested tax_id.
 """
 
 from __future__ import annotations
@@ -57,6 +61,7 @@ def _register_story(
 # ---------------------------------------------------------------------------
 # Guardrail checks
 # ---------------------------------------------------------------------------
+
 
 def check_backend_health_endpoint() -> Tuple[bool, str]:
     """
@@ -165,6 +170,60 @@ def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
     return True, "Output adheres to ClientProfile data model."
 
 
+def check_st_09_match_by_tax_id() -> Tuple[bool, str]:
+    """
+    Guardrail for ST-09 (Match by tax ID).
+
+    Rules:
+    - match_by_tax_id returns a list.
+    - It returns only profiles whose raw sources contain the given tax_id.
+    """
+    try:
+        from src.services.client_profile.service import ClientProfileService
+    except Exception as exc:  # pragma: no cover
+        return False, f"Import error in ST-09 guardrail check: {exc!r}"
+
+    service = ClientProfileService()
+
+    # Patch CRM source first
+    service._mock_crm_source = lambda client_id: {
+        "_source": "CRM",
+        "identifier": "crm-123",
+        "name": "Alice Example",
+        "email": "alice@example.com",
+        "country": "UK",
+        "tax_id": "TAX-001",
+    } if client_id == "123" else {"_source": "CRM"}
+
+    # 🔥 IMPORTANT:
+    # After patching, rebuild the sources list so we use the patched function.
+    service.sources = [service._mock_crm_source, service._mock_kyc_source]
+
+    # Now generate a profile containing that tax_id
+    profile = service.get_client_profile("123")
+    profiles = [profile]
+
+    # Act
+    matches = service.match_by_tax_id(profiles, "TAX-001")
+
+    # Checks
+    if not isinstance(matches, list):
+        return False, "ST-09: match_by_tax_id must return a list."
+
+    if len(matches) != 1:
+        return False, f"ST-09: expected exactly one match, got {len(matches)}."
+
+    match = matches[0]
+    raw_sources = match.get("raw_sources", {})
+    crm_source = raw_sources.get("CRM", {})
+
+    if crm_source.get("tax_id") != "TAX-001":
+        return False, "ST-09: matched profile does not contain the requested tax_id in raw_sources."
+
+    return True, "ST-09: match_by_tax_id returns only profiles with the requested tax_id."
+
+
+
 # ---------------------------------------------------------------------------
 # Register stories and their guardrails
 # ---------------------------------------------------------------------------
@@ -199,10 +258,21 @@ _register_story(
     check_client_profile_data_model_adherence,
 )
 
+_register_story(
+    "ST-09",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-09_match_by_tax_id.md",
+    check_st_09_match_by_tax_id,
+)
+
 
 # ---------------------------------------------------------------------------
 # Helpers: evidence + front-matter update
 # ---------------------------------------------------------------------------
+
 
 def write_guardrail_evidence(
     story_id: str,
@@ -278,11 +348,12 @@ def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
+
 def main(argv: List[str]) -> int:
     """
     Usage:
-      python tools/run_story_guardrails.py          # run for all configured Stories
-      python tools/run_story_guardrails.py ST-03    # run for a single Story
+      python tools/run_story_guardrails.py           # run for all configured Stories
+      python tools/run_story_guardrails.py ST-03     # run for a single Story
     """
     if len(argv) > 1:
         story_id = argv[1].upper()

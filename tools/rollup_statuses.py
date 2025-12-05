@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 """
-Mission Control Status Roll-up (overall_status only, simple)
+Mission Control Overall Status Roll-up
 
-- Reads Story overall_status and feature mapping.
-- Aggregates to Feature overall_status.
-- Aggregates to Epic overall_status.
-- DOES NOT touch testing / guardrail / code / security fields.
+Responsibilities:
+- For each Story:
+    - Derive overall_status from its testing / guardrail / code / security /
+      halo fields (no implementation_presence).
+- Aggregate Story overall_status up to Feature overall_status.
+- Aggregate Feature overall_status up to Epic overall_status.
 
-Aggregation rule (same at each level):
-
-- Planned    if all children are Planned
-- Complete   if all children are Complete
-- In Progress otherwise
+IMPORTANT:
+- We ONLY ever write 'overall_status' fields.
+- We NEVER touch testing_status / guardrail_adherence / code_quality_adherence /
+  security_policy_adherence / halo_adherence directly; we just read them.
 """
 
 from __future__ import annotations
@@ -40,13 +41,15 @@ def _write(path: Path, text: str) -> None:
 def _extract_scalar(text: str, key: str) -> Optional[str]:
     """
     Extract 'key: value' from front matter. Returns value or None.
+    Very simple line-based parser; assumes `key: value` is on one line.
     """
     pattern = rf"^{re.escape(key)}:\s*(.+)$"
     m = re.search(pattern, text, flags=re.MULTILINE)
     if not m:
         return None
     val = m.group(1).strip()
-    if val and val[0] in {"'", '"'} and val[-1:] == val[0]:
+    # strip simple quotes
+    if val and val[0] in {'"', "'"} and val[-1:] == val[0]:
         val = val[1:-1]
     return val or None
 
@@ -99,26 +102,26 @@ def _replace_scalar(text: str, key: str, value: str) -> str:
     return text + replacement + "\n"
 
 
+# -------------------- status helpers -------------------- #
+
 def _norm_overall(raw: Optional[str]) -> str:
     """
-    Normalise Story overall_status to:
+    Normalise an overall_status value to:
 
         Planned | In Progress | Complete
     """
     if raw is None:
         return "Planned"
 
-    t = raw.strip().strip('"\'')
+    t = raw.strip().strip("\"'")
     tl = t.lower()
 
-    if tl in {"planned"}:
+    if tl == "planned":
         return "Planned"
     if tl in {"in progress", "in_progress", "in-progress", "active"}:
         return "In Progress"
     if tl in {"complete", "completed", "done"}:
         return "Complete"
-
-    # Default if unknown
     return "Planned"
 
 
@@ -142,11 +145,74 @@ def _aggregate_overall(child_statuses: List[str]) -> Optional[str]:
     return "In Progress"
 
 
+def _norm_flag(raw: Optional[str]) -> str:
+    """
+    Normalise pass/fail/planned-ish flags used in story front matter.
+    """
+    if raw is None:
+        return "planned"
+    t = raw.strip().strip("\"'").lower()
+    if t in {"pass", "passed", "ok", "true"}:
+        return "pass"
+    if t in {"fail", "failed", "error", "false"}:
+        return "fail"
+    if t in {"planned", "n/a", "na"}:
+        return "planned"
+    # fallback: treat unknown as planned
+    return "planned"
+
+
+def derive_story_overall(text: str) -> str:
+    """
+    Derive a Story's overall_status from its detailed fields.
+
+    Rules:
+
+    - If *nothing has started* (all flags 'planned')
+      -> Planned
+    - Else if ALL of
+        testing_status, guardrail_adherence, code_quality_adherence,
+        security_policy_adherence are 'pass'
+      AND halo_adherence is not 'fail'
+      -> Complete
+    - Otherwise
+      -> In Progress
+    """
+    testing = _norm_flag(_extract_scalar(text, "testing_status"))
+    guardrail = _norm_flag(_extract_scalar(text, "guardrail_adherence"))
+    code = _norm_flag(_extract_scalar(text, "code_quality_adherence"))
+    security = _norm_flag(_extract_scalar(text, "security_policy_adherence"))
+    halo_raw = _extract_scalar(text, "halo_adherence")
+    halo = _norm_flag(halo_raw) if halo_raw is not None else "planned"
+
+    flags = [testing, guardrail, code, security, halo]
+
+    # 1) Nothing touched yet
+    if all(f == "planned" for f in flags):
+        return "Planned"
+
+    # 2) Everything green
+    if (
+        testing == "pass"
+        and guardrail == "pass"
+        and code == "pass"
+        and security == "pass"
+        and halo != "fail"
+    ):
+        return "Complete"
+
+    # 3) Something has happened but we are not complete
+    return "In Progress"
+
+
 # -------------------- main roll-up logic -------------------- #
 
-def collect_story_overall() -> Dict[str, Dict[str, str]]:
+def update_story_overall() -> Dict[str, Dict[str, str]]:
     """
-    Return mapping: story_id -> { "feature": feature_id, "overall": overall_status }
+    For every story file:
+    - derive overall_status from detailed fields
+    - write it back to the file
+    - return mapping story_id -> {feature, overall}
     """
     stories: Dict[str, Dict[str, str]] = {}
 
@@ -155,13 +221,18 @@ def collect_story_overall() -> Dict[str, Dict[str, str]]:
 
         sid = _extract_scalar(text, "story_id")
         if not sid:
-            continue  # ignore legacy
+            continue  # ignore legacy / non-story docs
 
         feature_id = _extract_scalar(text, "feature") or ""
-        overall_raw = _extract_scalar(text, "overall_status")
-        overall = _norm_overall(overall_raw)
 
-        stories[sid] = {"feature": feature_id, "overall": overall}
+        derived_overall = derive_story_overall(text)
+        new_text = _replace_scalar(text, "overall_status", derived_overall)
+
+        if new_text != text:
+            _write(path, new_text)
+            print(f">>> Updated Story {sid} overall_status -> {derived_overall}")
+
+        stories[sid] = {"feature": feature_id, "overall": derived_overall}
 
     return stories
 
@@ -267,8 +338,8 @@ def main() -> int:
     print("=== Mission Control Overall Status Roll-up ===")
     print(f"Repo root: {REPO_ROOT}")
 
-    stories = collect_story_overall()
-    print(f"Collected {len(stories)} stories.")
+    stories = update_story_overall()
+    print(f"Updated and collected {len(stories)} stories.")
 
     feature_overall = rollup_features(stories)
     print(f"Rolled up {len(feature_overall)} features.")
@@ -281,4 +352,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

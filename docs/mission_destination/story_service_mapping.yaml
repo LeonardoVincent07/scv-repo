@@ -1,0 +1,49 @@
+ST-00-backend:
+  story_id: ST-00
+  story_name: Backend API availability
+  feature: Platform / Shell
+  service: backend_api
+  code_file: app_backend/main.py
+
+ST-00-frontend:
+  story_id: ST-00
+  story_name: Frontend UI shell
+  feature: Platform / Shell
+  service: frontend_shell
+  code_file: app_frontend/src/App.jsx
+
+ST-03:
+  story_id: ST-03
+  story_name: Map identity fields
+  feature: Client Profile Assembly
+  service: client_profile
+  code_file: src/services/client_profile/service.py
+
+ST-04:
+  story_id: ST-04
+  story_name: Map identifiers
+  feature: Client Profile Assembly
+  service: client_profile
+  code_file: src/services/client_profile/service.py
+
+ST-09:
+  story_id: ST-09
+  story_name: Match by tax ID
+  feature: Client Profile Assembly
+  service: client_profile
+  code_file: src/services/client_profile/service.py
+
+
+ST-20:
+  story_id: ST-20
+  story_name: Assemble base profile
+  feature: Client Profile Assembly
+  service: client_profile
+  code_file: src/services/client_profile/service.py
+
+ST-30:
+  story_id: ST-30
+  story_name: Audit ingestion
+  feature: Audit Ingestion
+  service: audit
+  code_file: src/services/audit/service.py

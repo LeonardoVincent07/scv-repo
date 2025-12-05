@@ -8,14 +8,13 @@ description: |
 acceptance_criteria:
   - Timestamps correct
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---

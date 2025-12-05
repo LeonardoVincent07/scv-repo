@@ -57,6 +57,17 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
+    "ST-09": {
+    "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-09_match_by_tax_id.md",
+    "security_targets": [
+        "src/services/client_profile/service.py",
+    ],
+},
+
     "ST-20": {
         "story_file": REPO_ROOT
         / "docs"

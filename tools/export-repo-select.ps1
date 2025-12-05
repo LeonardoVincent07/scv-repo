@@ -50,7 +50,7 @@ if (-not (Test-Path $OutputDir)) {
 
 $repoRoot = (Get-Location).Path
 
-function Is-ExcludedPath {
+function Test-ExcludedPath {
     param([string]$path)
     foreach ($dir in $excludeDirs) {
         if ($path -like "*\$dir\*" -or $path -like "*/$dir/*") {
@@ -76,7 +76,7 @@ foreach ($inc in $includePaths) {
 
 # Filter: only include allowed file types and not excluded dirs
 $files = $files | Where-Object {
-    -not (Is-ExcludedPath $_.FullName) -and
+    -not (Test-ExcludedPath $_.FullName) -and
     ($textExt -contains $_.Extension.ToLowerInvariant())
 }
 

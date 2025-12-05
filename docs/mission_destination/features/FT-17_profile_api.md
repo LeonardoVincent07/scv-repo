@@ -10,7 +10,7 @@ stories:
   - ST-34
   - ST-35
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: Planned
 halo_adherence: aggregated
