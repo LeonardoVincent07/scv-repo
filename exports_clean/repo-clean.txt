@@ -696,20 +696,25 @@ jobs:
         run: |
           python tools/run_story_lint.py
 
-      - name: Ensure Story statuses are up to date (no drift)
+      - name: Roll up Feature & Epic statuses
         run: |
-          # If running the Story scripts changed any Story files, CI fails.
+          python tools/rollup_statuses.py
+
+      - name: Ensure Story / Feature / Epic statuses are up to date (no drift)
+        run: |
+          # If running the Story scripts or status roll-up changed any status fields, CI fails.
           # This forces updated status fields to be committed before pushing.
-          if ! git diff --quiet docs/mission_destination/stories; then
-            echo "Story status fields are not in sync with checks."
+          if ! git diff --quiet docs/mission_destination/stories docs/mission_destination/features docs/mission_destination/epics; then
+            echo "Status fields are not in sync with checks."
             echo "Run locally:"
             echo "  python tools/run_story_tests.py"
             echo "  python tools/run_story_guardrails.py"
             echo "  python tools/run_story_security.py"
             echo "  python tools/run_story_lint.py"
-            echo "Then commit the updated Story files before pushing."
+            echo "  python tools/rollup_statuses.py"
+            echo "Then commit the updated Story/Feature/Epic files before pushing."
             echo
-            git diff -- docs/mission_destination/stories
+            git diff -- docs/mission_destination/stories docs/mission_destination/features docs/mission_destination/epics
             exit 1
           fi
 
@@ -717,7 +722,6 @@ jobs:
         run: |
           mkdir -p missionlog/test_evidence
           echo "CI run at $(date -u)" > missionlog/test_evidence/latest.txt
-
 
 
 
@@ -751,6 +755,92 @@ jobs:
       - name: Run tests
         id: tests
         run: pytest
+
+
+
+===== FILE: missionlog\status\status_snapshot.md =====
+# Mission Control Status Snapshot
+
+## Epics
+
+| Epic | Name | Overall |
+|------|------|---------|
+| E00 | Application Bootstrapping | Complete |
+| E00-UI | User Interface Bootstrapping | In Progress |
+| EP-01 | Client Ingestion & Normalisation | In Progress |
+| EP-02 | Client Matching & Golden Record | In Progress |
+| EP-03 | Client Search | In Progress |
+| EP-04 | Client Profile Assembly | In Progress |
+| EP-05 | Data Quality & Lineage | In Progress |
+| EP-06 | Integration & API Exposure | In Progress |
+
+
+## Features
+
+| Feature | Epic | Name | Overall | Stories |
+|---------|------|------|---------|---------|
+| FT-00-BE | E00 | Backend Fundamentals | Complete | ST-00 |
+| FT-00-UI | E00-UI | Frontend Fundamentals | In Progress | ST-00-FRONTEND-UI-SHELL |
+| FT-01 | EP-01 | Source System Configuration | In Progress | ST-01, ST-02 |
+| FT-02 | EP-01 | Schema Mapping to Canonical Model | In Progress | ST-03, ST-04 |
+| FT-03 | EP-01 | Initial Bulk Ingestion | In Progress | ST-05, ST-06 |
+| FT-04 | EP-01 | Incremental Ingestion & Change Detection | In Progress | ST-07, ST-08 |
+| FT-05 | EP-02 | Exact Match Rules | In Progress | ST-09, ST-10 |
+| FT-06 | EP-02 | Fuzzy & Probabilistic Matching | In Progress | ST-11, ST-12 |
+| FT-07 | EP-02 | Golden Record Construction | In Progress | ST-13, ST-14, ST-15 |
+| FT-08 | EP-03 | Search Index & Normalisation | In Progress | ST-16, ST-17 |
+| FT-09 | EP-03 | Fuzzy Search & Ranking | In Progress | ST-18, ST-19 |
+| FT-10 | EP-04 | Assemble Canonical Profile | In Progress | ST-20, ST-21 |
+| FT-11 | EP-04 | Lineage Exposure | In Progress | ST-22, ST-23 |
+| FT-12 | EP-04 | Conflict Presentation | In Progress | ST-24, ST-25 |
+| FT-13 | EP-05 | Lineage Tracking | In Progress | ST-26, ST-27 |
+| FT-14 | EP-05 | Data Quality Scoring | In Progress | ST-28, ST-29 |
+| FT-15 | EP-05 | Auditability & Evidence | In Progress | ST-30, ST-31 |
+| FT-16 | EP-06 | Search API | In Progress | ST-32, ST-33 |
+| FT-17 | EP-06 | Client Profile API | In Progress | ST-34, ST-35 |
+
+
+## Stories
+
+| Story | Feature | Name | Overall |
+|-------|---------|------|---------|
+| ST-00 | FT-00-BE | Provide Basic Backend API Availability | Complete |
+| ST-00-FRONTEND-UI-SHELL | FT-00-UI | Provide Frontend UI Shell Availability | In Progress |
+| ST-01 | FT-01 | Register CRM source | In Progress |
+| ST-02 | FT-01 | Register KYC source | In Progress |
+| ST-03 | FT-02 | Map identity fields | In Progress |
+| ST-04 | FT-02 | Map identifiers | In Progress |
+| ST-05 | FT-03 | Bulk load CRM | In Progress |
+| ST-06 | FT-03 | Bulk load KYC | In Progress |
+| ST-07 | FT-04 | Detect upstream deltas | In Progress |
+| ST-08 | FT-04 | Apply deltas | In Progress |
+| ST-09 | FT-05 | Match by tax ID | In Progress |
+| ST-10 | FT-05 | Match by registration number | In Progress |
+| ST-11 | FT-06 | Fuzzy name match | In Progress |
+| ST-12 | FT-06 | Attribute confidence | In Progress |
+| ST-13 | FT-07 | Merge identity | In Progress |
+| ST-14 | FT-07 | Merge addresses | In Progress |
+| ST-15 | FT-07 | Record lineage | In Progress |
+| ST-16 | FT-08 | Build index | In Progress |
+| ST-17 | FT-08 | Normalise search fields | In Progress |
+| ST-18 | FT-09 | Fuzzy search queries | In Progress |
+| ST-19 | FT-09 | Search ranking | In Progress |
+| ST-20 | FT-10 | Assemble base profile | In Progress |
+| ST-21 | FT-10 | Assemble metadata | In Progress |
+| ST-22 | FT-11 | Expose lineage | In Progress |
+| ST-23 | FT-11 | Drill-down lineage | In Progress |
+| ST-24 | FT-12 | Flag conflicts | In Progress |
+| ST-25 | FT-12 | Show merge logic | In Progress |
+| ST-26 | FT-13 | Store lineage history | In Progress |
+| ST-27 | FT-13 | Timestamp lineage | In Progress |
+| ST-28 | FT-14 | Compute freshness | In Progress |
+| ST-29 | FT-14 | Compute completeness | In Progress |
+| ST-30 | FT-15 | Audit ingestion | In Progress |
+| ST-31 | FT-15 | Audit merge | In Progress |
+| ST-32 | FT-16 | Search API basic | In Progress |
+| ST-33 | FT-16 | Search API ranking | In Progress |
+| ST-34 | FT-17 | Profile API basic | In Progress |
+| ST-35 | FT-17 | Profile API lineage | In Progress |
 
 
 
@@ -1099,30 +1189,76 @@ For each Story:
 
 
 
+===== FILE: docs\mission_destination\story_service_mapping.yaml =====
+ST-00-backend:
+  story_id: ST-00
+  story_name: Backend API availability
+  feature: Platform / Shell
+  service: backend_api
+  code_file: app_backend/main.py
+
+ST-00-frontend:
+  story_id: ST-00
+  story_name: Frontend UI shell
+  feature: Platform / Shell
+  service: frontend_shell
+  code_file: app_frontend/src/App.jsx
+
+ST-03:
+  story_id: ST-03
+  story_name: Map identity fields
+  feature: Client Profile Assembly
+  service: client_profile
+  code_file: src/services/client_profile/service.py
+
+ST-04:
+  story_id: ST-04
+  story_name: Map identifiers
+  feature: Client Profile Assembly
+  service: client_profile
+  code_file: src/services/client_profile/service.py
+
+ST-09:
+  story_id: ST-09
+  story_name: Match by tax ID
+  feature: Client Profile Assembly
+  service: client_profile
+  code_file: src/services/client_profile/service.py
+
+
+ST-20:
+  story_id: ST-20
+  story_name: Assemble base profile
+  feature: Client Profile Assembly
+  service: client_profile
+  code_file: src/services/client_profile/service.py
+
+ST-30:
+  story_id: ST-30
+  story_name: Audit ingestion
+  feature: Audit Ingestion
+  service: audit
+  code_file: src/services/audit/service.py
+
+
+
 ===== FILE: docs\mission_destination\epics\E00_application_bootstrapping.md =====
 ---
 epic_id: E00
 slug: e00_application_bootstrapping
 name: "Application Bootstrapping"
-description: |
-  Establish the initial backend service and runtime foundations required for the
-  Single Client View application to start, respond to basic requests, and be
-  governed by MissionFramework guardrails.
 
 features:
-  - FT-00
+  - FT-00-BE
 
-overall_status: active
-
-testing_status: aggregated
-halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-feature_statuses: {}
+overall_status: Complete
+testing_status: Planned
+guardrail_adherence: Planned
+code_quality_adherence: Planned
+security_policy_adherence: Planned
 
 last_updated: <auto>
+
 ---
 
 ## Context
@@ -1145,35 +1281,24 @@ build, run, and verify the Single Client View application.
 
 
 
-
-
-
 ===== FILE: docs\mission_destination\epics\E00_ui_bootstrapping.md =====
 ---
+epic_id: E00-UI
+slug: e00_ui_bootstrapping
+name: "User Interface Bootstrapping"
 
-id: E00-UI
+features:
+  - FT-00-UI
 
-slug: e00\_ui\_bootstrapping
+overall_status: In Progress
+testing_status: Planned
+guardrail_adherence: Planned
+code_quality_adherence: Planned
+security_policy_adherence: Planned
 
-type: epic
-
-name: User Interface Bootstrapping
-
-status: active
-
-description: >
-
-&nbsp; Establish the initial frontend shell for the Single Client Value application,
-
-&nbsp; ensuring that a basic UI loads, renders and is testable.
-
-owner: TBD
-
-related\_features:
-
-&nbsp; - FT-00-frontend-fundamentals
-
+last_updated: <auto>
 ---
+
 
 
 
@@ -1229,15 +1354,13 @@ features:
   - FT-03
   - FT-04
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: In Progress
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-feature_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1259,15 +1382,13 @@ features:
   - FT-06
   - FT-07
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-feature_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1288,15 +1409,13 @@ features:
   - FT-08
   - FT-09
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-feature_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1318,15 +1437,13 @@ features:
   - FT-11
   - FT-12
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: In Progress
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-feature_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1348,15 +1465,13 @@ features:
   - FT-14
   - FT-15
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: In Progress
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-feature_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1377,15 +1492,13 @@ features:
   - FT-16
   - FT-17
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-feature_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1394,7 +1507,7 @@ last_updated: <auto>
 
 ===== FILE: docs\mission_destination\features\FT-00-backend_fundamentals.md =====
 ---
-feature_id: FT-00
+feature_id: FT-00-BE
 epic: E00
 name: "Backend Fundamentals"
 description: |
@@ -1406,47 +1519,40 @@ description: |
 stories:
   - ST-00
 
-overall_status: Planned
-
-testing_status: aggregated
-halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+overall_status: Complete
+testing_status: Planned
+halo_adherence: Planned
+guardrail_adherence: Planned
+code_quality_adherence: Planned
+security_policy_adherence: Planned
 
 last_updated: <auto>
 ---
 
 
 
+
 ===== FILE: docs\mission_destination\features\FT-00-frontend_fundamentals.md =====
 ---
+feature_id: FT-00-UI
+epic: E00-UI
+name: "Frontend Fundamentals"
+description: |
+  Provide a minimal frontend shell that builds, loads, renders, and verifies
+  that the baseline UI is operational.
 
-id: FT-00-frontend-fundamentals
+stories:
+  - ST-00-FRONTEND-UI-SHELL
 
-slug: ft-00-frontend-fundamentals
+overall_status: In Progress
+testing_status: Planned
+halo_adherence: Planned
+guardrail_adherence: Planned
+code_quality_adherence: Planned
+security_policy_adherence: Planned
 
-type: feature
+last_updated: <auto>
 
-name: Frontend Fundamentals
-
-epic\_id: E00-UI
-
-status: active
-
-description: >
-
-&nbsp; Provide a minimal frontend shell that builds, loads, renders, and verifies the
-
-&nbsp; baseline UI is operational.
-
-owner: TBD
-
-related\_stories:
-
-&nbsp; - ST-00-frontend-ui-shell
 
 ---
 
@@ -1491,15 +1597,13 @@ stories:
   - ST-01
   - ST-02
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1519,15 +1623,13 @@ stories:
   - ST-03
   - ST-04
 
-overall_status: Planned
+overall_status: Complete
 
-testing_status: aggregated
+testing_status: Complete
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: Complete
+code_quality_adherence: Complete
+security_policy_adherence: Complete
 
 last_updated: <auto>
 ---
@@ -1547,15 +1649,13 @@ stories:
   - ST-05
   - ST-06
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1575,15 +1675,13 @@ stories:
   - ST-07
   - ST-08
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1603,15 +1701,13 @@ stories:
   - ST-09
   - ST-10
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1631,15 +1727,13 @@ stories:
   - ST-11
   - ST-12
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1660,15 +1754,13 @@ stories:
   - ST-14
   - ST-15
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1687,15 +1779,13 @@ stories:
   - ST-16
   - ST-17
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1714,15 +1804,13 @@ stories:
   - ST-18
   - ST-19
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1742,15 +1830,13 @@ stories:
   - ST-20
   - ST-21
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: In Progress
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1770,15 +1856,13 @@ stories:
   - ST-22
   - ST-23
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1798,15 +1882,13 @@ stories:
   - ST-24
   - ST-25
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1825,15 +1907,13 @@ stories:
   - ST-26
   - ST-27
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1853,15 +1933,13 @@ stories:
   - ST-28
   - ST-29
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1881,15 +1959,13 @@ stories:
   - ST-30
   - ST-31
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: In Progress
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1909,15 +1985,13 @@ stories:
   - ST-32
   - ST-33
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1937,15 +2011,13 @@ stories:
   - ST-34
   - ST-35
 
-overall_status: Planned
+overall_status: In Progress
 
-testing_status: aggregated
+testing_status: Planned
 halo_adherence: aggregated
-guardrail_adherence: aggregated
-code_quality_adherence: aggregated
-security_policy_adherence: aggregated
-
-story_statuses: {}
+guardrail_adherence: In Progress
+code_quality_adherence: In Progress
+security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1958,16 +2030,16 @@ story_id: ST-00
 slug: st-00-backend-api-availability
 name: Provide Basic Backend API Availability
 epic: E00
-feature: FT-00-backend_fundamentals
-status: in_progress
+feature: FT-00-BE
+status: Complete
 
 # MissionSmith Status Fields (used by CI + tools/*.py)
 testing_status: pass
-halo_adherence: not_run
+halo_adherence: pass
 guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
-implementation_presence: partial
+overall_status: Complete
 last_updated: 2025-12-04
 ---
 
@@ -2004,17 +2076,17 @@ This story establishes the foundational API contract for the backend and enables
 story_id: ST-00-FRONTEND-UI-SHELL
 slug: st-00-frontend-ui-shell
 name: Provide Frontend UI Shell Availability
-epic: E00
-feature: FT-00-backend_fundamentals
-status: in_progress
+epic: E00-UI
+feature: FT-00-UI
+status: Complete
 
 # MissionSmith Status Fields (used by CI + tools/*.py)
 testing_status: pass
-halo_adherence: not_run
+halo_adherence: pass
 guardrail_adherence: not_run
 code_quality_adherence: pass
 security_policy_adherence: pass
-implementation_presence: partial
+overall_status: In Progress
 last_updated: 2025-12-04
 ---
 
@@ -2061,14 +2133,13 @@ acceptance_criteria:
   - Connection succeeds
   - Schema retrieved
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2087,14 +2158,13 @@ acceptance_criteria:
   - Connection ok
   - Schema ok
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2113,14 +2183,13 @@ acceptance_criteria:
   - Fields mapped
   - Types correct
 
-overall_status: Planned
+overall_status: Complete
 
 testing_status: pass
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2138,14 +2207,13 @@ description: |
 acceptance_criteria:
   - ID mapping valid
 
-overall_status: Planned
+overall_status: Complete
 
 testing_status: pass
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2163,14 +2231,13 @@ description: |
 acceptance_criteria:
   - Records loaded
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2188,14 +2255,13 @@ description: |
 acceptance_criteria:
   - Records loaded
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2213,14 +2279,13 @@ description: |
 acceptance_criteria:
   - Changes detected
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2238,14 +2303,13 @@ description: |
 acceptance_criteria:
   - Deltas applied
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2263,14 +2327,13 @@ description: |
 acceptance_criteria:
   - Matches correct
 
-overall_status: Planned
+overall_status: Complete
 
-testing_status: not_run
-halo_adherence: fail
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
-implementation_presence: false
+testing_status: pass
+halo_adherence: pass
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
 
 last_updated: <auto>
 ---
@@ -2288,14 +2351,13 @@ description: |
 acceptance_criteria:
   - Matches correct
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2313,14 +2375,13 @@ description: |
 acceptance_criteria:
   - Similarity score valid
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2338,14 +2399,13 @@ description: |
 acceptance_criteria:
   - Confidence computed
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2363,14 +2423,13 @@ description: |
 acceptance_criteria:
   - Conflicts resolved
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2388,14 +2447,13 @@ description: |
 acceptance_criteria:
   - Address selected
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2413,14 +2471,13 @@ description: |
 acceptance_criteria:
   - Lineage stored
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2438,14 +2495,13 @@ description: |
 acceptance_criteria:
   - Index built
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2463,14 +2519,13 @@ description: |
 acceptance_criteria:
   - Fields normalised
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2488,14 +2543,13 @@ description: |
 acceptance_criteria:
   - Ranked results
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2513,14 +2567,13 @@ description: |
 acceptance_criteria:
   - Correct ordering
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2538,14 +2591,13 @@ description: |
 acceptance_criteria:
   - Profile fields set
 
-overall_status: Planned
+overall_status: Complete
 
 testing_status: pass
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2563,14 +2615,13 @@ description: |
 acceptance_criteria:
   - Metadata added
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2588,14 +2639,13 @@ description: |
 acceptance_criteria:
   - Lineage visible
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2613,14 +2663,13 @@ description: |
 acceptance_criteria:
   - Source-level detail
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2638,14 +2687,13 @@ description: |
 acceptance_criteria:
   - Flags correct
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2663,14 +2711,13 @@ description: |
 acceptance_criteria:
   - Logic displayed
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2688,14 +2735,13 @@ description: |
 acceptance_criteria:
   - History stored
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2713,14 +2759,13 @@ description: |
 acceptance_criteria:
   - Timestamps correct
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2738,14 +2783,13 @@ description: |
 acceptance_criteria:
   - Score correct
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2763,14 +2807,13 @@ description: |
 acceptance_criteria:
   - Completeness correct
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2788,14 +2831,13 @@ description: |
 acceptance_criteria:
   - Audit entries
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: pass
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: pass
 security_policy_adherence: pass
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2813,14 +2855,13 @@ description: |
 acceptance_criteria:
   - Audit recorded
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2838,14 +2879,13 @@ description: |
 acceptance_criteria:
   - JSON response
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2863,14 +2903,13 @@ description: |
 acceptance_criteria:
   - Ranked results
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2888,14 +2927,13 @@ description: |
 acceptance_criteria:
   - Profile returned
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -2913,14 +2951,13 @@ description: |
 acceptance_criteria:
   - Lineage included
 
-overall_status: Planned
+overall_status: In Progress
 
 testing_status: not_run
-halo_adherence: fail
+halo_adherence: pass
 guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
-implementation_presence: false
 
 last_updated: <auto>
 ---
@@ -3919,6 +3956,40 @@ MissionHalo sits alongside MissionFramework as part of the system-wide governanc
 
 
 
+===== FILE: docs\mission_smith\story_execution_loop.md =====
+# MissionSmith Story Execution Loop
+
+1. Select the next Story from the sequencing list:
+   - docs/mission_destination/initial_story_sequence.md
+
+2. Identify the service for the Story:
+   - Add or update the entry for the Story in story_service_mapping.yaml to record the service and the code file to be updated.
+
+3. Implement the Story using the code meta-prompt:
+   - story_code_instruction_prompt_template.txt
+   - story_code_metaprompt.md
+
+4. Create the tests using the test meta-prompt:
+   - story_test_instruction_prompt_template.txt
+   - story_test_metaprompt.md
+
+5. Update the Story â†’ Service mapping in the automation scripts using:
+   - generate_story_config_snippets.py
+   Then paste outputs into:
+   - run_story_tests.py
+   - run_story_lint.py
+   - run_story_security.py
+   - run_story_guardrails.py
+
+6. Run the status update scripts:
+   - python tools/run_story_tests.py ST-XX
+   - python tools/run_story_lint.py ST-XX
+   - python tools/run_story_security.py ST-XX
+   - python tools/run_story_guardrails.py ST-XX
+
+
+
+
 ===== FILE: docs\prompts\ci_pipeline-instruction_prompt_template.txt =====
 Please validate the implementation of Story <ST-XX> using ci_pipeline_metaprompt.
 
@@ -4709,6 +4780,61 @@ def test_identifier_types():
 
 
 
+===== FILE: tests\services\client_profile\test_st_09_match_by_tax_id.py =====
+from src.services.client_profile.service import ClientProfileService
+
+
+def test_match_by_tax_id_exact():
+    service = ClientProfileService()
+
+    # Patch CRM source to include a tax_id for this client
+    service._mock_crm_source = lambda client_id: {
+        "_source": "CRM",
+        "identifier": "crm-123",
+        "name": "Alice Example",
+        "email": "alice@example.com",
+        "country": "UK",
+        "tax_id": "TAX-001",
+    } if client_id == "123" else {"_source": "CRM"}
+
+    # Rebuild sources list so it uses the patched function
+    service.sources = [service._mock_crm_source, service._mock_kyc_source]
+
+    profile = service.get_client_profile("123")
+
+    # Sanity check the raw source has the expected tax_id
+    assert profile["raw_sources"]["CRM"]["tax_id"] == "TAX-001"
+
+    # ACT: call the real service method
+    matches = service.match_by_tax_id([profile], "TAX-001")
+
+    # ASSERT: one match, and it's the correct client
+    assert len(matches) == 1
+    assert matches[0]["client_id"] == "123"
+
+
+def test_match_by_tax_id_no_match():
+    service = ClientProfileService()
+
+    service._mock_crm_source = lambda client_id: {
+        "_source": "CRM",
+        "identifier": "crm-999",
+        "name": "Bob Example",
+        "email": "bob@example.com",
+        "country": "UK",
+        "tax_id": "TAX-999",
+    } if client_id == "999" else {"_source": "CRM"}
+
+    service.sources = [service._mock_crm_source, service._mock_kyc_source]
+
+    profile = service.get_client_profile("999")
+
+    matches = service.match_by_tax_id([profile], "TAX-001")
+    assert len(matches) == 0
+
+
+
+
 ===== FILE: tests\services\client_profile\test_st_20_assemble_base_profile.py =====
 import pytest
 from src.services.client_profile.service import ClientProfileService
@@ -4759,6 +4885,455 @@ class TestClientSearchService:
         with pytest.raises(NotImplementedError):
             service.search("dummy query")
 
+
+
+
+===== FILE: tools\audit_status_schema.py =====
+#!/usr/bin/env python
+"""
+Mission Control Status Schema Audit
+
+Reads epics, features, and stories under:
+
+  docs/mission_destination/epics
+  docs/mission_destination/features
+  docs/mission_destination/stories
+
+and reports any items that are *not* in the standard MissionDestination shape.
+
+We check:
+
+EPICS
+  - missing epic_id
+  - missing features list
+  - epic_id referenced by no features (informational)
+
+FEATURES
+  - missing feature_id
+  - missing epic
+  - missing stories list
+  - epic reference that does not exist
+
+STORIES
+  - missing story_id
+  - missing feature
+  - feature reference that does not exist
+
+This script is READ-ONLY: it does not change any files.
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional, Set
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+EPICS_DIR = REPO_ROOT / "docs" / "mission_destination" / "epics"
+FEATURES_DIR = REPO_ROOT / "docs" / "mission_destination" / "features"
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+
+
+# ---------------------------------------------------------------------------
+# Basic helpers
+# ---------------------------------------------------------------------------
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _extract_scalar(text: str, key: str) -> Optional[str]:
+    """
+    Extract 'key: value' from front matter. Returns the value or None.
+    """
+    pattern = rf"^{re.escape(key)}:\s*(.+)$"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return None
+    val = m.group(1).strip()
+    if val and val[0] in {"'", '"'} and val[-1:] == val[0]:
+        val = val[1:-1]
+    return val or None
+
+
+def _extract_yaml_list(text: str, key: str) -> List[str]:
+    """
+    Extract:
+
+      key:
+        - item1
+        - item2
+
+    Returns [item1, item2].
+    """
+    pattern = rf"^{re.escape(key)}:\s*\n(?P<body>(?:\s+- .*\n)+)"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return []
+    body = m.group("body")
+    items: List[str] = []
+    for line in body.splitlines():
+        s = line.strip()
+        if s.startswith("- "):
+            val = s[2:].strip()
+            if val:
+                items.append(val)
+    return items
+
+
+# ---------------------------------------------------------------------------
+# Data structures
+# ---------------------------------------------------------------------------
+
+@dataclass
+class EpicInfo:
+    path: Path
+    epic_id: Optional[str]
+    features: List[str]
+
+
+@dataclass
+class FeatureInfo:
+    path: Path
+    feature_id: Optional[str]
+    epic: Optional[str]
+    stories: List[str]
+
+
+@dataclass
+class StoryInfo:
+    path: Path
+    story_id: Optional[str]
+    feature: Optional[str]
+
+
+# ---------------------------------------------------------------------------
+# Collectors
+# ---------------------------------------------------------------------------
+
+def collect_epics() -> Dict[str, EpicInfo]:
+    epics: Dict[str, EpicInfo] = {}
+    print(f"Scanning epics in {EPICS_DIR}...")
+
+    for path in sorted(EPICS_DIR.glob("*.md")):
+        text = _read(path)
+        epic_id = _extract_scalar(text, "epic_id")
+        features = _extract_yaml_list(text, "features")
+
+        key = epic_id if epic_id else f"__NO_ID__:{path.name}"
+        epics[key] = EpicInfo(path=path, epic_id=epic_id, features=features)
+
+    return epics
+
+
+def collect_features() -> Dict[str, FeatureInfo]:
+    features: Dict[str, FeatureInfo] = {}
+    print(f"Scanning features in {FEATURES_DIR}...")
+
+    for path in sorted(FEATURES_DIR.glob("*.md")):
+        text = _read(path)
+        feature_id = _extract_scalar(text, "feature_id")
+        epic = _extract_scalar(text, "epic")
+        stories = _extract_yaml_list(text, "stories")
+
+        key = feature_id if feature_id else f"__NO_ID__:{path.name}"
+        features[key] = FeatureInfo(
+            path=path,
+            feature_id=feature_id,
+            epic=epic,
+            stories=stories,
+        )
+
+    return features
+
+
+def collect_stories() -> Dict[str, StoryInfo]:
+    stories: Dict[str, StoryInfo] = {}
+    print(f"Scanning stories in {STORIES_DIR}...")
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = _read(path)
+        story_id = _extract_scalar(text, "story_id")
+        feature = _extract_scalar(text, "feature")
+
+        key = story_id if story_id else f"__NO_ID__:{path.name}"
+        stories[key] = StoryInfo(path=path, story_id=story_id, feature=feature)
+
+    return stories
+
+
+# ---------------------------------------------------------------------------
+# Audit
+# ---------------------------------------------------------------------------
+
+def audit_schema() -> None:
+    epics = collect_epics()
+    features = collect_features()
+    stories = collect_stories()
+
+    epic_ids: Set[str] = {e.epic_id for e in epics.values() if e.epic_id}
+    feature_ids: Set[str] = {f.feature_id for f in features.values() if f.feature_id}
+
+    problems: List[str] = []
+
+    # --- Epics ---
+    problems.append("\n=== EPICS ===")
+
+    missing_epic_id = [
+        e for e in epics.values() if e.epic_id is None
+    ]
+    if missing_epic_id:
+        problems.append("Epics missing epic_id:")
+        for e in missing_epic_id:
+            problems.append(f"  - {e.path.relative_to(REPO_ROOT)}")
+    else:
+        problems.append("All epics have epic_id.")
+
+    missing_features_list = [
+        e for e in epics.values() if e.epic_id and not e.features
+    ]
+    if missing_features_list:
+        problems.append("Epics with no features list defined:")
+        for e in missing_features_list:
+            problems.append(f"  - {e.epic_id}: {e.path.relative_to(REPO_ROOT)}")
+    else:
+        problems.append("All epics with epic_id have a features list (may be empty).")
+
+    # Epics that are never referenced by any feature (informational)
+    referenced_epics: Set[str] = {
+        f.epic for f in features.values() if f.epic is not None
+    }
+    unreferenced_epics = sorted(epic_ids - referenced_epics)
+    problems.append("Epics with epic_id that are not referenced by any feature:")
+    if unreferenced_epics:
+        for eid in unreferenced_epics:
+            ep = [e for e in epics.values() if e.epic_id == eid][0]
+            problems.append(f"  - {eid}: {ep.path.relative_to(REPO_ROOT)}")
+    else:
+        problems.append("  (none)")
+
+    # --- Features ---
+    problems.append("\n=== FEATURES ===")
+
+    missing_feature_id = [
+        f for f in features.values() if f.feature_id is None
+    ]
+    if missing_feature_id:
+        problems.append("Features missing feature_id:")
+        for f in missing_feature_id:
+            problems.append(f"  - {f.path.relative_to(REPO_ROOT)}")
+    else:
+        problems.append("All features have feature_id.")
+
+    missing_epic_ref = [
+        f for f in features.values() if f.feature_id and f.epic is None
+    ]
+    if missing_epic_ref:
+        problems.append("Features with feature_id but no epic reference:")
+        for f in missing_epic_ref:
+            problems.append(f"  - {f.feature_id}: {f.path.relative_to(REPO_ROOT)}")
+    else:
+        problems.append("All features with feature_id have an epic reference.")
+
+    missing_stories_list = [
+        f for f in features.values() if f.feature_id and not f.stories
+    ]
+    if missing_stories_list:
+        problems.append("Features with feature_id but no stories list defined:")
+        for f in missing_stories_list:
+            problems.append(f"  - {f.feature_id}: {f.path.relative_to(REPO_ROOT)}")
+    else:
+        problems.append("All features with feature_id have a stories list (may be empty).")
+
+    bad_epic_ref = [
+        f for f in features.values()
+        if f.feature_id and f.epic and f.epic not in epic_ids
+    ]
+    if bad_epic_ref:
+        problems.append("Features referencing an epic that does not exist:")
+        for f in bad_epic_ref:
+            problems.append(
+                f"  - {f.feature_id} -> epic '{f.epic}' (missing), file: {f.path.relative_to(REPO_ROOT)}"
+            )
+    else:
+        problems.append("No features reference missing epics.")
+
+    # --- Stories ---
+    problems.append("\n=== STORIES ===")
+
+    missing_story_id = [
+        s for s in stories.values() if s.story_id is None
+    ]
+    if missing_story_id:
+        problems.append("Stories missing story_id:")
+        for s in missing_story_id:
+            problems.append(f"  - {s.path.relative_to(REPO_ROOT)}")
+    else:
+        problems.append("All stories have story_id.")
+
+    missing_feature_ref = [
+        s for s in stories.values() if s.story_id and s.feature is None
+    ]
+    if missing_feature_ref:
+        problems.append("Stories with story_id but no feature reference:")
+        for s in missing_feature_ref:
+            problems.append(f"  - {s.story_id}: {s.path.relative_to(REPO_ROOT)}")
+    else:
+        problems.append("All stories with story_id have a feature reference.")
+
+    bad_feature_ref = [
+        s for s in stories.values()
+        if s.story_id and s.feature and s.feature not in feature_ids
+    ]
+    if bad_feature_ref:
+        problems.append("Stories referencing a feature that does not exist:")
+        for s in bad_feature_ref:
+            problems.append(
+                f"  - {s.story_id} -> feature '{s.feature}' (missing), file: {s.path.relative_to(REPO_ROOT)}"
+            )
+    else:
+        problems.append("No stories reference missing features.")
+
+    # -----------------------------------------------------------------------
+    # Print report
+    # -----------------------------------------------------------------------
+    print("\n".join(problems))
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def main() -> int:
+    print("=== Mission Control Status Schema Audit ===")
+    print(f"Repo root: {REPO_ROOT}")
+    audit_schema()
+    print("\n=== Audit complete ===")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+===== FILE: tools\cleanup_frontmatter.py =====
+#!/usr/bin/env python
+
+from pathlib import Path
+import re
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+
+def main() -> int:
+    print("=== Removing implementation_presence from story front matter ===")
+    count = 0
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+
+        # Remove a line like: implementation_presence: false
+        new_text = re.sub(
+            r"^implementation_presence:\s*.*\n",
+            "",
+            text,
+            flags=re.MULTILINE,
+        )
+
+        if new_text != text:
+            path.write_text(new_text, encoding="utf-8")
+            count += 1
+            print(f"  cleaned {path.name}")
+
+    print(f"Done. Updated {count} story files.")
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+===== FILE: tools\cleanup_status_mappings.py =====
+#!/usr/bin/env python
+"""
+Remove the accidental rollup mapping blocks:
+
+- story_statuses: {...} from Feature files
+- feature_statuses: {...} from Epic files
+
+Run once, commit the changes, and they are gone.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+FEATURES_DIR = REPO_ROOT / "docs" / "mission_destination" / "features"
+EPICS_DIR = REPO_ROOT / "docs" / "mission_destination" / "epics"
+
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _write(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+def _remove_block(text: str, key: str) -> str:
+    """
+    Remove a YAML block starting with 'key:' up to the next top-level key or EOF.
+
+    Matches both mapping and list blocks.
+    """
+    pattern = rf"^{key}:\s*.*?(?=^\S|\Z)"
+    return re.sub(pattern, "", text, flags=re.MULTILINE | re.DOTALL)
+
+
+def clean_features() -> int:
+    changed = 0
+    for path in sorted(FEATURES_DIR.glob("*.md")):
+        original = _read(path)
+        updated = _remove_block(original, "story_statuses")
+        if updated != original:
+            # Normalise multiple blank lines left behind
+            updated = re.sub(r"\n{3,}", "\n\n", updated)
+            _write(path, updated)
+            changed += 1
+            print(f">>> Cleaned story_statuses from {path.relative_to(REPO_ROOT)}")
+    return changed
+
+
+def clean_epics() -> int:
+    changed = 0
+    for path in sorted(EPICS_DIR.glob("*.md")):
+        original = _read(path)
+        updated = _remove_block(original, "feature_statuses")
+        if updated != original:
+            updated = re.sub(r"\n{3,}", "\n\n", updated)
+            _write(path, updated)
+            changed += 1
+            print(f">>> Cleaned feature_statuses from {path.relative_to(REPO_ROOT)}")
+    return changed
+
+
+def main() -> int:
+    print("=== Cleaning unwanted status mapping blocks ===")
+    f = clean_features()
+    e = clean_epics()
+    print(f"Features cleaned: {f}")
+    print(f"Epics cleaned:    {e}")
+    print("=== Done ===")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 
 
 
@@ -4902,6 +5477,84 @@ if __name__ == "__main__":
 
 
 
+===== FILE: tools\normalize_story_frontmatter.py =====
+#!/usr/bin/env python
+
+from pathlib import Path
+import re
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+
+
+def remove_implementation_presence(text: str) -> str:
+    """
+    Remove lines like:
+      implementation_presence: false
+    from the front matter.
+    """
+    return re.sub(
+        r"^implementation_presence:\s*.*\n",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
+
+
+def ensure_halo_pass(text: str) -> str:
+    """
+    Ensure there's a line:
+      halo_adherence: pass
+
+    - If halo_adherence already exists, set it to 'pass'.
+    - If not, insert it before last_updated: if present,
+      otherwise append near the end of the front matter.
+    """
+    pattern = r"^halo_adherence:\s*.*$"
+    replacement = "halo_adherence: pass"
+
+    # Case 1: replace existing line
+    if re.search(pattern, text, flags=re.MULTILINE):
+        return re.sub(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    # Case 2: insert before last_updated if present
+    lu_pattern = r"^last_updated:\s*.*$"
+    m = re.search(lu_pattern, text, flags=re.MULTILINE)
+    if m:
+        start = m.start()
+        return text[:start] + replacement + "\n" + text[start:]
+
+    # Case 3: append at end
+    if not text.endswith("\n"):
+        text += "\n"
+    return text + replacement + "\n"
+
+
+def main() -> int:
+    print("=== Normalising story front matter ===")
+    print(f"Stories dir: {STORIES_DIR}")
+
+    updated = 0
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        new_text = remove_implementation_presence(text)
+        new_text = ensure_halo_pass(new_text)
+
+        if new_text != text:
+            path.write_text(new_text, encoding="utf-8")
+            updated += 1
+            print(f"  updated {path.name}")
+
+    print(f"Done. Updated {updated} story files.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
 ===== FILE: tools\repo_sync_one_liner.txt =====
 git checkout main
 git pull
@@ -4909,6 +5562,446 @@ git add .
 git commit -m "Sync"
 git push
 
+
+
+
+===== FILE: tools\reset_overall_status_planned.py =====
+#!/usr/bin/env python
+"""
+Reset all MissionDestination Story overall_status to 'Planned'.
+
+We will then manually update a small number of stories to 'In Progress'
+or 'Complete' and let rollup_statuses.py aggregate from there.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+from typing import Optional
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _write(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+def _extract_scalar(text: str, key: str) -> Optional[str]:
+    pattern = rf"^{re.escape(key)}:\s*(.+)$"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return None
+    val = m.group(1).strip()
+    if val and val[0] in {"'", '"'} and val[-1:] == val[0]:
+        val = val[1:-1]
+    return val or None
+
+
+def _replace_scalar(text: str, key: str, value: str) -> str:
+    pattern = rf"^{re.escape(key)}:\s*.*$"
+    replacement = f"{key}: {value}"
+
+    if re.search(pattern, text, flags=re.MULTILINE):
+        return re.sub(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    # insert before last_updated: if present
+    lu_pattern = r"^last_updated:\s*.*$"
+    m = re.search(lu_pattern, text, flags=re.MULTILINE)
+    if m:
+        start = m.start()
+        return text[:start] + replacement + "\n" + text[start:]
+
+    # else append at end
+    if not text.endswith("\n"):
+        text += "\n"
+    return text + replacement + "\n"
+
+
+def main() -> int:
+    print("=== Resetting Story overall_status to Planned ===")
+    print(f"Stories dir: {STORIES_DIR}")
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = _read(path)
+        story_id = _extract_scalar(text, "story_id")
+        if not story_id:
+            continue
+
+        new_text = _replace_scalar(text, "overall_status", "Planned")
+        if new_text != text:
+            _write(path, new_text)
+            print(f">>> {story_id}: overall_status -> Planned")
+
+    print("=== Done ===")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+===== FILE: tools\rollup_statuses.py =====
+#!/usr/bin/env python
+"""
+Mission Control Overall Status Roll-up
+
+Responsibilities:
+- For each Story:
+    - Derive overall_status from its testing / guardrail / code / security /
+      halo fields (no implementation_presence).
+- Aggregate Story overall_status up to Feature overall_status.
+- Aggregate Feature overall_status up to Epic overall_status.
+
+IMPORTANT:
+- We ONLY ever write 'overall_status' fields.
+- We NEVER touch testing_status / guardrail_adherence / code_quality_adherence /
+  security_policy_adherence / halo_adherence directly; we just read them.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+from typing import Dict, List, Optional
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+FEATURES_DIR = REPO_ROOT / "docs" / "mission_destination" / "features"
+EPICS_DIR = REPO_ROOT / "docs" / "mission_destination" / "epics"
+
+
+# -------------------- helpers -------------------- #
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _write(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+def _extract_scalar(text: str, key: str) -> Optional[str]:
+    """
+    Extract 'key: value' from front matter. Returns value or None.
+    Very simple line-based parser; assumes `key: value` is on one line.
+    """
+    pattern = rf"^{re.escape(key)}:\s*(.+)$"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return None
+    val = m.group(1).strip()
+    # strip simple quotes
+    if val and val[0] in {'"', "'"} and val[-1:] == val[0]:
+        val = val[1:-1]
+    return val or None
+
+
+def _extract_yaml_list(text: str, key: str) -> List[str]:
+    """
+    Extract:
+
+      key:
+        - item1
+        - item2
+
+    Returns [item1, item2].
+    """
+    pattern = rf"^{re.escape(key)}:\s*\n(?P<body>(?:\s+- .*\n)+)"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return []
+    body = m.group("body")
+    items: List[str] = []
+    for line in body.splitlines():
+        s = line.strip()
+        if s.startswith("- "):
+            val = s[2:].strip()
+            if val:
+                items.append(val)
+    return items
+
+
+def _replace_scalar(text: str, key: str, value: str) -> str:
+    """
+    Replace or insert 'key: value' in the front matter.
+    """
+    pattern = rf"^{re.escape(key)}:\s*.*$"
+    replacement = f"{key}: {value}"
+
+    if re.search(pattern, text, flags=re.MULTILINE):
+        return re.sub(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    # Insert before last_updated: if present
+    lu_pattern = r"^last_updated:\s*.*$"
+    m = re.search(lu_pattern, text, flags=re.MULTILINE)
+    if m:
+        start = m.start()
+        return text[:start] + replacement + "\n" + text[start:]
+
+    # Fallback: append at end
+    if not text.endswith("\n"):
+        text += "\n"
+    return text + replacement + "\n"
+
+
+# -------------------- status helpers -------------------- #
+
+def _norm_overall(raw: Optional[str]) -> str:
+    """
+    Normalise an overall_status value to:
+
+        Planned | In Progress | Complete
+    """
+    if raw is None:
+        return "Planned"
+
+    t = raw.strip().strip("\"'")
+    tl = t.lower()
+
+    if tl == "planned":
+        return "Planned"
+    if tl in {"in progress", "in_progress", "in-progress", "active"}:
+        return "In Progress"
+    if tl in {"complete", "completed", "done"}:
+        return "Complete"
+    return "Planned"
+
+
+def _aggregate_overall(child_statuses: List[str]) -> Optional[str]:
+    """
+    Roll-up:
+
+    - Planned   if all children Planned
+    - Complete  if all children Complete
+    - In Progress otherwise
+
+    Returns None if there are no children.
+    """
+    if not child_statuses:
+        return None
+    s = set(child_statuses)
+    if s == {"Planned"}:
+        return "Planned"
+    if s == {"Complete"}:
+        return "Complete"
+    return "In Progress"
+
+
+def _norm_flag(raw: Optional[str]) -> str:
+    """
+    Normalise pass/fail/planned-ish flags used in story front matter.
+    """
+    if raw is None:
+        return "planned"
+    t = raw.strip().strip("\"'").lower()
+    if t in {"pass", "passed", "ok", "true"}:
+        return "pass"
+    if t in {"fail", "failed", "error", "false"}:
+        return "fail"
+    if t in {"planned", "n/a", "na"}:
+        return "planned"
+    # fallback: treat unknown as planned
+    return "planned"
+
+
+def derive_story_overall(text: str) -> str:
+    """
+    Derive a Story's overall_status from its detailed fields.
+
+    Rules:
+
+    - If *nothing has started* (all flags 'planned')
+      -> Planned
+    - Else if ALL of
+        testing_status, guardrail_adherence, code_quality_adherence,
+        security_policy_adherence are 'pass'
+      AND halo_adherence is not 'fail'
+      -> Complete
+    - Otherwise
+      -> In Progress
+    """
+    testing = _norm_flag(_extract_scalar(text, "testing_status"))
+    guardrail = _norm_flag(_extract_scalar(text, "guardrail_adherence"))
+    code = _norm_flag(_extract_scalar(text, "code_quality_adherence"))
+    security = _norm_flag(_extract_scalar(text, "security_policy_adherence"))
+    halo_raw = _extract_scalar(text, "halo_adherence")
+    halo = _norm_flag(halo_raw) if halo_raw is not None else "planned"
+
+    flags = [testing, guardrail, code, security, halo]
+
+    # 1) Nothing touched yet
+    if all(f == "planned" for f in flags):
+        return "Planned"
+
+    # 2) Everything green
+    if (
+        testing == "pass"
+        and guardrail == "pass"
+        and code == "pass"
+        and security == "pass"
+        and halo != "fail"
+    ):
+        return "Complete"
+
+    # 3) Something has happened but we are not complete
+    return "In Progress"
+
+
+# -------------------- main roll-up logic -------------------- #
+
+def update_story_overall() -> Dict[str, Dict[str, str]]:
+    """
+    For every story file:
+    - derive overall_status from detailed fields
+    - write it back to the file
+    - return mapping story_id -> {feature, overall}
+    """
+    stories: Dict[str, Dict[str, str]] = {}
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = _read(path)
+
+        sid = _extract_scalar(text, "story_id")
+        if not sid:
+            continue  # ignore legacy / non-story docs
+
+        feature_id = _extract_scalar(text, "feature") or ""
+
+        derived_overall = derive_story_overall(text)
+        new_text = _replace_scalar(text, "overall_status", derived_overall)
+
+        if new_text != text:
+            _write(path, new_text)
+            print(f">>> Updated Story {sid} overall_status -> {derived_overall}")
+
+        stories[sid] = {"feature": feature_id, "overall": derived_overall}
+
+    return stories
+
+
+def rollup_features(stories: Dict[str, Dict[str, str]]) -> Dict[str, str]:
+    """
+    Compute overall_status per feature and write it into feature files.
+
+    Returns mapping: feature_id -> overall_status
+    """
+    feature_overall: Dict[str, str] = {}
+
+    # Build feature -> [story_ids] from stories
+    feature_to_stories: Dict[str, List[str]] = {}
+    for sid, info in stories.items():
+        fid = info["feature"]
+        if not fid:
+            continue
+        feature_to_stories.setdefault(fid, []).append(sid)
+
+    for path in sorted(FEATURES_DIR.glob("*.md")):
+        text = _read(path)
+
+        fid = _extract_scalar(text, "feature_id")
+        if not fid:
+            continue
+
+        # Prefer explicit list in front matter if present
+        listed_story_ids = _extract_yaml_list(text, "stories")
+        if listed_story_ids:
+            story_ids = listed_story_ids
+        else:
+            story_ids = feature_to_stories.get(fid, [])
+
+        child_overall: List[str] = []
+        for sid in story_ids:
+            info = stories.get(sid)
+            if info is None:
+                child_overall.append("Planned")
+            else:
+                child_overall.append(info["overall"])
+
+        agg = _aggregate_overall(child_overall)
+
+        new_text = text
+        if agg:
+            new_text = _replace_scalar(new_text, "overall_status", agg)
+
+        if new_text != text:
+            _write(path, new_text)
+            print(f">>> Updated Feature {fid} overall_status -> {agg}")
+
+        # Read back final value (may have existed already)
+        final_text = _read(path)
+        final_overall = _norm_overall(_extract_scalar(final_text, "overall_status"))
+        feature_overall[fid] = final_overall
+
+    return feature_overall
+
+
+def rollup_epics(feature_overall: Dict[str, str]) -> None:
+    """
+    Compute overall_status per epic and write it into epic files.
+    """
+    # Build epic -> [feature_ids] from features
+    epic_to_features: Dict[str, List[str]] = {}
+
+    for path in sorted(FEATURES_DIR.glob("*.md")):
+        text = _read(path)
+        fid = _extract_scalar(text, "feature_id")
+        epic_id = _extract_scalar(text, "epic")
+        if not fid or not epic_id:
+            continue
+        epic_to_features.setdefault(epic_id, []).append(fid)
+
+    for path in sorted(EPICS_DIR.glob("*.md")):
+        text = _read(path)
+
+        eid = _extract_scalar(text, "epic_id")
+        if not eid:
+            continue
+
+        feature_ids = _extract_yaml_list(text, "features")
+        if not feature_ids:
+            feature_ids = epic_to_features.get(eid, [])
+
+        child_overall: List[str] = []
+        for fid in feature_ids:
+            child_overall.append(feature_overall.get(fid, "Planned"))
+
+        agg = _aggregate_overall(child_overall)
+
+        new_text = text
+        if agg:
+            new_text = _replace_scalar(new_text, "overall_status", agg)
+
+        if new_text != text:
+            _write(path, new_text)
+            print(f">>> Updated Epic {eid} overall_status -> {agg}")
+
+
+def main() -> int:
+    print("=== Mission Control Overall Status Roll-up ===")
+    print(f"Repo root: {REPO_ROOT}")
+
+    stories = update_story_overall()
+    print(f"Updated and collected {len(stories)} stories.")
+
+    feature_overall = rollup_features(stories)
+    print(f"Rolled up {len(feature_overall)} features.")
+
+    rollup_epics(feature_overall)
+    print("Rolled up epics.")
+    print("=== Done ===")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 
 
 
@@ -4926,6 +6019,10 @@ For the MVP, the guardrails we enforce are:
 - For ST-03 / ST-04 (Client Profile stories):
   ClientProfileService.get_client_profile(...) must return a structure
   that matches the ClientProfile dataclass fields and types.
+
+- For ST-09 (Match by tax ID):
+  ClientProfileService.match_by_tax_id(...) must return only profiles
+  whose raw_sources contain the requested tax_id.
 """
 
 from __future__ import annotations
@@ -4972,6 +6069,7 @@ def _register_story(
 # ---------------------------------------------------------------------------
 # Guardrail checks
 # ---------------------------------------------------------------------------
+
 
 def check_backend_health_endpoint() -> Tuple[bool, str]:
     """
@@ -5080,6 +6178,60 @@ def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
     return True, "Output adheres to ClientProfile data model."
 
 
+def check_st_09_match_by_tax_id() -> Tuple[bool, str]:
+    """
+    Guardrail for ST-09 (Match by tax ID).
+
+    Rules:
+    - match_by_tax_id returns a list.
+    - It returns only profiles whose raw sources contain the given tax_id.
+    """
+    try:
+        from src.services.client_profile.service import ClientProfileService
+    except Exception as exc:  # pragma: no cover
+        return False, f"Import error in ST-09 guardrail check: {exc!r}"
+
+    service = ClientProfileService()
+
+    # Patch CRM source first
+    service._mock_crm_source = lambda client_id: {
+        "_source": "CRM",
+        "identifier": "crm-123",
+        "name": "Alice Example",
+        "email": "alice@example.com",
+        "country": "UK",
+        "tax_id": "TAX-001",
+    } if client_id == "123" else {"_source": "CRM"}
+
+    # ðŸ”¥ IMPORTANT:
+    # After patching, rebuild the sources list so we use the patched function.
+    service.sources = [service._mock_crm_source, service._mock_kyc_source]
+
+    # Now generate a profile containing that tax_id
+    profile = service.get_client_profile("123")
+    profiles = [profile]
+
+    # Act
+    matches = service.match_by_tax_id(profiles, "TAX-001")
+
+    # Checks
+    if not isinstance(matches, list):
+        return False, "ST-09: match_by_tax_id must return a list."
+
+    if len(matches) != 1:
+        return False, f"ST-09: expected exactly one match, got {len(matches)}."
+
+    match = matches[0]
+    raw_sources = match.get("raw_sources", {})
+    crm_source = raw_sources.get("CRM", {})
+
+    if crm_source.get("tax_id") != "TAX-001":
+        return False, "ST-09: matched profile does not contain the requested tax_id in raw_sources."
+
+    return True, "ST-09: match_by_tax_id returns only profiles with the requested tax_id."
+
+
+
 # ---------------------------------------------------------------------------
 # Register stories and their guardrails
 # ---------------------------------------------------------------------------
@@ -5114,10 +6266,21 @@ _register_story(
     check_client_profile_data_model_adherence,
 )
 
+_register_story(
+    "ST-09",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-09_match_by_tax_id.md",
+    check_st_09_match_by_tax_id,
+)
+
 
 # ---------------------------------------------------------------------------
 # Helpers: evidence + front-matter update
 # ---------------------------------------------------------------------------
+
 
 def write_guardrail_evidence(
     story_id: str,
@@ -5193,11 +6356,12 @@ def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
+
 def main(argv: List[str]) -> int:
     """
     Usage:
-      python tools/run_story_guardrails.py          # run for all configured Stories
-      python tools/run_story_guardrails.py ST-03    # run for a single Story
+      python tools/run_story_guardrails.py           # run for all configured Stories
+      python tools/run_story_guardrails.py ST-03     # run for a single Story
     """
     if len(argv) > 1:
         story_id = argv[1].upper()
@@ -5284,6 +6448,17 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
+    "ST-09": {
+    "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-09_match_by_tax_id.md",
+    "lint_targets": [
+        "src/services/client_profile/service.py",
+    ],
+},
+
     "ST-20": {
         "story_file": REPO_ROOT
         / "docs"
@@ -5581,6 +6756,17 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
+    "ST-09": {
+    "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-09_match_by_tax_id.md",
+    "security_targets": [
+        "src/services/client_profile/service.py",
+    ],
+},
+
     "ST-20": {
         "story_file": REPO_ROOT
         / "docs"
@@ -5881,6 +7067,18 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
             "tests/services/client_profile/test_st_04_map_identifiers.py",
         ],
     },
+    "ST-09": {
+    "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-09_match_by_tax_id.md",
+    "pytest_targets": [
+        "tests/services/client_profile/test_st_09_match_by_tax_id.py",
+    ],
+},
+
+
     "ST-20": {
         "story_file": REPO_ROOT
         / "docs"
@@ -6056,6 +7254,436 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
+
+
+===== FILE: tools\status_snapshot.py =====
+#!/usr/bin/env python
+"""
+Mission Control Status Snapshot (overall_status only)
+
+Reads epics, features, and stories and writes:
+
+  missionlog/status/status_snapshot.md
+
+with three tables:
+- Epics:   Epic | Name | Overall
+- Features: Feature | Epic | Name | Overall | Stories
+- Stories: Story | Feature | Name | Overall
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+EPICS_DIR = REPO_ROOT / "docs" / "mission_destination" / "epics"
+FEATURES_DIR = REPO_ROOT / "docs" / "mission_destination" / "features"
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+
+SNAPSHOT_DIR = REPO_ROOT / "missionlog" / "status"
+SNAPSHOT_PATH = SNAPSHOT_DIR / "status_snapshot.md"
+
+
+# -------------------- helpers -------------------- #
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _extract_scalar(text: str, key: str) -> Optional[str]:
+    pattern = rf"^{re.escape(key)}:\s*(.+)$"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return None
+    val = m.group(1).strip()
+    if val and val[0] in {"'", '"'} and val[-1:] == val[0]:
+        val = val[1:-1]
+    return val or None
+
+
+def _extract_yaml_list(text: str, key: str) -> List[str]:
+    pattern = rf"^{re.escape(key)}:\s*\n(?P<body>(?:\s+- .*\n)+)"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return []
+    body = m.group("body")
+    items: List[str] = []
+    for line in body.splitlines():
+        s = line.strip()
+        if s.startswith("- "):
+            val = s[2:].strip()
+            if val:
+                items.append(val)
+    return items
+
+
+def _safe_overall(val: Optional[str]) -> str:
+    if not val:
+        return ""
+    t = val.strip().strip('"\'')
+    lookup = {
+        "planned": "Planned",
+        "in progress": "In Progress",
+        "in_progress": "In Progress",
+        "in-progress": "In Progress",
+        "complete": "Complete",
+        "completed": "Complete",
+        "done": "Complete",
+    }
+    return lookup.get(t.lower(), t)
+
+
+# -------------------- data structures -------------------- #
+
+@dataclass
+class EpicRow:
+    epic_id: str
+    name: str
+    overall: str
+
+
+@dataclass
+class FeatureRow:
+    feature_id: str
+    epic_id: str
+    name: str
+    overall: str
+    stories: List[str]
+
+
+@dataclass
+class StoryRow:
+    story_id: str
+    feature_id: str
+    name: str
+    overall: str
+
+
+# -------------------- collectors -------------------- #
+
+def collect_epics() -> Dict[str, EpicRow]:
+    rows: Dict[str, EpicRow] = {}
+
+    for path in sorted(EPICS_DIR.glob("*.md")):
+        text = _read(path)
+
+        epic_id = _extract_scalar(text, "epic_id")
+        if not epic_id:
+            continue
+
+        name = _extract_scalar(text, "name") or path.stem
+        overall = _safe_overall(_extract_scalar(text, "overall_status"))
+
+        rows[epic_id] = EpicRow(epic_id=epic_id, name=name, overall=overall)
+
+    return rows
+
+
+def collect_features() -> Dict[str, FeatureRow]:
+    rows: Dict[str, FeatureRow] = {}
+
+    for path in sorted(FEATURES_DIR.glob("*.md")):
+        text = _read(path)
+
+        feature_id = _extract_scalar(text, "feature_id")
+        if not feature_id:
+            continue
+
+        epic_id = _extract_scalar(text, "epic") or ""
+        name = _extract_scalar(text, "name") or path.stem
+        stories = _extract_yaml_list(text, "stories")
+        overall = _safe_overall(_extract_scalar(text, "overall_status"))
+
+        rows[feature_id] = FeatureRow(
+            feature_id=feature_id,
+            epic_id=epic_id,
+            name=name,
+            overall=overall,
+            stories=stories,
+        )
+
+    return rows
+
+
+def collect_stories() -> Dict[str, StoryRow]:
+    rows: Dict[str, StoryRow] = {}
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = _read(path)
+
+        story_id = _extract_scalar(text, "story_id")
+        if not story_id:
+            continue
+
+        feature_id = _extract_scalar(text, "feature") or ""
+        name = _extract_scalar(text, "name") or path.stem
+        overall = _safe_overall(_extract_scalar(text, "overall_status"))
+
+        rows[story_id] = StoryRow(
+            story_id=story_id,
+            feature_id=feature_id,
+            name=name,
+            overall=overall,
+        )
+
+    return rows
+
+
+# -------------------- markdown rendering -------------------- #
+
+def _render_epics_table(epics: Dict[str, EpicRow]) -> str:
+    if not epics:
+        return "_No epics found._\n"
+
+    lines: List[str] = []
+    lines.append("| Epic | Name | Overall |")
+    lines.append("|------|------|---------|")
+
+    for eid in sorted(epics.keys()):
+        e = epics[eid]
+        lines.append(f"| {e.epic_id} | {e.name} | {e.overall} |")
+
+    return "\n".join(lines) + "\n"
+
+
+def _render_features_table(features: Dict[str, FeatureRow]) -> str:
+    if not features:
+        return "_No features found._\n"
+
+    lines: List[str] = []
+    lines.append("| Feature | Epic | Name | Overall | Stories |")
+    lines.append("|---------|------|------|---------|---------|")
+
+    for fid in sorted(features.keys()):
+        f = features[fid]
+        stories_str = ", ".join(f.stories) if f.stories else ""
+        lines.append(f"| {f.feature_id} | {f.epic_id} | {f.name} | {f.overall} | {stories_str} |")
+
+    return "\n".join(lines) + "\n"
+
+
+def _render_stories_table(stories: Dict[str, StoryRow]) -> str:
+    if not stories:
+        return "_No stories found._\n"
+
+    lines: List[str] = []
+    lines.append("| Story | Feature | Name | Overall |")
+    lines.append("|-------|---------|------|---------|")
+
+    for sid in sorted(stories.keys()):
+        s = stories[sid]
+        lines.append(f"| {s.story_id} | {s.feature_id} | {s.name} | {s.overall} |")
+
+    return "\n".join(lines) + "\n"
+
+
+def build_snapshot_markdown() -> str:
+    epics = collect_epics()
+    features = collect_features()
+    stories = collect_stories()
+
+    parts: List[str] = []
+    parts.append("# Mission Control Status Snapshot\n")
+
+    parts.append("## Epics\n")
+    parts.append(_render_epics_table(epics))
+
+    parts.append("\n## Features\n")
+    parts.append(_render_features_table(features))
+
+    parts.append("\n## Stories\n")
+    parts.append(_render_stories_table(stories))
+
+    return "\n".join(parts)
+
+
+# -------------------- CLI -------------------- #
+
+def main() -> int:
+    print("=== Generating Mission Control Status Snapshot (overall only) ===")
+    print(f"Repo root: {REPO_ROOT}")
+
+    SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+
+    markdown = build_snapshot_markdown()
+    SNAPSHOT_PATH.write_text(markdown, encoding="utf-8")
+
+    print(f"Wrote snapshot to {SNAPSHOT_PATH.relative_to(REPO_ROOT)}")
+    print("=== Done ===")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+===== FILE: tools\update_story_overall_status.py =====
+#!/usr/bin/env python
+"""
+Derive Story overall_status from testing / guardrail / code / security.
+
+Rule per story:
+
+1. Normalise each dimension:
+
+   - pass / ok / success / compliant  -> Complete
+   - fail / error / non_compliant     -> In Progress
+   - not_run / pending / empty        -> Planned
+
+2. overall_status:
+
+   - Complete  if all four dims are Complete
+   - Planned   if all four dims are Planned
+   - In Progress otherwise
+
+This script ONLY updates Story frontmatter.
+Features/Epics are still rolled up by rollup_statuses.py.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+from typing import Optional, List, Dict
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+
+
+# ----------------- helpers ----------------- #
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _write(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+def _extract_scalar(text: str, key: str) -> Optional[str]:
+    pattern = rf"^{re.escape(key)}:\s*(.+)$"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return None
+    val = m.group(1).strip()
+    if val and val[0] in {"'", '"'} and val[-1:] == val[0]:
+        val = val[1:-1]
+    return val or None
+
+
+def _replace_scalar(text: str, key: str, value: str) -> str:
+    pattern = rf"^{re.escape(key)}:\s*.*$"
+    replacement = f"{key}: {value}"
+
+    if re.search(pattern, text, flags=re.MULTILINE):
+        return re.sub(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    # insert before last_updated if present
+    lu_pattern = r"^last_updated:\s*.*$"
+    m = re.search(lu_pattern, text, flags=re.MULTILINE)
+    if m:
+        start = m.start()
+        return text[:start] + replacement + "\n" + text[start:]
+
+    # else append at end of front matter
+    if not text.endswith("\n"):
+        text += "\n"
+    return text + replacement + "\n"
+
+
+def _norm_dim(raw: Optional[str]) -> str:
+    """
+    Normalise a dimension value to:
+
+        Planned | In Progress | Complete
+    """
+    if raw is None:
+        return "Planned"
+
+    t = raw.strip().strip('"\'')
+    tl = t.lower()
+
+    # already canonical?
+    if tl in {"planned"}:
+        return "Planned"
+    if tl in {"in progress", "in_progress", "in-progress"}:
+        return "In Progress"
+    if tl in {"complete", "completed"}:
+        return "Complete"
+
+    # pass-ish
+    if tl in {"pass", "passed", "ok", "success", "succeeded", "compliant", "true", "yes"}:
+        return "Complete"
+
+    # fail-ish
+    if tl in {"fail", "failed", "error", "non_compliant", "non-compliant", "false", "no"}:
+        return "In Progress"
+
+    # not-run / unknown â†’ planned
+    if tl in {"not_run", "not-run", "not run", "pending", "todo", "tbd", "unknown", "n/a", "na", ""}:
+        return "Planned"
+
+    # default: treat as in progress
+    return "In Progress"
+
+
+def _derive_overall(dim_values: List[str]) -> str:
+    """
+    dim_values is a list of 4 statuses (Planned/IP/Complete).
+
+    - Complete  if all Complete
+    - Planned   if all Planned
+    - In Progress otherwise
+    """
+    s = set(dim_values)
+    if s == {"Complete"}:
+        return "Complete"
+    if s == {"Planned"}:
+        return "Planned"
+    return "In Progress"
+
+
+# ----------------- main ----------------- #
+
+def update_stories() -> None:
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = _read(path)
+
+        story_id = _extract_scalar(text, "story_id")
+        if not story_id:
+            continue  # skip non-Mission stories
+
+        testing = _norm_dim(_extract_scalar(text, "testing_status"))
+        guardrail = _norm_dim(_extract_scalar(text, "guardrail_adherence"))
+        code_quality = _norm_dim(_extract_scalar(text, "code_quality_adherence"))
+        security = _norm_dim(_extract_scalar(text, "security_policy_adherence"))
+
+        dims = [testing, guardrail, code_quality, security]
+        overall = _derive_overall(dims)
+
+        new_text = _replace_scalar(text, "overall_status", overall)
+
+        if new_text != text:
+            _write(path, new_text)
+            print(f">>> Story {story_id}: overall_status -> {overall}")
+
+
+def main() -> int:
+    print("=== Deriving Story overall_status from test/guardrail/code/security ===")
+    print(f"Repo root: {REPO_ROOT}")
+    update_stories()
+    print("=== Done ===")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 
 
 
