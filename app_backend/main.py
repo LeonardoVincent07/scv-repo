@@ -114,6 +114,9 @@ def ingest_source_record(
     record_in: schemas.SourceRecordCreate,
     db: Session = Depends(get_db),
 ):
+    """
+    Upsert a source record, then return it in the API schema shape.
+    """
     existing = (
         db.query(models.SourceRecord)
         .filter(
@@ -130,17 +133,26 @@ def ingest_source_record(
         db.add(existing)
         db.commit()
         db.refresh(existing)
-        return existing
+        row = existing
+    else:
+        row = models.SourceRecord(
+            client_id=record_in.client_id,
+            system=record_in.system,
+            payload_json=payload_json,
+        )
+        db.add(row)
+        db.commit()
+        db.refresh(row)
 
-    row = models.SourceRecord(
-        client_id=record_in.client_id,
-        system=record_in.system,
-        payload_json=payload_json,
+    # Normalise to the Pydantic schema so FastAPI doesn’t choke
+    return schemas.SourceRecordRead(
+        id=row.id,
+        client_id=row.client_id,
+        system=row.system,
+        payload=json.loads(row.payload_json),
     )
-    db.add(row)
-    db.commit()
-    db.refresh(row)
-    return row
+
+
 
 
 # ------------------------------------
