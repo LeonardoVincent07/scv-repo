@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MissionSmith</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root{ --lp-border:#d9e2ea; --lp-text:#243745; }
+    #launchpad .lp-actions > .lp-pill{
+      appearance:none;display:inline-flex;align-items:center;justify-content:center;
+      height:34px;padding:0 12px;width:132px;border-radius:999px;border:1px solid var(--lp-border);
+      background:#f5f9fb;color:var(--lp-text);font-weight:600;font-size:13.5px;white-space:nowrap;
+      transition:transform .06s ease,background .15s ease,border-color .15s ease;cursor:pointer;
+    }
+    #launchpad .lp-actions > .lp-pill:hover{ transform:translateY(-1px); background:#eef5f8; border-color:#c9d6e1; }
+  </style>
+
+
+  <style>
+    :root{ --lp-border:#d9e2ea; --lp-text:#243745; }
+    header.sticky.top-0 { background: rgba(255,255,255,.70); backdrop-filter: blur(4px); border-bottom:1px solid #e5e7eb; }
+    header.sticky.top-0 > .mx-auto { max-width: 80rem; padding-left: 1rem; padding-right: 1rem; }
+    header.sticky.top-0 .flex.items-center.gap-2 > button,
+    header.sticky.top-0 .msx-framework-btn{
+      appearance:none; display:inline-flex; align-items:center; justify-content:center;
+      height:34px; padding:0 14px; min-width:220px;
+      border-radius:999px; border:1px solid var(--lp-border);
+      background:#f5f9fb; color:var(--lp-text); font-weight:600; font-size:13.5px; white-space:nowrap;
+      transition:transform .06s ease, border-color .15s ease, background .15s ease; cursor:pointer;
+    }
+    header.sticky.top-0 .flex.items-center.gap-2 > button:hover,
+    header.sticky.top-0 .msx-framework-btn:hover { transform:translateY(-1px); border-color:#c9d6e1; background:#eef5f8; }
+    /* Teal badge gloss (if present) */
+    header.sticky.top-0 .flex.items-center.gap-3 .h-7.w-7.rounded-xl{
+      border-radius:9999px !important;
+      background: radial-gradient(ellipse at 65% 35%, rgba(255,255,255,.22), rgba(255,255,255,0) 40%), #1ba39c !important;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.06);
+    }
+  </style>
+
+</head>
+<body class="min-h-screen bg-gray-50">
+  
+<!-- ms-actions removed by request -->
+</div>
+
+
+<!-- ===== LaunchPad (functional shortcuts) ===== -->
+<div id="launchpad" style="position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid #d9e2ea;backdrop-filter:blur(4px);">
+  <div class="inner" style="max-width:80rem;margin:0 auto;padding:0 1rem;">
+    <div class="bar" style="display:flex;align-items:center;gap:8px;padding:10px 0;">
+      <div class="lp-title" style="font-weight:700;color:#5e6b77;">LaunchPad</div>
+      <div style="flex:1 1 auto;"></div>
+      <div class="lp-actions" style="display:inline-flex;gap:8px;align-items:center;">
+        <button onclick="try{MS_actions.generateAgents&&MS_actions.generateAgents()}catch(e){console.error(e)}" class="lp-pill">Agents</button>
+        <button onclick="try{MS_actions.generateScaffold&&MS_actions.generateScaffold()}catch(e){console.error(e)}" class="lp-pill">Microservices</button>
+        <button onclick="try{MS_actions.generateCICD&&MS_actions.generateCICD()}catch(e){console.error(e)}" class="lp-pill">CI/CD</button>
+        <button onclick="try{MS_actions.generateDeploy&&MS_actions.generateDeploy()}catch(e){console.error(e)}" class="lp-pill">IaC</button>
+        <button onclick="try{MS_actions.generatePolicies&&MS_actions.generatePolicies()}catch(e){console.error(e)}" class="lp-pill">Policies</button>
+        <button onclick="try{MS_actions.generateLineage&&MS_actions.generateLineage()}catch(e){console.error(e)}" class="lp-pill">Lineage</button>
+        <button onclick="(window.MS_actions&&MS_actions.generateAnalytics)?MS_actions.generateAnalytics():console.warn('Analytics handler missing')" class="lp-pill">Analytics</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="root"></div>
+  <script type="text/babel" data-presets="env,react">
+
+const { useMemo, useState, useEffect } = React;
+
+/********************
+ * CSV helpers + tests
+ ********************/
+const LB_RE = new RegExp("\\r\\n?|\\r", "g");
+function splitLines(raw) {
+  // Normalize CRLF || CR to LF, then split
+  return raw.replace(LB_RE, "\n").split("\n");
+}
+
+function parseCSVSimple(text) {
+  const lines = splitLines(text).filter(Boolean);
+  if (lines.length < 2) return { headers: [], rows: [] };
+  const headers = lines[0].split(",").map((h) => h.trim());
+  const rows = lines.slice(1).map((line) => {
+    const cells = line.split(",");
+    const obj = {};
+    headers.forEach((h, i) => (obj[h] = cells[i] ?? ""));
+    return obj;
+  });
+  return { headers, rows };
+}
+
+// Self-tests (console)
+(function runSelfTests() {
+  const inputs = [
+    { label: "LF", text: "a,b\\n1,2\\n3,4" },
+    { label: "CRLF", text: "a,b\\r\\n1,2\\r\\n3,4" },
+    { label: "CR", text: "a,b\\r1,2\\r3,4" },
+  ];
+  inputs.forEach(({ label, text }) => {
+    const real = text
+      .split("\\r\\n").join("\\r\\n")
+      .split("\\n").join("\\n")
+      .split("\\r").join("\\r");
+    const { headers, rows } = parseCSVSimple(real
+      .replace(/\\r\\n/g, "\r\n")
+      .replace(/\\n/g, "\n")
+      .replace(/\\r/g, "\r"));
+    const ok = headers.length === 2 && rows.length === 2;
+    // eslint-disable-next-line no-console
+    console.log("CSV " + label + " split test: " + (ok ? "pass" : "fail"));
+  });
+})();
+
+/********************
+ * Initial data
+ ********************/
+const today = new Date().toISOString().split("T")[0];
+
+const initialData = {
+  "missionInfo": {
+    "title": "M7 Single Client View",
+    "sponsor": "Leon Orr",
+    "owner": "Leon Orr",
+    "stakeholders": "Leon Orr",
+    "version": "v0.1",
+    "description": "M7 Single Client View",
+    "date": "2025-10-04"
+  },
+  "serviceConfig": {
+    "default_service_name": "example-service",
+    "default_backend_language": "java",
+    "default_backend_framework": "spring-boot",
+    "default_ui_language": "react18",
+    "default_ui_framework": "nextjs",
+    "default_database": "postgres",
+    "default_migration_tool": "flyway",
+    "default_outbox_enabled": true,
+    "observability": {
+      "tracing": "otel",
+      "metrics": "red",
+      "logs": "json",
+      "otel_sampler": "parentbased_traceidratio",
+      "otel_sampler_arg": 0.1
+    },
+    "security": {
+      "authn": [
+        "jwt"
+      ],
+      "authz": [
+        "opa"
+      ],
+      "cors_allowlist": [
+        "http://localhost:3000",
+        "http://localhost:5173"
+      ],
+      "secrets_management": "vault",
+      "image_signing": "cosign",
+      "base_image_registry": "ghcr.io"
+    },
+    "nfr": {
+      "slo": [
+        {
+          "name": "http_p95_ms",
+          "target": 150
+        },
+        {
+          "name": "error_rate",
+          "target": "0.5%"
+        },
+        {
+          "name": "availability",
+          "target": "99.9%"
+        },
+        {
+          "name": "throughput_rps",
+          "target": ">=50"
+        }
+      ],
+      "resilience": {
+        "circuit_breaker": true,
+        "retries": {
+          "max": 3,
+          "strategy": "exponential-jitter"
+        },
+        "idempotency_policy": "mutations_required",
+        "graceful_shutdown_timeout_s": 20
+      }
+    },
+    "governance": {
+      "lineage": "required",
+      "policy_packs": [
+        "no-wildcard-iam",
+        "no-plaintext-internal",
+        "no-pii-in-logs",
+        "signed-images-only",
+        "mission-labels-required"
+      ],
+      "adr_required": true
+    },
+    "ci": {
+      "gates": [
+        "typecheck",
+        "unit",
+        "contract",
+        "integration",
+        "property",
+        "sast",
+        "sbom",
+        "iac",
+        "schema-compat",
+        "docker-scan",
+        "policy"
+      ],
+      "coverage_min": 0.8,
+      "lint_required": true,
+      "evidence_artifacts": [
+        "junit.xml",
+        "coverage.json",
+        "conftest.json",
+        "sbom.spdx.json",
+        "lineage.json"
+      ]
+    },
+    "deploy": {
+      "default_strategy": "canary",
+      "feature_flags": true,
+      "namespace": "mission",
+      "require_labels": {
+        "mission/reference": true,
+        "mission/theme": true,
+        "mission/topic": true
+      },
+      "admission_policies": [
+        "sigstore-verify",
+        "mission-labels",
+        "health-endpoints"
+      ],
+      "rollback": {
+        "enabled": true,
+        "validate_quarterly": true
+      }
+    },
+    "ownership": {
+      "owner": ""
+    },
+    "api": {
+      "require_openapi": true,
+      "contract_path": "openapi.yaml",
+      "health_endpoints": [
+        "/health",
+        "/ready",
+        "/version"
+      ]
+    },
+    "data": {
+      "golden_source_required": true,
+      "openapi_tag": "x-golden-source",
+      "allowed_topics": [
+        "pricing",
+        "counterparty",
+        "orders",
+        "trades"
+      ]
+    },
+    "images": {
+      "signed_only": true,
+      "max_image_size_mb": 500,
+      "approved_bases": [
+        "ghcr.io/distroless",
+        "gcr.io/distroless",
+        "alpine:3"
+      ]
+    }
+  },
+  "objectives": [
+    {
+      "ref": "OBJ-001",
+      "category": "Mission Objectives",
+      "theme": "Data Integrity",
+      "topic": "Golden Source",
+      "codify": "API contract registry; OpenAPI refs include `x-golden-source=true`.",
+      "automate": "OPA rule validates data-source tags during build.",
+      "intercept": "CI fails if endpoint lacks `x-golden-source` tag.",
+      "prove": "Build report confirming \u201cAll data sources validated as golden.\u201d",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Ensure all services consume and publish data only via golden-source APIs or message topics.",
+      "decision": true
+    },
+    {
+      "ref": "OBJ-002",
+      "category": "Mission Objectives",
+      "theme": "Automation & Delivery",
+      "topic": "CI/CD Coverage",
+      "codify": "`ci.yml` template required in every repo.",
+      "automate": "GitHub Action executes on push and publishes artefact hash.",
+      "intercept": "Pipeline missing \u2192 auto-raise issue or block merge.",
+      "prove": "Successful workflow badge and artefact hash stored.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Every deployable unit must have a complete CI/CD pipeline that builds, tests, and produces a signed image.",
+      "decision": true
+    },
+    {
+      "ref": "OBJ-003",
+      "category": "Mission Objectives",
+      "theme": "Observability",
+      "topic": "Telemetry",
+      "codify": "Shared `otel-config.yaml` schema with standard field names.",
+      "automate": "Build injects OpenTelemetry library and exporters.",
+      "intercept": "Missing OTEL fields trigger alert in CI.",
+      "prove": "Grafana dashboard shows active traces and metrics per service.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Standardise and auto-collect logs, metrics, and traces via OpenTelemetry.",
+      "decision": true
+    },
+    {
+      "ref": "OBJ-004",
+      "category": "Mission Objectives",
+      "theme": "Lineage & Traceability",
+      "topic": "Artefact Discoverability",
+      "codify": "`lineage.json` template emitted by pipeline.",
+      "automate": "CI publishes lineage metadata to registry.",
+      "intercept": "Missing lineage \u2192 build blocked or flagged.",
+      "prove": "Lineage entry visible in OpenLineage UI.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Every artefact must be registered in the lineage registry with declared inputs and outputs.",
+      "decision": true
+    },
+    {
+      "ref": "OBJ-005",
+      "category": "Mission Objectives",
+      "theme": "Infrastructure as Code",
+      "topic": "Declarative Systems",
+      "codify": "Terraform, Rego, and Helm templates committed in repo.",
+      "automate": "Terraform plan/apply and policy lint run in CI.",
+      "intercept": "Missing IaC directory \u2192 CI warning.",
+      "prove": "Verified `.tf` or `.rego` artefacts committed and validated.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "All infrastructure and policy must be declarative and stored as code.",
+      "decision": true
+    },
+    {
+      "ref": "OBJ-006",
+      "category": "Mission Objectives",
+      "theme": "Reliability",
+      "topic": "Health Endpoints",
+      "codify": "OpenAPI annotations define standard health contracts.",
+      "automate": "CI test job queries these endpoints on every build.",
+      "intercept": "Non-200 status blocks deploy.",
+      "prove": "Automated test report shows uptime and response success.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Each service must expose `/health`, `/ready`, and `/version` endpoints.",
+      "decision": true
+    },
+    {
+      "ref": "OBJ-007",
+      "category": "Mission Objectives",
+      "theme": "Change Control",
+      "topic": "Auditability",
+      "codify": "Git commit metadata and versioned deployment manifests.",
+      "automate": "CI annotates releases with actor and change reason.",
+      "intercept": "Missing rollback metadata triggers warning.",
+      "prove": "Version history and audit log linked to commit.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "All changes must be observable, reversible, and logged with human and agent attribution.",
+      "decision": true
+    }
+  ],
+  "principles": [
+    {
+      "ref": "PRI-001",
+      "category": "Mission Principles",
+      "theme": "Delivery Discipline",
+      "topic": "Trunk-Based Development",
+      "codify": "Branch protection rules; PR merge policy in GitHub.",
+      "automate": "CI enforces merge checks and tests before commit to trunk.",
+      "intercept": "Attempt to merge failing branch \u2192 PR blocked.",
+      "prove": "Commit history shows <24h branch lifespan and green pipeline.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Maintain a single mainline branch; minimise long-lived feature branches.",
+      "decision": true
+    },
+    {
+      "ref": "PRI-002",
+      "category": "Mission Principles",
+      "theme": "Quality Assurance",
+      "topic": "Evidence Before Release",
+      "codify": "Release workflow requires `evidence.json` or build artefacts with test results.",
+      "automate": "CI release job checks for evidence hash or signature.",
+      "intercept": "Missing evidence file halts release job.",
+      "prove": "Evidence artefact stored with release tag.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Deploy only when verifiable proof of readiness exists.",
+      "decision": true
+    },
+    {
+      "ref": "PRI-003",
+      "category": "Mission Principles",
+      "theme": "Design Integrity",
+      "topic": "Everything as Code",
+      "codify": "Repo structure includes `/infra`, `/policy`, `/docs` folders.",
+      "automate": "Linter checks required directories and file patterns.",
+      "intercept": "Missing directory \u2192 build warning or failure.",
+      "prove": "Manifest of artefact types generated at build time.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "All infrastructure, policy, lineage, and documentation must be expressed as code.",
+      "decision": true
+    },
+    {
+      "ref": "PRI-004",
+      "category": "Mission Principles",
+      "theme": "Governance",
+      "topic": "Guardrails Over Gates",
+      "codify": "Rego/OPA rules define policy severity levels (`warn` vs `deny`).",
+      "automate": "CI runs policy checks on each commit.",
+      "intercept": "Exceeded threshold triggers issue but doesn\u2019t block build unless critical.",
+      "prove": "Policy status log showing zero critical violations.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Automate compliance and quality controls without manual approval steps.",
+      "decision": true
+    },
+    {
+      "ref": "PRI-005",
+      "category": "Mission Principles",
+      "theme": "Automation",
+      "topic": "Automate Where Evidence Exists",
+      "codify": "Define measurable metrics in `mission-metrics.yaml`.",
+      "automate": "CI executes tests or validations tied to those metrics.",
+      "intercept": "Manual step found without automation tag \u2192 flag warning.",
+      "prove": "Automated test coverage and metric dashboard.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Any measurable or testable requirement must be automated.",
+      "decision": true
+    },
+    {
+      "ref": "PRI-006",
+      "category": "Mission Principles",
+      "theme": "Observability",
+      "topic": "Built-In Telemetry",
+      "codify": "Shared instrumentation library (`otel-lib`).",
+      "automate": "Static analysis ensures import of `otel-lib` or env var presence.",
+      "intercept": "Missing instrumentation triggers build warning.",
+      "prove": "Grafana dashboard populated automatically.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Embed observability hooks (logs, traces, metrics) in every template.",
+      "decision": true
+    },
+    {
+      "ref": "PRI-007",
+      "category": "Mission Principles",
+      "theme": "Stability & Reversibility",
+      "topic": "Reproducible and Reversible Change",
+      "codify": "Version manifests, Docker image digests, Terraform state snapshots.",
+      "automate": "CI captures and archives state at build time.",
+      "intercept": "Missing snapshot blocks promotion.",
+      "prove": "Redeploy previous version reproduces same artefact hash.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Every artefact and deployment must be rebuildable and rollback-capable.",
+      "decision": true
+    }
+  ],
+  "guardrails": [
+    {
+      "ref": "GR-001",
+      "category": "Mission Guardrails",
+      "theme": "Logging Standards",
+      "topic": "Structured JSON Logging",
+      "codify": "Central `logging.jsonschema` published for all services.",
+      "automate": "Linter or static analysis ensures schema compliance in CI.",
+      "intercept": "CI fails if logs deviate from schema.",
+      "prove": "Log sample validated against schema and included in evidence pack.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "All application logs must be structured JSON including request ID, user, and service context.",
+      "decision": true
+    },
+    {
+      "ref": "GR-002",
+      "category": "Mission Guardrails",
+      "theme": "Secrets Management",
+      "topic": "No Hard-Coded Secrets",
+      "codify": "`.secretlint.yml` or regex/entropy patterns in repo root.",
+      "automate": "Secret scanner runs pre-commit and in CI.",
+      "intercept": "Match found \u2192 merge blocked and issue created.",
+      "prove": "CI artefact confirms \u201c0 secrets found.\u201d",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Repositories must not contain plaintext secrets or credentials.",
+      "decision": true
+    },
+    {
+      "ref": "GR-003",
+      "category": "Mission Guardrails",
+      "theme": "Testing Standards",
+      "topic": "Automated Test Coverage",
+      "codify": "Required `tests/` folder; test framework config present.",
+      "automate": "CI runs test suite and reports coverage.",
+      "intercept": "Test failures or missing coverage block pipeline.",
+      "prove": "Test report attached to build artefacts.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Each repository must include automated unit and integration tests.",
+      "decision": true
+    },
+    {
+      "ref": "GR-004",
+      "category": "Mission Guardrails",
+      "theme": "API Governance",
+      "topic": "Machine-Readable Contracts",
+      "codify": "Presence of `openapi.yaml` or `schema.graphql`.",
+      "automate": "Linter verifies schema syntax and completeness.",
+      "intercept": "Missing or invalid schema \u2192 CI fails.",
+      "prove": "Spec validated and linked in artefact manifest.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "All APIs must expose OpenAPI or GraphQL schema in repo root.",
+      "decision": true
+    },
+    {
+      "ref": "GR-005",
+      "category": "Mission Guardrails",
+      "theme": "Supply Chain Security",
+      "topic": "Signed Base Images",
+      "codify": "`Dockerfile` FROM statement restricted to whitelisted registries.",
+      "automate": "CI verifies signature with Cosign/Sigstore.",
+      "intercept": "Unsigned or unverified image blocks deployment.",
+      "prove": "Signature verification log stored with image tag.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "All containers must originate from signed, approved base images.",
+      "decision": true
+    },
+    {
+      "ref": "GR-006",
+      "category": "Mission Guardrails",
+      "theme": "Data Lineage",
+      "topic": "Source and Destination Tracking",
+      "codify": "`lineage.json` or metadata annotations in code.",
+      "automate": "CI publishes lineage metadata to OpenLineage registry.",
+      "intercept": "Missing lineage entry triggers policy violation.",
+      "prove": "Lineage visible in registry dashboard.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Every data pipeline or transformation must declare its source and destination.",
+      "decision": true
+    },
+    {
+      "ref": "GR-007",
+      "category": "Mission Guardrails",
+      "theme": "Operational Safety",
+      "topic": "Rollback Readiness",
+      "codify": "Rollback scripts or Helm history retained per environment.",
+      "automate": "CI executes rollback dry-run quarterly.",
+      "intercept": "Failed rollback test triggers alert.",
+      "prove": "Report showing rollback simulation success.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "All deployments must have a defined and tested rollback mechanism.",
+      "decision": true
+    }
+  ],
+  "ground": [
+    {
+      "ref": "TOOL-001",
+      "category": "Mission Tooling",
+      "theme": "Source Control & Flow",
+      "topic": "GitHub",
+      "codify": "Repo initialised with `.github` config and branch protection rules.",
+      "automate": "Enforce branch protection, required reviews, and signed commits.",
+      "intercept": "PR fails if checks or reviews missing.",
+      "prove": "Audit log of merges and signed commits.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Manage version control with branch protection and PR checks.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-002",
+      "category": "Mission Tooling",
+      "theme": "CI/CD",
+      "topic": "GitHub Actions",
+      "codify": "Standard `.github/workflows/ci.yml` templates.",
+      "automate": "Actions triggered on push and pull requests.",
+      "intercept": "Workflow failure blocks merge.",
+      "prove": "CI badges and artefact hashes attached to releases.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Automate build, test, and deployment workflows.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-003",
+      "category": "Mission Tooling",
+      "theme": "IaC / Config",
+      "topic": "Terraform",
+      "codify": "`main.tf` defines environments and resources.",
+      "automate": "Terraform plan/apply in pipeline.",
+      "intercept": "Drift detection alerts in CI.",
+      "prove": "Terraform plan output archived with build.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Provision cloud and infrastructure declaratively.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-004",
+      "category": "Mission Tooling",
+      "theme": "Policy Enforcement",
+      "topic": "OPA / Conftest",
+      "codify": "Policy packs in `/policy` folder.",
+      "automate": "Conftest executes Rego policies in CI.",
+      "intercept": "Violations flagged with severity.",
+      "prove": "Conftest JSON output stored in build artefacts.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Enforce Mission Principles and Guardrails programmatically.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-005",
+      "category": "Mission Tooling",
+      "theme": "Observability",
+      "topic": "OpenTelemetry + Grafana",
+      "codify": "Shared `otel-config.yaml`; Grafana dashboards.",
+      "automate": "Collector agents deployed automatically.",
+      "intercept": "Missing OTEL data triggers alert.",
+      "prove": "Dashboards display live telemetry.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Centralise logs, metrics, and traces across services.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-006",
+      "category": "Mission Tooling",
+      "theme": "Security / Secrets",
+      "topic": "Trivy + Sigstore + Vault",
+      "codify": "`trivy.yml` and Cosign key config.",
+      "automate": "Trivy scan and Cosign signature in CI.",
+      "intercept": "Vulnerabilities or unsigned images block deploy.",
+      "prove": "Signed image logs + scan report stored.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Scan containers, sign images, and manage secrets.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-007",
+      "category": "Mission Tooling",
+      "theme": "Lineage & Metadata",
+      "topic": "OpenLineage + Marquez",
+      "codify": "`lineage.json` generated per pipeline.",
+      "automate": "Pipeline publishes lineage metadata to registry.",
+      "intercept": "Missing lineage raises CI warning.",
+      "prove": "Lineage entries visible in Marquez UI.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Capture and visualise data lineage and build provenance.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-008",
+      "category": "Mission Tooling",
+      "theme": "Documentation",
+      "topic": "MkDocs + Markdown ADRs",
+      "codify": "`/docs` folder with Markdown and `mkdocs.yml`.",
+      "automate": "Docs auto-built on merge to main.",
+      "intercept": "Missing or broken link triggers warning.",
+      "prove": "Published site and changelog per release.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Generate human-readable mission documentation.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-009",
+      "category": "Mission Tooling",
+      "theme": "AI Assist",
+      "topic": "Copilot / ChatGPT / Gemini",
+      "codify": "`.copilot` config and access policy.",
+      "automate": "Inline AI suggestions enabled for approved repos.",
+      "intercept": "None (advisory only).",
+      "prove": "Generated docs and code reviews logged.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Support developers with contextual AI code and doc generation.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-010",
+      "category": "Mission Tooling",
+      "theme": "Containerisation",
+      "topic": "Docker / Podman",
+      "codify": "`Dockerfile` in each repo with approved base image.",
+      "automate": "CI builds container images on every push.",
+      "intercept": "Linting ensures image size and layer limits.",
+      "prove": "Image digest and metadata captured in release.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Ensure consistent build artefacts and portable environments.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-011",
+      "category": "Mission Tooling",
+      "theme": "Deployment",
+      "topic": "Kubernetes / Render / Cloud Run",
+      "codify": "Helm charts or deployment manifests in `/deploy`.",
+      "automate": "GitOps or CD workflow applies manifests.",
+      "intercept": "Admission controller denies non-compliant deploys.",
+      "prove": "Successful rollout recorded and observable.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Deploy applications in reproducible environments.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-012",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "Unit Tests",
+      "codify": "`testing.md` lists per-lang defaults (Jest/Vitest, Pytest, JUnit, Go test).",
+      "automate": "CI step runs `npm test` / `pytest` / `mvn test` / `go test`.",
+      "intercept": "Non-zero exit blocks merge.",
+      "prove": "JUnit/JSON test report uploaded.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Standardise on free unit-test frameworks per language.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-013",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "Contract Tests",
+      "codify": "Pact files in `/contracts`; OpenAPI as source of truth.",
+      "automate": "Pact tests run in CI; broker verification (OSS).",
+      "intercept": "Failed verification blocks release.",
+      "prove": "Pact verification report stored.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Enforce producer/consumer API contracts.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-014",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "API Tests",
+      "codify": "Postman collections or `.http` specs in repo.",
+      "automate": "Newman runs collections in CI.",
+      "intercept": "Failing requests block pipeline.",
+      "prove": "Newman HTML/JSON report artefact.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Automate API regression via collections.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-015",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "Integration (Containers)",
+      "codify": "Testcontainers in test code; docker-compose for local.",
+      "automate": "CI launches ephemeral containers for suites.",
+      "intercept": "Startup/health failure fails job.",
+      "prove": "Logs + container list archived.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Spin up real dependencies in tests.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-016",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "Performance / Load",
+      "codify": "`k6` scripts in `/perf`.",
+      "automate": "k6 runs on schedule or PR gates.",
+      "intercept": "SLO breach flags PR or blocks merge (configurable).",
+      "prove": "k6 summary + trend in artefacts.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Baseline latency and throughput SLIs.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-017",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "Dynamic Security",
+      "codify": "ZAP baseline config in `/security/zap.yaml`.",
+      "automate": "OWASP ZAP baseline scan in CI against preview URL.",
+      "intercept": "High/critical issues block deploy.",
+      "prove": "ZAP HTML report archived.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Catch common web vulnerabilities automatically.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-018",
+      "category": "Mission Tooling",
+      "theme": "Quality",
+      "topic": "Static Analysis & Lint",
+      "codify": "ESLint/Prettier, Flake8, golangci-lint configs.",
+      "automate": "Lint job runs in CI on PRs.",
+      "intercept": "Lint errors fail job.",
+      "prove": "Lint report uploaded.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Enforce style and detect defects.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-019",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "Coverage",
+      "codify": "Coverage config (nyc/Istanbul, coverage.py, JaCoCo).",
+      "automate": "Coverage generated in CI; threshold gate optional.",
+      "intercept": "Under-threshold blocks merge (if enabled).",
+      "prove": "Coverage badge + report artefact.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Track and gate minimum coverage.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-020",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "UI End-to-End",
+      "codify": "Playwright config + specs in `/e2e`.",
+      "automate": "Playwright runs headless in CI.",
+      "intercept": "Failing E2E blocks pipeline.",
+      "prove": "Traces/videos uploaded by CI.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Cross-browser E2E tests.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-021",
+      "category": "Mission Tooling",
+      "theme": "Testing",
+      "topic": "Service Virtualisation",
+      "codify": "WireMock / MockServer configs in `/mocks`.",
+      "automate": "Mock servers spun up in CI pre-test.",
+      "intercept": "Mock startup failure fails job.",
+      "prove": "Mock logs + mappings archived.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Decouple from unavailable or external dependencies.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-022",
+      "category": "Mission Tooling",
+      "theme": "Resilience",
+      "topic": "Chaos Experiments",
+      "codify": "LitmusChaos experiment manifests.",
+      "automate": "Periodic chaos runs in non-prod.",
+      "intercept": "Failed recovery raises incident.",
+      "prove": "Chaos run report stored.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Validate graceful degradation and recovery.",
+      "decision": true
+    },
+    {
+      "ref": "TOOL-023",
+      "category": "Mission Tooling",
+      "theme": "Accessibility",
+      "topic": "a11y Checks",
+      "codify": "axe-core / pa11y configs and test scripts.",
+      "automate": "a11y job runs on PRs.",
+      "intercept": "WCAG violations flag PR / block per severity.",
+      "prove": "a11y report artefact + trend.",
+      "dependency": "None",
+      "status": "proposed",
+      "user_notes": "Embed accessibility testing for web UIs.",
+      "decision": true
+    }
+  ]
+};
+
+/********************
+ * Constants
+ ********************/
+const SECTIONS = [
+  { key: "info", label: "Mission Info" },
+  { key: "objectives", label: "Mission Objectives" },
+  { key: "principles", label: "Mission Principles" },
+  { key: "guardrails", label: "Mission Guardrails" },
+  { key: "ground", label: "Mission Tooling" },
+  { key: "service", label: "Mission Services" },
+  { key: "review", label: "Systems Check" },
+];
+
+/********************
+ * UI atoms
+ ********************/
+const DecisionPill = ({ value }) => {
+  const label = value === true ? "Accepted" : value === false ? "Later" : "Pending";
+  const cls =
+    value === true
+      ? "bg-[color:var(--ms-teal)] text-white"
+      : value === false
+      ? "bg-[color:var(--ms-orange)] text-white"
+      : "bg-gray-200 text-gray-700";
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${cls}`}>{label}</span>
+  );
+};
+
+
+const TopBar = ({ onImportJSON, progress }) => {
+  return (
+    <header className="sticky top-0 z-40 w-full border-b bg-white/70 backdrop-blur">
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="flex h-14 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-7 w-7 rounded-xl" style={{ background: "var(--ms-teal)" }} />
+            <h1 className="text-lg font-semibold tracking-tight">MissionSmith</h1>
+            <span className="ml-2 hidden text-sm text-gray-500 sm:block">
+              Forge your Mission Objectives, Principles, Guardrails & Mission Tooling
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="rounded-xl border px-3 py-1.5 text-sm hover:bg-gray-50" onClick={onImportJSON}>Import JSON</button>
+          </div>
+        </div>
+        <div className="mb-3 mt-1 h-1 w-full overflow-hidden rounded-full bg-gray-100">
+          <div className="h-full rounded-full" style={{ width: `${Math.round(progress * 100)}%`, background: "var(--ms-blue)" }} />
+        </div>
+      </div>
+    </header>
+  );
+};
+
+const Sidebar = ({ section, setSection }) => {
+  return (
+    <aside className="sticky top-14 h-[calc(100dvh-56px)] w-full max-w-[260px] shrink-0 border-r bg-white/60 p-3">
+      <nav className="flex flex-col gap-1">
+        {SECTIONS.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setSection(s.key)}
+            className={`flex items-center justify-between rounded-xl px-3 py-2 text-left text-sm hover:bg-gray-50 ${section === s.key ? "bg-gray-100" : ""}`}
+          >
+            <span>{s.label}</span>
+            {section === s.key && (
+              <span className="h-2 w-2 rounded-full" style={{ background: "var(--ms-teal)" }} />
+            )}
+          </button>
+        ))}
+      </nav>
+      <div className="mt-4 rounded-xl border p-3 text-xs text-gray-600">
+        <p className="font-medium">Tip</p>
+        <p>Mission Info first, then review & accept rows section by section (Objectives, Principles, Guardrails, Tooling).</p>
+      </div>
+    </aside>
+  );
+};
+
+/********************
+ * Feature components
+ ********************/
+const RowEditor = ({ value, onChange, onClose }) => {
+  const [local, setLocal] = useState(value);
+  const update = (k, v) => setLocal((p) => ({ ...p, [k]: v }));
+  const save = () => onChange(local);
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-8">
+      <div className="w-full max-w-3xl rounded-2xl bg-white p-4 shadow-2xl sm:p-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-base font-semibold">Edit: {local.ref} — {local.topic}</h3>
+          <button className="rounded-lg border px-3 py-1 text-sm" onClick={onClose}>Close</button>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {[
+            ["ref", "Ref"],
+            ["category", "Category"],
+            ["theme", "Theme"],
+            ["topic", "Topic"],
+            ["codify", "Codify"],
+            ["automate", "Automate"],
+            ["intercept", "Intercept"],
+            ["prove", "Prove"],
+            ["dependency", "Dependency"],
+            ["status", "Status"],
+            ["user_notes", "Notes"],
+          ].map(([key, label]) => (
+            <label key={key} className="flex flex-col text-sm">
+              <span className="mb-1 text-gray-600">{label}</span>
+              <textarea className="min-h-[42px] rounded-xl border p-2 focus:outline-none focus:ring-2" value={local[key] ?? ""} onChange={(e) => update(key, e.target.value)} />
+            </label>
+          ))}
+        </div>
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-sm">
+            <span>Decision:</span>
+            <button className={`rounded-xl px-3 py-1 ${local.decision === true ? "text-white" : "border"}`} style={{ background: local.decision === true ? "var(--ms-teal)" : undefined }} onClick={() => update("decision", true)}>Accept</button>
+            <button className={`rounded-xl px-3 py-1 ${local.decision === false ? "text-white" : "border"}`} style={{ background: local.decision === false ? "var(--ms-orange)" : undefined }} onClick={() => update("decision", false)}>Later</button>
+            <button className="rounded-xl border px-3 py-1" onClick={() => update("decision", null)}>Clear</button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="rounded-xl border px-3 py-1" onClick={onClose}>Cancel</button>
+            <button className="rounded-xl px-3 py-1 text-white" style={{ background: "var(--ms-teal)" }} onClick={save}>Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SectionTable = ({ title, rows, onRowsChange, allowAdd = false }) => {
+  const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState(null);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) => JSON.stringify(r).toLowerCase().includes(q));
+  }, [query, rows]);
+
+  const updateRow = (idx, patch) => {
+    const next = [...rows];
+    next[idx] = { ...rows[idx], ...patch };
+    onRowsChange(next);
+  };
+
+  const removeRow = (idx) => {
+    const next = [...rows];
+    next.splice(idx, 1);
+    onRowsChange(next);
+  };
+
+  const addRow = () => {
+    const n = {
+      ref: `NEW-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      category: title,
+      theme: "",
+      topic: "",
+      codify: "",
+      automate: "",
+      intercept: "",
+      prove: "",
+      dependency: "N/A",
+      status: "option",
+      user_notes: "",
+      decision: null,
+    };
+    onRowsChange([n, ...rows]);
+    setEditing({ idx: 0, value: n });
+  };
+
+  return (
+    <div className="rounded-2xl border bg-white/70 p-3 sm:p-4">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-base font-semibold">{title}</h2>
+          <p className="text-xs text-gray-600">Search, accept/later, edit, || add.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <input placeholder="Search…" className="w-48 rounded-xl border px-3 py-1.5 text-sm" value={query} onChange={(e) => setQuery(e.target.value)} />
+          {allowAdd && (
+            <button onClick={addRow} className="rounded-xl px-3 py-1.5 text-sm text-white" style={{ background: "var(--ms-teal)" }}>+ Add</button>
+          )}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+              {["Ref", "Theme", "Topic", "Codify", "Automate", "Intercept", "Prove", "Dependency", "Decision", ""].map((h) => (
+                <th key={h} className="whitespace-nowrap px-3 py-2 font-medium">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r, i) => (
+              <tr key={r.ref} className="border-b hover:bg-gray-50">
+                <td className="px-3 py-2 font-mono">{r.ref}</td>
+                <td className="px-3 py-2">{r.theme}</td>
+                <td className="px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{r.topic}</span>
+                    <button className="rounded-lg border px-2 py-0.5 text-xs" onClick={() => setEditing({ idx: i, value: r })}>Edit</button>
+                  </div>
+                </td>
+                <td className="px-3 py-2 max-w-[260px] truncate" title={r.codify}>{r.codify}</td>
+                <td className="px-3 py-2 max-w-[260px] truncate" title={r.automate}>{r.automate}</td>
+                <td className="px-3 py-2 max-w-[260px] truncate" title={r.intercept}>{r.intercept}</td>
+                <td className="px-3 py-2 max-w-[260px] truncate" title={r.prove}>{r.prove}</td>
+                <td className="px-3 py-2">{r.dependency}</td>
+                <td className="px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <button className={`rounded-xl px-2 py-1 text-xs ${r.decision === true ? "text-white" : "border"}`} style={{ background: r.decision === true ? "var(--ms-teal)" : undefined }} onClick={() => updateRow(i, { decision: true })}>Accept</button>
+                    <button className={`rounded-xl px-2 py-1 text-xs ${r.decision === false ? "text-white" : "border"}`} style={{ background: r.decision === false ? "var(--ms-orange)" : undefined }} onClick={() => updateRow(i, { decision: false })}>Later</button>
+                    <button className="rounded-xl border px-2 py-1 text-xs" onClick={() => updateRow(i, { decision: null })}>Clear</button>
+                  </div>
+                </td>
+                <td className="px-3 py-2 text-right">
+                  <button className="rounded-lg px-2 py-1 text-xs text-white" style={{ background: "var(--ms-red)" }} onClick={() => removeRow(i)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td className="px-3 py-6 text-center text-gray-500" colSpan={10}>No rows match your search.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <RowEditor
+          value={editing.value}
+          onClose={() => setEditing(null)}
+          onChange={(next) => {
+            const updated = [...rows];
+            updated[editing.idx] = next;
+            onRowsChange(updated);
+            setEditing(null);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+const Review = ({ data, onResetDecisions }) => {
+  const flat = [
+    ...data.objectives.map((r) => ({ ...r, section: "Mission Objectives" })),
+    ...data.principles.map((r) => ({ ...r, section: "Mission Principles" })),
+    ...data.guardrails.map((r) => ({ ...r, section: "Mission Guardrails" })),
+    ...data.ground.map((r) => ({ ...r, section: "Mission Tooling" })),
+  ];
+  const accepted = flat.filter((r) => r.decision === true);
+  const later = flat.filter((r) => r.decision === false);
+  const pending = flat.filter((r) => r.decision === null);
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {[["Accepted", accepted, "var(--ms-teal)"],["Later", later, "var(--ms-orange)"],["Pending", pending, "var(--ms-blue)"]].map(([label, rows, color]) => (
+        <div key={label} className="rounded-2xl border bg-white/70 p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-base font-semibold">{label}</h3>
+            <span className="rounded-full px-2 py-1 text-xs text-white" style={{ background: color }}>{rows.length}</span>
+          </div>
+          <ul className="space-y-2">
+            {rows.map((r) => (
+              <li key={r.ref} className="rounded-xl border p-3 text-sm">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="font-medium">{r.ref} — {r.topic}</span>
+                  <DecisionPill value={r.decision} />
+                </div>
+                <p className="text-xs text-gray-600">{r.section} • {r.theme}</p>
+              </li>
+            ))}
+            {rows.length === 0 && (<li className="text-sm text-gray-500">Nothing here yet.</li>)}
+          </ul>
+        </div>
+      ))}
+      <div className="lg:col-span-3">
+        <button className="rounded-xl px-3 py-2 text-sm text-white" style={{ background: "var(--ms-red)" }} onClick={onResetDecisions}>Reset all decisions</button>
+      </div>
+    </div>
+  );
+};
+
+
+function ServiceConfig({ value, onChange }) {
+  const [local, setLocal] = useState(value || {});
+  const update = (path, v) => {
+    const parts = path.split(".");
+    const copy = JSON.parse(JSON.stringify(local || {}));
+    let cur = copy;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const k = parts[i];
+      if (!cur[k] || typeof cur[k] !== "object") cur[k] = {};
+      cur = cur[k];
+    }
+    cur[parts[parts.length-1]] = v;
+    setLocal(copy);
+  };
+  const save = () => onChange(local);
+  const arr = (a) => Array.isArray(a) ? a.join(", ") : (a || "");
+
+  const opts = {
+    backendLang: ["java17","python3.11","node18","go1.21"],
+    backendFw:   ["spring-boot","fastapi","express","gin"],
+    uiLang:      ["react18","angular16","vue3"],
+    uiFw:        ["nextjs","cra","nuxt"],
+    database:    ["postgres","mongodb","mysql","dynamodb"],
+    migrate:     ["flyway","prisma","alembic","liquibase"],
+    deploy:      ["rolling","blue-green","canary","feature-flag-only"],
+    policies:    ["no-wildcard-iam","no-plaintext-internal","no-pii-in-logs","schema-compat","secure-dependencies"],
+    cigates:     ["typecheck","unit","contract","property","sast","sbom","iac","schema-compat"]
+  };
+
+  return (
+    <div className="rounded-2xl border bg-white/70 p-4 space-y-6">
+      <h2 className="text-base font-semibold">Service Config (Mission-wide Defaults & Guardrails)</h2>
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">Defaults (optional)</h3>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Default Service Name</span>
+            <input className="rounded-xl border px-3 py-2" placeholder="example-service"
+              value={local?.default_service_name || ""}
+              onChange={e=>update("default_service_name", e.target.value)} />
+          </label>
+          <div />
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Default Backend Language</span>
+            <input className="rounded-xl border px-3 py-2" list="opt-backend-lang" placeholder="e.g. java17"
+              value={local?.default_backend_language || ""}
+              onChange={e=>update("default_backend_language", e.target.value)} />
+            <datalist id="opt-backend-lang">{opts.backendLang.map(o => <option key={o} value={o} />)}</datalist>
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Default Backend Framework</span>
+            <input className="rounded-xl border px-3 py-2" list="opt-backend-fw" placeholder="e.g. spring-boot"
+              value={local?.default_backend_framework || ""}
+              onChange={e=>update("default_backend_framework", e.target.value)} />
+            <datalist id="opt-backend-fw">{opts.backendFw.map(o => <option key={o} value={o} />)}</datalist>
+          </label>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Default UI Language</span>
+            <input className="rounded-xl border px-3 py-2" list="opt-ui-lang" placeholder="e.g. react18"
+              value={local?.default_ui_language || ""}
+              onChange={e=>update("default_ui_language", e.target.value)} />
+            <datalist id="opt-ui-lang">{opts.uiLang.map(o => <option key={o} value={o} />)}</datalist>
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Default UI Framework</span>
+            <input className="rounded-xl border px-3 py-2" list="opt-ui-fw" placeholder="e.g. nextjs"
+              value={local?.default_ui_framework || ""}
+              onChange={e=>update("default_ui_framework", e.target.value)} />
+            <datalist id="opt-ui-fw">{opts.uiFw.map(o => <option key={o} value={o} />)}</datalist>
+          </label>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <label className="flex flex-col text-sm md:col-span-1">
+            <span className="mb-1 text-gray-600">Default Database</span>
+            <input className="rounded-xl border px-3 py-2" list="opt-db" placeholder="e.g. postgres"
+              value={local?.default_database || ""}
+              onChange={e=>update("default_database", e.target.value)} />
+            <datalist id="opt-db">{opts.database.map(o => <option key={o} value={o} />)}</datalist>
+          </label>
+          <label className="flex flex-col text-sm md:col-span-2">
+            <span className="mb-1 text-gray-600">Default Migration Tool</span>
+            <input className="rounded-xl border px-3 py-2" list="opt-mig" placeholder="e.g. flyway"
+              value={local?.default_migration_tool || ""}
+              onChange={e=>update("default_migration_tool", e.target.value)} />
+            <datalist id="opt-mig">{opts.migrate.map(o => <option key={o} value={o} />)}</datalist>
+          </label>
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={!!local?.default_outbox_enabled}
+            onChange={e=>update("default_outbox_enabled", e.target.checked)} />
+          <span>Default Outbox Enabled</span>
+        </label>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">Security (guardrails)</h3>
+        <div className="grid gap-3 md:grid-cols-3">
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">AuthN</span>
+            <input className="rounded-xl border px-3 py-2" placeholder="e.g. jwt"
+              value={arr(local?.security?.authn)}
+              onChange={e=>update("security.authn", e.target.value.split(",").map(s=>s.trim()).filter(Boolean))} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">AuthZ</span>
+            <input className="rounded-xl border px-3 py-2" placeholder="e.g. opa"
+              value={arr(local?.security?.authz)}
+              onChange={e=>update("security.authz", e.target.value.split(",").map(s=>s.trim()).filter(Boolean))} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">CORS Allowlist (comma-separated)</span>
+            <input className="rounded-xl border px-3 py-2" placeholder="https://app.example.com"
+              value={arr(local?.security?.cors_allowlist)}
+              onChange={e=>update("security.cors_allowlist", e.target.value.split(",").map(s=>s.trim()).filter(Boolean))} />
+          </label>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">Observability (guardrails)</h3>
+        <div className="grid gap-3 md:grid-cols-3">
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Tracing</span>
+            <input className="rounded-xl border px-3 py-2" placeholder="otel"
+              value={local?.observability?.tracing || ""}
+              onChange={e=>update("observability.tracing", e.target.value)} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Metrics</span>
+            <input className="rounded-xl border px-3 py-2" placeholder="red"
+              value={local?.observability?.metrics || ""}
+              onChange={e=>update("observability.metrics", e.target.value)} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Logs</span>
+            <input className="rounded-xl border px-3 py-2" placeholder="json"
+              value={local?.observability?.logs || ""}
+              onChange={e=>update("observability.logs", e.target.value)} />
+          </label>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">NFR: SLOs</h3>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">http_p95_ms</span>
+            <input className="rounded-xl border px-3 py-2" type="number"
+              value={(Number(local?.nfr?.slo?.find(s=>s.name==='http_p95_ms')?.target) || "")}
+              onChange={e=>{
+                const val = e.target.value === "" ? "" : Number(e.target.value);
+                const arr = (local?.nfr?.slo || []).filter(s=>s.name!=="http_p95_ms");
+                arr.push({ name: "http_p95_ms", target: val });
+                update("nfr.slo", arr);
+              }} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">error_rate</span>
+            <input className="rounded-xl border px-3 py-2"
+              value={(local?.nfr?.slo?.find(s=>s.name==='error_rate')?.target) ?? ""}
+              onChange={e=>{
+                const arr = (local?.nfr?.slo || []).filter(s=>s.name!=="error_rate");
+                arr.push({ name: "error_rate", target: e.target.value });
+                update("nfr.slo", arr);
+              }} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">availability</span>
+            <input className="rounded-xl border px-3 py-2"
+              value={(local?.nfr?.slo?.find(s=>s.name==='availability')?.target) ?? ""}
+              onChange={e=>{
+                const arr = (local?.nfr?.slo || []).filter(s=>s.name!=="availability");
+                arr.push({ name: "availability", target: e.target.value });
+                update("nfr.slo", arr);
+              }} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">throughput_rps (optional)</span>
+            <input className="rounded-xl border px-3 py-2"
+              value={(local?.nfr?.slo?.find(s=>s.name==='throughput_rps')?.target) ?? ""}
+              onChange={e=>{
+                const arr = (local?.nfr?.slo || []).filter(s=>s.name!=="throughput_rps");
+                arr.push({ name: "throughput_rps", target: e.target.value });
+                update("nfr.slo", arr);
+              }} />
+          </label>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">NFR: Resilience</h3>
+        <div className="grid gap-3 md:grid-cols-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={!!local?.nfr?.resilience?.circuit_breaker}
+              onChange={e=>update("nfr.resilience.circuit_breaker", e.target.checked)} />
+            <span>Circuit Breaker</span>
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Idempotency Policy</span>
+            <select className="rounded-xl border px-3 py-2"
+              value={local?.nfr?.resilience?.idempotency_policy || "mutations_required"}
+              onChange={e=>update("nfr.resilience.idempotency_policy", e.target.value)}>
+              <option value="mutations_required">mutations_required</option>
+              <option value="recommended">recommended</option>
+              <option value="off">off</option>
+            </select>
+          </label>
+          <div className="grid gap-2">
+            <label className="flex flex-col text-sm">
+              <span className="mb-1 text-gray-600">Retries (max)</span>
+              <input className="rounded-xl border px-3 py-2" type="number"
+                value={(local?.nfr?.resilience?.retries?.max) ?? 0}
+                onChange={e=>update("nfr.resilience.retries.max", Number(e.target.value))} />
+            </label>
+            <label className="flex flex-col text-sm">
+              <span className="mb-1 text-gray-600">Retries (strategy)</span>
+              <input className="rounded-xl border px-3 py-2" placeholder="exponential-jitter"
+                value={(local?.nfr?.resilience?.retries?.strategy) ?? ""}
+                onChange={e=>update("nfr.resilience.retries.strategy", e.target.value)} />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">Governance, CI/CD & Deploy</h3>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Governance: Lineage</span>
+            <input className="rounded-xl border px-3 py-2" placeholder="required"
+              value={local?.governance?.lineage || ""}
+              onChange={e=>update("governance.lineage", e.target.value)} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="mb-1 text-gray-600">Default Deploy Strategy</span>
+            <input className="rounded-xl border px-3 py-2" list="opt-deploy" placeholder="e.g. canary"
+              value={local?.deploy?.default_strategy || ""}
+              onChange={e=>update("deploy.default_strategy", e.target.value)} />
+            <datalist id="opt-deploy">{opts.deploy.map(o => <option key={o} value={o} />)}</datalist>
+          </label>
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={!!local?.deploy?.feature_flags}
+            onChange={e=>update("deploy.feature_flags", e.target.checked)} />
+          <span>Default Feature Flags Enabled</span>
+        </label>
+        <label className="flex flex-col text-sm">
+          <span className="mb-1 text-gray-600">Policy Packs (comma-separated or custom)</span>
+          <input className="rounded-xl border px-3 py-2" list="opt-policies" placeholder="no-wildcard-iam, no-pii-in-logs"
+            value={arr(local?.governance?.policy_packs)}
+            onChange={e=>update("governance.policy_packs", e.target.value.split(",").map(s=>s.trim()).filter(Boolean))} />
+          <datalist id="opt-policies">{opts.policies.map(o => <option key={o} value={o} />)}</datalist>
+        </label>
+        <label className="flex flex-col text-sm">
+          <span className="mb-1 text-gray-600">CI Gates (comma-separated or custom)</span>
+          <input className="rounded-xl border px-3 py-2" list="opt-cigates" placeholder="typecheck, unit, ..."
+            value={arr(local?.ci?.gates)}
+            onChange={e=>update("ci.gates", e.target.value.split(",").map(s=>s.trim()).filter(Boolean))} />
+          <datalist id="opt-cigates">{opts.cigates.map(o => <option key={o} value={o} />)}</datalist>
+        </label>
+        <label className="flex flex-col text-sm">
+          <span className="mb-1 text-gray-600">Default Owner (optional)</span>
+          <input className="rounded-xl border px-3 py-2" placeholder="team-trade"
+            value={local?.ownership?.owner || ""}
+            onChange={e=>update("ownership.owner", e.target.value)} />
+        </label>
+      </div>
+
+      <div className="flex gap-2 pt-2">
+        <button className="rounded-xl border px-3 py-1" onClick={()=>setLocal(value)}>Reset</button>
+        <button className="rounded-xl px-3 py-1 text-white" style={{ background: "var(--ms-teal)" }} onClick={save}>Save</button>
+      </div>
+    </div>
+  );
+}
+
+
+function MissionInfo({ value, onChange }) {
+  const update = (k, v) => onChange({ ...value, [k]: v });
+  return (
+    <div className="rounded-2xl border bg-white/70 p-4 space-y-4">
+      <h2 className="text-base font-semibold">Mission Information</h2>
+      {[["title","Mission Title"],["sponsor","Sponsor"],["owner","Owner"],["stakeholders","Stakeholders"],["version","Version"],["description","Description"],["date","Date"]].map(([key, label]) => (
+        <label key={key} className="flex flex-col text-sm">
+          <span className="mb-1 text-gray-600">{label}</span>
+          <input
+            className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            value={value?.[key] ?? ""}
+            onChange={(e) => update(key, e.target.value)}
+          />
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/********************
+ * Main App
+ ********************/
+function MissionSmithApp() {
+  const [section, setSection] = useState("info");
+  const [data, setData] = useState(initialData);
+
+  
+  
+  useEffect(() => { window.__ms_data = data; window.__ms_getData = () => data; }, [data]);
+useEffect(() => { window.__ms_data = data; window.__ms_getData = () => data; }, [data]);
+const progress = useMemo(() => {
+    const all = [...data.objectives, ...data.principles, ...data.guardrails, ...data.ground];
+    const decided = all.filter((r) => r.decision !== null).length;
+    return all.length ? decided / all.length : 0;
+  }, [data]);
+
+  const onRowsChange = (key, next) => setData((p) => ({ ...p, [key]: next }));
+
+  const exportJSON = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `missionsmith-framework.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportCSVHandler = () => exportCSV(data);
+
+  
+  // CSV Export helpers (flat table across all sections)
+  const CSV_HEADERS = ["ref","category","theme","topic","codify","automate","intercept","prove","dependency","status","user_notes","decision"];
+  function toCSVRow(obj){
+    function esc(v){
+      const s = (v === null || v === undefined) ? "" : String(v);
+      const needsQuote = /[",\n]/.test(s);
+      const out = s.replace(/"/g,'""');
+      return needsQuote ? "\"" + out + "\"" : out;
+    }
+    return CSV_HEADERS.map(h => {
+      if (h === "decision") {
+        return esc(obj.decision === true ? "Accepted" : obj.decision === false ? "Later" : "Pending");
+      }
+      return esc(obj[h] ?? "");
+    }).join(",");
+  }
+  function exportCSV(data){
+    const flat = [
+      ...data.objectives.map(r => ({...r})),
+      ...data.principles.map(r => ({...r})),
+      ...data.guardrails.map(r => ({...r})),
+      ...data.ground.map(r => ({...r})),
+    ];
+    const header = CSV_HEADERS.join(",");
+    const rows = flat.map(toCSVRow);
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "missionsmith-framework.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+const importJSON = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json,application/json";
+    input.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result));
+          setData((p) => ({ ...p, ...parsed }));
+          alert("Imported JSON successfully.");
+        } catch (err) {
+          alert("Invalid JSON file.");
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const importCSV = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv,text/csv";
+    input.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result);
+        const { rows } = parseCSVSimple(text);
+
+        const buckets = { objectives: [], principles: [], guardrails: [], ground: [] };
+        for (const r of rows) {
+          const item = {
+            ref: r.ref || r.Ref || `CSV-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+            category: r.category || r.Category || "",
+            theme: r.theme || r.Theme || "",
+            topic: r.topic || r.Topic || "",
+            codify: r.codify || r.Codify || "",
+            automate: r.automate || r.Automate || "",
+            intercept: r.intercept || r.Intercept || "",
+            prove: r.prove || r.Prove || "",
+            dependency: r.dependency || r.Dependency || "N/A",
+            status: r.status || r.Status || "proposed",
+            user_notes: r.user_notes || r.Notes || r.UserNotes || "",
+            decision: null,
+          };
+          const cat = (item.category || "").toLowerCase();
+          if (cat.includes("objective")) buckets.objectives.push(item);
+          else if (cat.includes("principle")) buckets.principles.push(item);
+          else if (cat.includes("guardrail")) buckets.guardrails.push(item);
+          else if (cat.includes("ground")) buckets.ground.push(item);
+        }
+        setData((p) => ({
+          objectives: buckets.objectives.length ? buckets.objectives : p.objectives,
+          principles: buckets.principles.length ? buckets.principles : p.principles,
+          guardrails: buckets.guardrails.length ? buckets.guardrails : p.guardrails,
+          ground: buckets.ground.length ? buckets.ground : p.ground,
+        }));
+        alert("Imported CSV rows into the matching sections.");
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const resetDecisions = () => {
+    const reset = (arr) => arr.map((r) => ({ ...r, decision: null }));
+    setData((p) => ({
+      objectives: reset(p.objectives),
+      principles: reset(p.principles),
+      guardrails: reset(p.guardrails),
+      ground: reset(p.ground),
+    }));
+  };
+
+  return (
+    <div className="min-h-dvh bg-gray-50">
+      <style>{`
+        :root{
+          --ms-teal:   rgb(26,153,136);
+          --ms-blue:   rgb(106,164,200);
+          --ms-orange: rgb(235,86,0);
+          --ms-mint:   rgb(162,255,232);
+          --ms-red:    rgb(255,0,0);
+        }
+      `}</style>
+
+      <TopBar onImportJSON={importJSON} progress={progress} />
+
+      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 pb-8 pt-4 sm:grid-cols-[260px_1fr]">
+        <Sidebar section={section} setSection={setSection} />
+
+        <div className="space-y-4">
+          {section === "info" && (<MissionInfo value={data.missionInfo} onChange={(val) => setData((p) => ({ ...p, missionInfo: val }))} />)}
+{section === "service" && (<ServiceConfig value={data.serviceConfig} onChange={(val) => setData((p) => ({ ...p, serviceConfig: val }))} />)}
+          {section === "objectives" && (<SectionTable title="Mission Objectives" rows={data.objectives} onRowsChange={(rows) => onRowsChange("objectives", rows)} />)}
+          {section === "principles" && (<SectionTable title="Mission Principles" rows={data.principles} onRowsChange={(rows) => onRowsChange("principles", rows)} />)}
+          {section === "guardrails" && (<SectionTable title="Mission Guardrails" rows={data.guardrails} onRowsChange={(rows) => onRowsChange("guardrails", rows)} />)}
+          {section === "ground" && (<SectionTable title="Mission Tooling" rows={data.ground} onRowsChange={(rows) => onRowsChange("ground", rows)} allowAdd />)}
+          {section === "review" && (<Review data={data} onResetDecisions={resetDecisions} />)}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<MissionSmithApp />);
+  </script>
+
+<script>
+window.MS_actions = (function(){
+  const download = (filename, text, type) => {
+    const blob = new Blob([text], {type});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 200);
+  };
+
+  const acceptedOnly = (arr = []) => (arr||[]).filter(x => {
+  const d = x && x.decision;
+  if (d === true) return true;
+  if (typeof d === 'string') {
+    const s = d.trim().toLowerCase();
+    if (s === 'accepted' || s === 'accept' || s === 'true' || s === 'yes' || s === 'y') return true;
+  }
+  if (typeof d === 'number' && d === 1) return true;
+  const s2 = x && (x.status || x.accepted);
+  return (typeof s2 === 'string' && s2.toLowerCase() === 'accepted');
+});
+
+  const deriveAccepted = (data = {}) => ({
+  objectives: acceptedOnly(data.objectives || []),
+  principles: acceptedOnly(data.principles  || []),
+  guardrails: acceptedOnly(data.guardrails  || []),
+  ground:     acceptedOnly((data.ground || data.tooling || []) )
+});
+
+  const mdList = (title, items) =>
+    items.length ? `\n## ${title}\n` + items.map(i=>`- **${i.name || i.id || "item"}**${i.description ? ` — ${i.description}` : ""}`).join("\n") + "\n" : "";
+
+  const missionTitle = (data) => (data?.missionInfo?.title || "Mission").replace(/[^\w\-]+/g,"_");
+  const getData = () => (typeof window.__ms_getData === 'function' ? window.__ms_getData() : (window.__ms_data || window.data || window.initialData || {}));
+
+  const buildAgentsMd = (data) => {
+  const acc = deriveAccepted(data);
+
+  const section = (title, rows) => {
+    if (!rows || !rows.length) return "";
+    const blocks = rows.map(r => {
+      const lines = [
+        `- **${r.ref || r.id || ""} — ${r.topic || r.purpose || ""}** *(Theme: ${r.theme || ""}; Category: ${r.category || ""})*`,
+        `  - Codify: ${r.codify || ""}`,
+        `  - Automate: ${r.automate || ""}`,
+        `  - Intercept: ${r.intercept || ""}`,
+        `  - Prove: ${r.prove || ""}`,
+        `  - Dependency: ${r.dependency || ""}`,
+        `  - Notes: ${r.user_notes || r.notes || ""}`,
+      ];
+      return lines.join("\n");
+    }).join("\n");
+    return `\n## ${title}\n${blocks}\n`;
+  };
+
+  let md = `# Agents Charter — ${data?.missionInfo?.title || "Mission"}\n`;
+  md += `\n> Generated from accepted items in Objectives, Principles, Guardrails and Tooling.\n`;
+  md += section("Objectives", acc.objectives);
+  md += section("Principles", acc.principles);
+  md += section("Guardrails", acc.guardrails);
+  md += section("Tooling", acc.ground);
+  md += `\n---\nGenerated by MissionSmith\n`;
+  return md;
+};
+
+  const buildPipelineYml = (data) => {
+    const acc = deriveAccepted(data);
+    const hasCIGuardrail = acc.guardrails.some(g => /ci|pipeline/i.test((g.name||"")+ " " + (g.description||"")));
+    const gates = hasCIGuardrail ? (data?.serviceConfig?.ci?.gates || []) : [];
+    const steps = gates.map(g => `      - name: ${g}\n        run: echo "Running ${g} gate"\n`).join("");
+    return `name: pipeline\non: [push, pull_request]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n${steps || '      - run: echo "No accepted CI gates configured"'}\n`;
+  };
+
+  const buildPolicyBundleTxt = (data) => {
+    const acc = deriveAccepted(data);
+    const hasPolicy = acc.guardrails.some(g => /policy/i.test((g.name||"")+ " " + (g.description||"")));
+    const packs = hasPolicy ? (data?.serviceConfig?.governance?.policy_packs || []) : [];
+    return packs.length ? packs.map(p=>`- ${p}`).join("\n") : "No accepted policy packs.";
+  };
+
+  const buildDeployPlan = (data) => {
+    const acc = deriveAccepted(data);
+    const hasDeploy = acc.guardrails.some(g => /deploy|release|rollout/i.test((g.name||"")+ " " + (g.description||"")));
+    const sc = data?.serviceConfig?.deploy || {};
+    return `strategy: ${hasDeploy ? (sc.default_strategy || "") : "UNSET (no accepted deploy guardrail)"}\nfeature_flags: ${!!sc.feature_flags}\n`;
+  };
+
+  const buildDashboards = (data) => {
+    const acc = deriveAccepted(data);
+    const hasSLO = acc.guardrails.some(g => /slo|observability|latency|error rate|availability/i.test((g.name||"")+ " " + (g.description||"")));
+    const slos = hasSLO ? (data?.serviceConfig?.nfr?.slo || []) : [];
+    if (!slos.length) return "# No accepted SLOs";
+    return "panels:\n" + slos.map(s => `- title: ${s.name}\n  target: ${s.target}`).join("\n");
+  };
+
+  const buildLineage = (data) => {
+    const acc = deriveAccepted(data);
+    const hasLineage = acc.guardrails.some(g => /lineage|audit|governance/i.test((g.name||"")+ " " + (g.description||"")));
+    if (!hasLineage) return JSON.stringify({ enabled:false, reason:"No accepted lineage guardrail" }, null, 2);
+    const sc = data?.serviceConfig || {};
+    return JSON.stringify({
+      enabled: true,
+      mission: data?.missionInfo?.title || "Mission",
+      defaults: {
+        backend: [sc.default_backend_language, sc.default_backend_framework].filter(Boolean).join(" + "),
+        ui: [sc.default_ui_language, sc.default_ui_framework].filter(Boolean).join(" + "),
+        database: sc.default_database || "",
+        outbox: !!sc.default_outbox_enabled
+      }
+    }, null, 2);
+  };
+
+  return {
+    generateJSON(){ const d=getData(); download(`${missionTitle(d)}.json`, JSON.stringify(d,null,2), "application/json"); },
+    generateAgents(){ try{ const md = buildAgentsMd(getData()); if(!md || !md.trim()){ alert("Agents file is empty."); return; } download("agents.md", md, "text/markdown"); } catch(e){ console.error(e); alert("Failed to build agents.md"); } },
+    generateScaffold(){
+      try {
+        const d = getData();
+        const sc = d?.serviceConfig || {};
+        const backend = [sc.default_backend_language, sc.default_backend_framework].filter(Boolean).join(" + ") || "(unset)";
+        const ui      = [sc.default_ui_language, sc.default_ui_framework].filter(Boolean).join(" + ") || "(unset)";
+        const dbLine  = `${sc.default_database || "(unset)"}; Migrations: ${sc.default_migration_tool || "(unset)"}; Outbox: ${!!sc.default_outbox_enabled}`;
+        const secLine = JSON.stringify(sc.security || {});
+        const obsLine = JSON.stringify(sc.observability || {});
+        const lines = [
+          `# Service Scaffold Plan — ${d?.missionInfo?.title || "Mission"}`,
+          `Backend default: ${backend}`,
+          `UI default: ${ui}`,
+          `Database: ${dbLine}`,
+          `Security: ${secLine}`,
+          `Observability: ${obsLine}`,
+          ``,
+          `---`,
+          `Generated by MissionSmith`
+        ];
+        download('service-scaffold-plan.md', lines.join('\n'), 'text/markdown');
+      } catch (e) {
+        console.error('generateScaffold failed', e);
+        alert('Failed to build service-scaffold-plan.md');
+      }
+    },
+    generateCICD(){ download("pipeline.yml", buildPipelineYml(getData()), "text/yaml"); },
+    generatePolicies(){ download("policy-packs.txt", buildPolicyBundleTxt(getData()), "text/plain"); },
+    generateDeploy(){ download("deploy-manifests-plan.yaml", buildDeployPlan(getData()), "text/yaml"); },
+    generateDashboards(){ download("dashboards-alerts.yaml", buildDashboards(getData()), "text/yaml"); },
+    generateLineage(){ download("lineage.json", buildLineage(getData()), "application/json"); }
+  };
+})();
+</script>
+
+
+<script>
+(function(){
+  function show(msg, src, line, col){
+    const el = document.createElement('div');
+    el.style.position='fixed'; el.style.left=0; el.style.right=0; el.style.bottom=0;
+    el.style.background='rgba(220,38,38,0.95)'; el.style.color='#fff'; el.style.fontFamily='ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+    el.style.whiteSpace='pre-wrap'; el.style.maxHeight='40vh'; el.style.overflow='auto'; el.style.padding='12px 16px'; el.style.zIndex=99999;
+    el.textContent = 'MissionSmith runtime error:\n' + msg + (src ? ('\n@ ' + src + ':' + line + ':' + col) : '');
+    document.body.appendChild(el);
+  }
+  window.addEventListener('error', e => show(e.message, e.filename, e.lineno, e.colno));
+  window.addEventListener('unhandledrejection', e => show(String(e.reason || 'Unhandled promise rejection')));
+})();
+</script>
+
+
+<script>
+(function(){
+  function show(msg, src, line, col){
+    const el = document.createElement('div');
+    el.style.position='fixed'; el.style.left=0; el.style.right=0; el.style.bottom=0;
+    el.style.background='rgba(220,38,38,0.95)'; el.style.color='#fff'; el.style.fontFamily='ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+    el.style.whiteSpace='pre-wrap'; el.style.maxHeight='40vh'; el.style.overflow='auto'; el.style.padding='12px 16px'; el.style.zIndex=99999;
+    el.textContent = 'MissionSmith runtime error:\n' + msg + (src ? ('\n@ ' + src + ':' + line + ':' + col) : '');
+    document.body.appendChild(el);
+  }
+  window.addEventListener('error', e => show(e.message, e.filename, e.lineno, e.colno));
+  window.addEventListener('unhandledrejection', e => show(String(e.reason || 'Unhandled promise rejection')));
+})();
+</script>
+
+
+<script>
+(function(){
+  function wireFrameworkButtons(){
+    var hdr = document.querySelector('header.sticky.top-0');
+    if(!hdr) return;
+    var right = hdr.querySelector('.flex.items-center.gap-2');
+    if(!right) return;
+
+    // 1) Ensure Import button label
+    var importBtn = right.querySelector('button');
+    if(importBtn){
+      var txt = (importBtn.textContent || '').trim().toLowerCase();
+      if(txt.includes('import')){
+        importBtn.textContent = 'Import Mission Framework';
+      }
+      // keep existing onClick handler (importJSON) intact
+    }
+
+    // 2) Inject Export button if not present
+    if(!right.querySelector('.msx-framework-btn')){
+      var exp = document.createElement('button');
+      exp.className = 'msx-framework-btn';
+      exp.textContent = 'Export Mission Framework';
+      exp.addEventListener('click', function(){
+        try {
+          if (window.exportJSON) { window.exportJSON(); return; }
+          if (window.MS_actions && typeof window.MS_actions.generateJSON === 'function') {
+            window.MS_actions.generateJSON(); return;
+          }
+          console.warn('No export function found');
+        } catch(e){ console.error(e); }
+      });
+      right.prepend(exp);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', wireFrameworkButtons);
+  // Re-apply if React re-renders
+  new MutationObserver(wireFrameworkButtons).observe(document.body, {childList:true, subtree:true});
+})();
+</script>
+
+
+<!-- === Integrated CI/CD Generator v1.2 (no new screens) === -->
+<script>
+(function(){
+  // --- Utilities ---
+  function str(v){ return (v==null?'':String(v)); }
+  function val(obj, path, fallback){
+    try{
+      return path.split('.').reduce((o,k)=> (o && (k in o) ? o[k] : undefined), obj) ?? fallback;
+    }catch(_){ return fallback; }
+  }
+  function toProfile(sc){
+    const lang = (str(sc.default_backend_language)).toLowerCase();
+    if (/java/.test(lang)) return "java-maven";
+    if (/python/.test(lang)) return "python-pytest";
+    if (/node|javascript|ts|typescript/.test(lang)) return "node-npm";
+    if (/go/.test(lang)) return "go";
+    if (/dotnet|csharp/.test(lang)) return "dotnet";
+    return "java-maven"; // default
+  }
+  function toGates(arr){
+    if (Array.isArray(arr) && arr.length) return arr.map(x=>String(x).trim()).filter(Boolean);
+    return "lint, unit, contract, integration, sast, sbom, iac, schema-compat, docker-scan, policy, sign"
+      .split(',').map(s=>s.trim());
+  }
+  function registryDefault(sc){
+    const r = str(sc.default_registry || "").trim();
+    return r || "ghcr.io/OWNER/REPO";
+  }
+
+  // --- Generators (from LaunchPad v1.2) ---
+  function genBuildTest(profile, gates){
+    const has = t => gates.includes(t);
+    const isJava = profile==='java-maven';
+    const isNode = profile==='node-npm';
+    const isPy   = profile==='python-pytest';
+    let setup='';
+    if(isJava) setup = "\n      - uses: actions/setup-java@v4\n        with:\n          distribution: temurin\n          java-version: '21'\n";
+    if(isNode) setup = "\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '20'\n";
+    if(isPy)   setup = "\n      - uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n";
+    let lint='';
+    if(has('lint')){
+      if(isJava) lint = "      - name: Lint (Maven)\n        run: |\n          mvn -B -ntp -DskipTests=true spotless:check || true\n          mvn -B -ntp -DskipTests=true checkstyle:check || true\n";
+      if(isNode) lint = "      - name: Lint (ESLint)\n        run: |\n          npm ci\n          npx eslint . || true\n";
+      if(isPy)   lint = "      - name: Lint (flake8)\n        run: |\n          python -m pip install --upgrade pip\n          pip install flake8\n          flake8 . || true\n";
+    }
+    let tests='';
+    if(has('unit') || has('integration')){
+      if(isJava) tests = "      - name: Maven test (unit + integration)\n        run: mvn -B -ntp -DskipITs=false test\n";
+      if(isNode) tests = "      - name: Node tests\n        run: |\n          npm ci\n          npm test --if-present\n";
+      if(isPy)   tests = "      - name: PyTest\n        run: |\n          python -m pip install --upgrade pip\n          pip install -r requirements.txt || true\n          pytest -q --maxfail=1 --disable-warnings --junitxml=test-results/python-junit.xml\n";
+    }
+    const contract = has('contract')
+      ? "      - name: Pact verify (if contracts present)\n        if: ${{ hashFiles('**/contracts/**') != '' }}\n        run: mvn -B -ntp pact:verify || echo \'No contracts\'\n" : "";
+    const compat = has('schema-compat')
+      ? "      - name: Schema compatibility check (if schemas present)\n        if: ${{ hashFiles('**/schemas/**') != '' }}\n        run: echo \'Implement your Avro/JSON compat check here\'\n" : "";
+
+    return "name: ci-cd\n\non: [push, pull_request]\n\npermissions:\n  contents: read\n  packages: write\n  security-events: write\n\njobs:\n  build-test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4" + setup + lint + tests + contract + compat +
+      "      - name: Upload test results\n        if: ${{ always() }}\n        uses: actions/upload-artifact@v4\n        with:\n          name: test-results\n          path: |\n            **/target/surefire-reports/*.xml\n            **/target/failsafe-reports/*.xml\n            test-results/**/*.xml\n          if-no-files-found: ignore\n";
+  }
+
+  function genSecurity(gates){
+    const has = t => gates.includes(t);
+    let y = "name: security\n\non: [push, pull_request]\n\npermissions:\n  contents: read\n  security-events: write\n  packages: write\n\njobs:\n  security:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n";
+    if(has('sast')) y += "      - name: Semgrep SAST\n        uses: returntocorp/semgrep-action@v1\n        with:\n          config: p/owasp-top-ten\n          generateSarif: true\n";
+    if(has('docker-scan') || has('sbom') || has('sign')) y += "      - name: Set up Buildx\n        uses: docker/setup-buildx-action@v3\n      - name: Build image (no push)\n        uses: docker/build-push-action@v6\n        with:\n          context: .\n          push: false\n          load: true\n          tags: local/app:ci\n          provenance: false\n";
+    if(has('docker-scan')) y += "      - name: Trivy image scan\n        uses: aquasecurity/trivy-action@0.28.0\n        with:\n          image-ref: local/app:ci\n          format: table\n          exit-code: '1'\n          ignore-unfixed: true\n";
+    if(has('sbom')) y += "      - name: SBOM (Syft)\n        uses: anchore/sbom-action@v0\n        with:\n          image: local/app:ci\n          artifact-name: sbom.spdx.json\n";
+    if(has('sign')) y += "      - name: Install Cosign\n        uses: sigstore/cosign-installer@v3.7.0\n      - name: Cosign sign (optional)\n        if: ${{ secrets.COSIGN_KEY != '' }}\n        env:\n          COSIGN_EXPERIMENTAL: '1'\n          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}\n        run: |\n          printf \"%s\" \"${{ secrets.COSIGN_KEY }}\" > cosign.key\n          cosign sign --key cosign.key local/app:ci\n";
+    y += "      - name: Upload security artefacts\n        uses: actions/upload-artifact@v4\n        with:\n          name: security\n          path: |\n            semgrep.sarif\n            sbom.spdx.json\n          if-no-files-found: ignore\n";
+    return y;
+  }
+
+  function genIaC(gates){
+    const has = t => gates.includes(t);
+    let y = "name: iac-policy\n\non: [push, pull_request]\n\npermissions:\n  contents: read\n\njobs:\n  iac-policy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n";
+    if(has('iac')) y += "      - name: Terraform fmt/validate/plan\n        if: ${{ hashFiles('**/*.tf') != '' }}\n        run: |\n          terraform -version || (curl -fsSL https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_linux_amd64.zip -o tf.zip && sudo unzip -o tf.zip -d /usr/local/bin)\n          terraform -chdir=infra fmt -check\n          terraform -chdir=infra init -input=false\n          terraform -chdir=infra validate\n          terraform -chdir=infra plan -input=false -lock=false -out=tfplan\n";
+    if(has('policy')) y += "      - name: conftest policy check\n        if: ${{ hashFiles('policy/**.rego') != '' }}\n        uses: instrumenta/conftest-action@v0.3.0\n        with:\n          files: |\n            infra/**/*.tf\n            deploy/**/*.yaml\n";
+    return y;
+  }
+
+  function genPackagePublish(registry){
+    return "name: package-publish\non:\n  push:\n    branches: [ \"main\" ]\n  workflow_dispatch: {}\n\npermissions:\n  contents: read\n  packages: write\n\nenv:\n  REGISTRY: " + registry + "\n  IMAGE_SHA: " + registry + ":${{ github.sha }}\n  IMAGE_MAIN: " + registry + ":main\n\njobs:\n  build-push-sign:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: docker/setup-qemu-action@v3\n      - uses: docker/setup-buildx-action@v3\n      - uses: docker/login-action@v3\n        with:\n          registry: ghcr.io\n          username: ${{ github.actor }}\n          password: ${{ secrets.GITHUB_TOKEN }}\n      - name: Build & push (sha)\n        uses: docker/build-push-action@v6\n        with:\n          context: .\n          push: true\n          tags: ${{ env.IMAGE_SHA }}\n          provenance: false\n      - name: Build & push (main)\n        uses: docker/build-push-action@v6\n        with:\n          context: .\n          push: true\n          tags: ${{ env.IMAGE_MAIN }}\n          provenance: false\n      - name: Install Cosign\n        uses: sigstore/cosign-installer@v3.7.0\n      - name: Cosign sign (sha)\n        if: ${{ secrets.COSIGN_KEY != '' }}\n        env:\n          COSIGN_EXPERIMENTAL: \"1\"\n          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}\n        run: |\n          printf \"%s\" \"${{ secrets.COSIGN_KEY }}\" > cosign.key\n          cosign sign --key cosign.key ${{ env.IMAGE_SHA }}\n      - name: Cosign sign (main)\n        if: ${{ secrets.COSIGN_KEY != '' }}\n        env:\n          COSIGN_EXPERIMENTAL: \"1\"\n          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}\n        run: |\n          printf \"%s\" \"${{ secrets.COSIGN_KEY }}\" > cosign.key\n          cosign sign --key cosign.key ${{ env.IMAGE_MAIN }}\n";
+  }
+
+  function genPromoteDeploy(){
+    return "name: promote-deploy\non:\n  workflow_dispatch:\n    inputs:\n      image:\n        description: \"Image to deploy (e.g., ghcr.io/owner/repo:sha)\"\n        required: false\n      envs:\n        description: \"Comma-separated envs to deploy (dev,staging,prod)\"\n        required: false\n        default: \"dev,staging,prod\"\n  push:\n    branches: [ \"main\" ]\n\npermissions:\n  contents: read\n  packages: read\n\nenv:\n  DEFAULT_IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}\n  NAMESPACE: default\n  CANARY_REPLICAS: 1\n  STABLE_PERCENT: 90\n\njobs:\n  matrix-setup:\n    runs-on: ubuntu-latest\n    outputs:\n      envs: ${{ steps.mk.outputs.envs }}\n    steps:\n      - id: mk\n        run: |\n          IN=\"${{ github.event.inputs.envs }}\"\n          if [ -z \"$IN\" ]; then IN=\"dev,staging,prod\"; fi\n          echo \"envs=$(printf '[%s]' \\\"$(echo \\\"$IN\\\" | sed 's/,/","/g' | sed 's/^/\\\"/;s/$/\\\"/')\\\")\" >> $GITHUB_OUTPUT\n\n  deploy:\n    needs: matrix-setup\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        env: ${{ fromJson(needs.matrix-setup.outputs.envs) }}\n    environment: ${{ matrix.env }}\n    steps:\n      - uses: actions/checkout@v4\n      - name: Choose image\n        id: img\n        run: |\n          IMG=\"${{ github.event.inputs.image }}\"\n          if [ -z \"$IMG\" ]; then IMG=\"${{ env.DEFAULT_IMAGE }}\"; fi\n          echo \"image=$IMG\" >> $GITHUB_OUTPUT\n      - name: Install Cosign\n        uses: sigstore/cosign-installer@v3.7.0\n      - name: Verify image signature\n        env:\n          COSIGN_EXPERIMENTAL: \"1\"\n          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}\n        run: |\n          if [ -z \"$COSIGN_PUBLIC_KEY\" ]; then\n            echo \"Missing COSIGN_PUBLIC_KEY; refusing to deploy unsigned/unverified image\" >&2\n            exit 1\n          fi\n          printf \"%s\" \"$COSIGN_PUBLIC_KEY\" > cosign.pub\n          cosign verify --key cosign.pub \"${{ steps.img.outputs.image }}\"\n      - name: Set kubeconfig\n        id: kube\n        run: |\n          ENV=\"${{ matrix.env }}\"\n          KC_VAR=\"KUBE_CONFIG_\${ENV^^}\"\n          KCONF=\"${!KC_VAR}\"\n          if [ -z \"$KCONF\" ]; then\n            echo \"Kubeconfig secret $KC_VAR is not set\" >&2\n            exit 1\n          fi\n          if echo \"$KCONF\" | grep -q \"apiVersion: v1\"; then\n            printf \"%s\" \"$KCONF\" > $HOME/.kubeconfig\n          else\n            printf \"%s\" \"$KCONF\" | base64 -d > $HOME/.kubeconfig\n          fi\n          echo \"KUBECONFIG=$HOME/.kubeconfig\" >> $GITHUB_ENV\n        env:\n          KUBE_CONFIG_DEV: ${{ secrets.KUBE_CONFIG_DEV }}\n          KUBE_CONFIG_STAGING: ${{ secrets.KUBE_CONFIG_STAGING }}\n          KUBE_CONFIG_PROD: ${{ secrets.KUBE_CONFIG_PROD }}\n      - name: Install kubectl\n        run: |\n          curl -fsSL https://storage.googleapis.com/kubernetes-release/release/v1.30.5/bin/linux/amd64/kubectl -o kubectl\n          chmod +x kubectl && sudo mv kubectl /usr/local/bin/\n      - name: Templatise manifests with image tag\n        run: |\n          ENV=\"${{ matrix.env }}\"\n          find \"deploy/\${ENV}\" -type f -name \"*.yaml\" -print0 | while IFS= read -r -d '' f; do\n            sed -i \"s#IMAGE_PLACEHOLDER#${{ steps.img.outputs.image }}#g\" \"$f\"\n            sed -i \"s#NAMESPACE_PLACEHOLDER#${{ env.NAMESPACE }}#g\" \"$f\"\n          done\n      - name: Apply canary (if present)\n        run: |\n          ENV=\"${{ matrix.env }}\"\n          if ls \"deploy/\${ENV}/canary/\"/*.yaml >/dev/null 2>&1; then\n            kubectl apply -n \"${{ env.NAMESPACE }}\" -f \"deploy/\${ENV}/canary/\"\n            kubectl rollout status -n \"${{ env.NAMESPACE }}\" deployment -l app.kubernetes.io/part-of=canary --timeout=120s\n          else\n            echo \"No canary overlay found; skipping canary\"\n          fi\n      - name: Bake\n        run: sleep 30\n      - name: Promote to stable\n        run: |\n          ENV=\"${{ matrix.env }}\"\n          kubectl apply -n \"${{ env.NAMESPACE }}\" -f \"deploy/\${ENV}/\"\n          kubectl rollout status -n \"${{ env.NAMESPACE }}\" deployment -l app.kubernetes.io/name=${{ github.event.repository.name }} --timeout=180s\n      - name: Cleanup canary\n        run: |\n          ENV=\"${{ matrix.env }}\"\n          if ls \"deploy/\${ENV}/canary/\"/*.yaml >/dev/null 2>&1; then\n            kubectl delete -n \"${{ env.NAMESPACE }}\" -f \"deploy/\${ENV}/canary/\" --ignore-not-found\n          fi\n";
+  }
+
+  function genReportMd(gates, profile){
+    const tokenMap = { lint:'Lint', unit:'Unit tests', contract:'Contract tests', integration:'Integration tests', coverage:'Coverage', e2e:'End-to-end',
+      sast:'SAST', 'docker-scan':'Container scan', sbom:'SBOM', sign:'Image signing', 'schema-compat':'Schema compatibility', iac:'IaC validate/plan', policy:'Policy check', observability:'Observability', chaos:'Chaos', a11y:'Accessibility', perf:'Performance'};
+    const lines = ['# CI/CD Generation Report','',`Profile: **${profile}**`,'Gates:',''];
+    gates.forEach(g=>lines.push(`- ${tokenMap[g] ? '✅' : '⚠️'} ${g}${tokenMap[g] ? '' : ' (unknown token)'}`));
+    lines.push('\nFiles generated: ci-cd.yml, security.yml, iac-policy.yml, package-publish.yml, promote-deploy.yml');
+    lines.push('Notes: Configure COSIGN_* and KUBE_CONFIG_* secrets for signing and deploy.');
+    return lines.join('\n');
+  }
+
+  // --- Wire into MissionSmith button ---
+  if (window.MS_actions) {
+    const orig = window.MS_actions;
+    orig.generateCICD = function(){
+      try{
+        const data = (typeof window.__ms_getData === 'function' ? window.__ms_getData() : window.__ms_data) || {};
+        const sc = data.serviceConfig || {};
+        const profile = toProfile(sc);
+        const gates = toGates(val(sc, 'ci.gates', []));
+        const registry = registryDefault(sc);
+
+        const files = [
+          {path: '.github/workflows/ci-cd.yml', content: genBuildTest(profile, gates)},
+          {path: '.github/workflows/security.yml', content: genSecurity(gates)},
+          {path: '.github/workflows/iac-policy.yml', content: genIaC(gates)},
+          {path: '.github/workflows/package-publish.yml', content: genPackagePublish(registry)},
+          {path: '.github/workflows/promote-deploy.yml', content: genPromoteDeploy()},
+          {path: 'ci-cd-report.md', content: genReportMd(gates, profile)}
+        ];
+
+        // bundle download
+        const chunks = ['# --- BEGIN MISSIONSMITH CI/CD BUNDLE ---'];
+        for (const f of files) { chunks.push(`\n# FILE: ${f.path}\n\n${f.content}`); }
+        const blob = new Blob([chunks.join('\n')], {type:'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mission-cicd-bundle.txt';
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 200);
+
+        alert('✅ CI/CD workflows generated. Add COSIGN_* and KUBE_CONFIG_* secrets for signing/deploy.');
+      }catch(e){
+        console.error('generateCICD failed', e);
+        alert('Failed to generate CI/CD workflows.');
+      }
+    };
+    window.MS_actions = orig;
+  }
+})();
+</script>
+
+<!-- === Integrated IaC Generator v1.0 === -->
+<script>
+(function(){
+  // Helpers
+  function str(v){ return (v==null?'':String(v)); }
+  function val(obj, path, fallback){
+    try{ return path.split('.').reduce((o,k)=> (o && (k in o) ? o[k] : undefined), obj) ?? fallback; }catch(_){ return fallback; }
+  }
+  function appName(sc){
+    const n = str(sc.default_service_name || 'app').trim() || 'app';
+    return n.replace(/[^a-z0-9-]/ig,'-').toLowerCase();
+  }
+  function imageDefault(sc){
+    const reg = str(sc.default_registry || '').trim() || 'ghcr.io/OWNER/REPO';
+    return reg + ':main';
+  }
+  function sloTarget(sc, name, dflt){ try{ return (sc?.nfr?.slo||[]).find(s=>s.name===name)?.target ?? dflt; }catch(_){ return dflt; } }
+
+  // YAML templates (with placeholders to be replaced by the deploy workflow)
+  function baseDeploymentYaml(app){
+    return `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${app}
+  namespace: NAMESPACE_PLACEHOLDER
+  labels:
+    app.kubernetes.io/name: ${app}
+    app.kubernetes.io/instance: ${app}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ${app}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ${app}
+    spec:
+      containers:
+      - name: ${app}
+        image: IMAGE_PLACEHOLDER
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: "${app}"
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+`;
+  }
+
+  function serviceYaml(app){
+    return `apiVersion: v1
+kind: Service
+metadata:
+  name: ${app}
+  namespace: NAMESPACE_PLACEHOLDER
+spec:
+  selector:
+    app.kubernetes.io/name: ${app}
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
+`;
+  }
+
+  function namespaceYaml(){
+    return `apiVersion: v1
+kind: Namespace
+metadata:
+  name: NAMESPACE_PLACEHOLDER
+`;
+  }
+
+  function canaryDeploymentYaml(app){
+    return `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${app}-canary
+  namespace: NAMESPACE_PLACEHOLDER
+  labels:
+    app.kubernetes.io/name: ${app}
+    app.kubernetes.io/part-of: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ${app}
+      app.kubernetes.io/part-of: canary
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ${app}
+        app.kubernetes.io/part-of: canary
+    spec:
+      containers:
+      - name: ${app}
+        image: IMAGE_PLACEHOLDER
+        ports:
+        - containerPort: 8080
+`;
+  }
+
+  // Terraform (kubernetes provider) skeleton
+  function tfProviders(){
+    return `terraform {
+  required_version = ">= 1.5.0"
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.32.0"
+    }
+  }
+}
+
+# Uses KUBECONFIG from the environment (set by CI)
+provider "kubernetes" {}
+`;
+  }
+  function tfVariables(app, image){
+    return `variable "namespace" { type = string  default = "default" }
+variable "app_name"  { type = string  default = "${app}" }
+variable "image"     { type = string  default = "${image}" }
+`;
+  }
+  function tfMain(){
+    return `resource "kubernetes_namespace" "ns" {
+  metadata { name = var.namespace }
+}
+
+resource "kubernetes_deployment" "app" {
+  metadata {
+    name      = var.app_name
+    namespace = var.namespace
+    labels = {
+      "app.kubernetes.io/name" = var.app_name
+    }
+  }
+  spec {
+    replicas = 2
+    selector {
+      match_labels = { "app.kubernetes.io/name" = var.app_name }
+    }
+    template {
+      metadata {
+        labels = { "app.kubernetes.io/name" = var.app_name }
+      }
+      spec {
+        container {
+          name  = var.app_name
+          image = var.image
+          port  { container_port = 8080 }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "svc" {
+  metadata {
+    name      = var.app_name
+    namespace = var.namespace
+  }
+  spec {
+    selector = { "app.kubernetes.io/name" = var.app_name }
+    port { port = 80  target_port = 8080 }
+    type = "ClusterIP"
+  }
+}
+`;
+  }
+  function tfOutputs(){
+    return `output "service_name" { value = kubernetes_service.svc.metadata[0].name }
+output "namespace"    { value = kubernetes_namespace.ns.metadata[0].name }
+`;
+  }
+
+  function readme(){
+    return `# MissionSmith IaC Bundle
+
+This bundle includes:
+- Kubernetes deploy manifests under \`deploy/{dev,staging,prod}\` (with \`IMAGE_PLACEHOLDER\` and \`NAMESPACE_PLACEHOLDER\` tokens)
+- A Terraform skeleton under \`infra/\` using the Kubernetes provider
+
+## Using with the generated CI/CD
+- The \`promote-deploy.yml\` workflow will replace the placeholders and apply the manifests.
+- Set the following secrets in your repo for each environment:
+  - \`COSIGN_PUBLIC_KEY\` (for verification)
+  - \`KUBE_CONFIG_DEV\`, \`KUBE_CONFIG_STAGING\`, \`KUBE_CONFIG_PROD\`
+
+> You can also use \`infra/\` with \`terraform -chdir=infra init && terraform -chdir=infra apply -var namespace=<env> -var image=<image>\`.
+`;
+  }
+
+  function bundleFiles(data){
+    const sc = data?.serviceConfig || {};
+    const app = appName(sc);
+    const image = imageDefault(sc);
+
+    const envs = ["dev","staging","prod"];
+    const files = [];
+
+    // Env-specific k8s manifests
+    envs.forEach(env => {
+      files.push({ path: `deploy/${env}/namespace.yaml`, content: namespaceYaml() });
+      files.push({ path: `deploy/${env}/deployment.yaml`, content: baseDeploymentYaml(app) });
+      files.push({ path: `deploy/${env}/service.yaml`, content: serviceYaml(app) });
+      files.push({ path: `deploy/${env}/canary/deployment.yaml`, content: canaryDeploymentYaml(app) });
+    });
+
+    // Terraform skeleton
+    files.push({ path: `infra/providers.tf`, content: tfProviders() });
+    files.push({ path: `infra/variables.tf`, content: tfVariables(app, image) });
+    files.push({ path: `infra/main.tf`, content: tfMain() });
+    files.push({ path: `infra/outputs.tf`, content: tfOutputs() });
+    files.push({ path: `README-IAC.md`, content: readme() });
+
+    return files;
+  }
+
+  // Override the existing IaC button behaviour
+  if (window.MS_actions) {
+    const orig = window.MS_actions;
+    orig.generateDeploy = function(){
+      try{
+        const data = (typeof window.__ms_getData === 'function' ? window.__ms_getData() : window.__ms_data) || {};
+        const files = bundleFiles(data);
+
+        const chunks = ['# --- BEGIN MISSIONSMITH IAC BUNDLE ---'];
+        for (const f of files) { chunks.push(`\n# FILE: ${f.path}\n\n${f.content}`); }
+        const blob = new Blob([chunks.join('\n')], {type:'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mission-iac-bundle.txt';
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 200);
+
+        alert('✅ IaC bundle generated: deploy/{env}/... + infra/ (Terraform).');
+      }catch(e){
+        console.error('generateDeploy failed', e);
+        alert('Failed to generate IaC bundle.');
+      }
+    };
+    window.MS_actions = orig;
+  }
+})();
+</script>
+
+
+<!-- === MissionSmith Lineage Generator v1.0 === -->
+<script>
+(function(){
+  function safe(v, d){ return (v===undefined || v===null) ? d : v; }
+  function norm(s){ return String(s||'').trim().replace(/[^a-z0-9-_:.]/ig,'_'); }
+  function title(s){ return String(s||'').trim(); }
+
+  // Extract a best-effort model from the app's data blob
+  function extractModel(data){
+    const sc = data?.serviceConfig || {};
+    const services = [];
+    const datasets = [];
+    const policies = [];
+    const pipelines = [];
+    const objectives = [];
+
+    // Service
+    const appName = sc.default_service_name || 'app';
+    services.push({id: norm(appName), name: title(appName), kind:'service'});
+
+    // Datasets / APIs (best effort)
+    const ds = safe(sc.data_sources, []);
+    ds.forEach((d, i)=>{
+      const name = d?.name || `dataset_${i+1}`;
+      datasets.push({id: norm(name), name: title(name), kind:'dataset'});
+    });
+
+    // Pipelines (from CI/CD + build stages if present)
+    const pl = safe(data?.pipelines, []);
+    pl.forEach((p, i)=>{
+      const name = p?.name || `pipeline_${i+1}`;
+      pipelines.push({id: norm(name), name: title(name), kind:'pipeline'});
+    });
+
+    // Policies / Guardrails
+    const pol = safe(data?.policies, []);
+    pol.forEach((p, i)=>{
+      const name = p?.name || `policy_${i+1}`;
+      policies.push({id: norm(name), name: title(name), kind:'policy'});
+    });
+
+    // Objectives (Mission Objectives sheet)
+    const obj = safe(data?.objectives || data?.missionObjectives, []);
+    obj.forEach((o, i)=>{
+      const name = o?.reference || o?.name || `objective_${i+1}`;
+      objectives.push({id: norm(name), name: title(name), kind:'objective'});
+    });
+
+    // Build edges heuristically:
+    const edges = [];
+    // service uses datasets
+    datasets.forEach(d => edges.push({from: d.id, to: norm(appName), relation: 'consumed_by'}));
+    // pipelines deploy service
+    pipelines.forEach(p => edges.push({from: p.id, to: norm(appName), relation: 'deploys'}));
+    // policies govern service and pipelines
+    policies.forEach(pol => {
+      edges.push({from: pol.id, to: norm(appName), relation:'governs'});
+      pipelines.forEach(p => edges.push({from: pol.id, to: p.id, relation:'governs'}));
+    });
+    // objectives drive pipelines (if any)
+    objectives.forEach(o => {
+      pipelines.forEach(p => edges.push({from: o.id, to: p.id, relation:'drives'}));
+    });
+
+    return {services, datasets, policies, pipelines, objectives, edges};
+  }
+
+  function toCSV(model){
+    const header = "from,to,relation\n";
+    const rows = model.edges.map(e => `${e.from},${e.to},${e.relation}`);
+    return header + rows.join("\n") + "\n";
+  }
+
+  function toDOT(model){
+    const lines = [];
+    lines.push('digraph MissionSmithLineage {');
+    lines.push('  rankdir=LR;');
+    function node(n, shape, color){
+      lines.push(`  "${n.id}" [label="${n.name}\\n(${n.kind})", shape=${shape}, style=filled, fillcolor="${color}"];`);
+    }
+    model.datasets.forEach(n => node(n, 'cylinder', '#E0F7FA'));
+    model.services.forEach(n => node(n, 'box', '#E8F5E9'));
+    model.pipelines.forEach(n => node(n, 'component', '#EDE7F6'));
+    model.policies.forEach(n => node(n, 'octagon', '#FFF3E0'));
+    model.objectives.forEach(n => node(n, 'ellipse', '#F3E5F5'));
+
+    model.edges.forEach(e => lines.push(`  "${e.from}" -> "${e.to}" [label="${e.relation}"];`));
+    lines.push('}');
+    return lines.join("\n");
+  }
+
+  // Minimal OpenLineage-style JSON (not full spec; enough for import/visualization tools)
+  function toOpenLineage(model){
+    const now = new Date().toISOString();
+    const events = [];
+
+    // Emit one RUN event per pipeline, pointing to the service dataset outputs
+    model.pipelines.forEach(p => {
+      const outputs = model.services.map(s => ({namespace:"app", name:s.name}));
+      const inputs  = model.datasets.map(d => ({namespace:"data", name:d.name}));
+      events.push({
+        eventType: "COMPLETE",
+        eventTime: now,
+        run: { runId: `${p.id}-${now}` },
+        job: { namespace: "mission-smith", name: p.name },
+        inputs, outputs,
+        producer: "missionsmith/lineage-generator"
+      });
+    });
+    return JSON.stringify({version:"0.1", events}, null, 2);
+  }
+
+  // Hook up Lineage button if MS_actions present
+  if (window.MS_actions){
+    const orig = window.MS_actions;
+    orig.generateLineage = function(){
+      try{
+        const data = (typeof window.__ms_getData === 'function' ? window.__ms_getData() : window.__ms_data) || {};
+        const model = extractModel(data);
+
+        const files = [
+          { path: 'lineage/edges.csv', content: toCSV(model) },
+          { path: 'lineage/graph.dot', content: toDOT(model) },
+          { path: 'lineage/openlineage.json', content: toOpenLineage(model) },
+          { path: 'lineage/README-LINEAGE.md', content:
+`# MissionSmith Lineage Bundle
+
+This bundle provides three interoperable artifacts:
+
+1) **edges.csv** — simple \`from,to,relation\` edge list (easy to load in Neo4j/NetworkX/Gephi).
+2) **graph.dot** — Graphviz DOT for quick rendering to SVG/PNG (\`dot -Tsvg graph.dot -o graph.svg\`).
+3) **openlineage.json** — lightweight OpenLineage-style events that many tools can ingest (e.g. Marquez).
+
+### Relations
+- \`consumed_by\`: dataset → service
+- \`deploys\`: pipeline → service
+- \`governs\`: policy → (service|pipeline)
+- \`drives\`: objective → pipeline
+
+> Model is generated best‑effort from your MissionSmith data. Customize by editing this README or the JSON.
+`
+          }
+        ];
+
+        const chunks = ['# --- BEGIN MISSIONSMITH LINEAGE BUNDLE ---'];
+        for (const f of files){ chunks.push(`\n# FILE: ${f.path}\n\n${f.content}`); }
+        const blob = new Blob([chunks.join('\n')], {type:'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mission-lineage-bundle.txt';
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 200);
+
+        alert('✅ Lineage bundle generated: edges.csv, graph.dot, openlineage.json.');
+      }catch(e){
+        console.error('generateLineage failed', e);
+        alert('Failed to generate lineage bundle.');
+      }
+    };
+    window.MS_actions = orig;
+  }
+})();
+</script>
+
+
+<!-- === MissionSmith Analytics Generator v1.0 === -->
+<script>
+(function(){
+  function safe(v, d){ return (v===undefined||v===null) ? d : v; }
+  function norm(s){ return String(s||'').trim().replace(/[^a-z0-9-_:.]/ig,'_'); }
+  function title(s){ return String(s||'').trim(); }
+
+  function extractKPIs(data){
+    // Try multiple places: nfr.slo, nfr.kpis, analytics.kpis, objectives.*.kpi
+    const sc = data?.serviceConfig || {};
+    const slo = safe(sc?.nfr?.slo, []);
+    const k1 = slo.map(s => ({key: norm(s.name||s.id||'slo'), name: title(s.name||s.id||'SLO'), target: s.target, window: s.window || '30d', unit: s.unit || '%', source: s.source || 'app_metrics'}));
+
+    const k2 = safe(sc?.nfr?.kpis, []).map(k => ({
+      key: norm(k.key||k.name), name: title(k.name||k.key), unit: k.unit||'count', target: k.target, source: k.source||'events'
+    }));
+
+    const k3 = safe(data?.analytics?.kpis, []).map(k => ({
+      key: norm(k.key||k.name), name: title(k.name||k.key), unit: k.unit||'count', target: k.target, source: k.source||'warehouse'
+    }));
+
+    // derive from objectives with "KPI:" prefix
+    const objectives = safe(data?.objectives || data?.missionObjectives, []);
+    const k4 = objectives
+      .filter(o => (o?.kpi || '').toString().length || /kpi[:=]/i.test(String(o?.notes||'')))
+      .map((o,i)=>{
+        const nm = o?.kpi || String(o?.notes||'').match(/kpi[:=]\s*([^\n]+)/i)?.[1] || `objective_kpi_${i+1}`;
+        return {key: norm(nm), name: title(nm), unit: 'count', target: o?.target, source: 'derived'};
+      });
+
+    const all = [...k1, ...k2, ...k3, ...k4];
+    // de-dup by key
+    const seen = new Set(); const uniq=[];
+    all.forEach(k => { if(!k.key) return; if(!seen.has(k.key)){ seen.add(k.key); uniq.push(k);} });
+    if (uniq.length===0){
+      // Provide sensible defaults
+      uniq.push({key:'latency_p95_ms', name:'Latency p95', unit:'ms', target: 300, source:'app_metrics'});
+      uniq.push({key:'error_rate_pct', name:'Error Rate', unit:'%', target: 1, source:'app_metrics'});
+      uniq.push({key:'throughput_rps', name:'Throughput', unit:'rps', target: null, source:'app_metrics'});
+    }
+    return uniq;
+  }
+
+  function toMetricsCatalog(kpis){
+    const lines = [];
+    lines.push('apiVersion: v1');
+    lines.push('kind: MetricsCatalog');
+    lines.push('metadata:');
+    lines.push('  name: missionsmith-metrics');
+    lines.push('spec:');
+    lines.push('  kpis:');
+    kpis.forEach(k => {
+      lines.push(`  - key: ${k.key}`);
+      lines.push(`    name: "${k.name}"`);
+      if (k.unit!=null) lines.push(`    unit: "${k.unit}"`);
+      if (k.target!=null) lines.push(`    target: ${k.target}`);
+      lines.push(`    source: "${k.source||'warehouse'}"`);
+      lines.push(`    owners:`);
+      lines.push(`      - platform`);
+    });
+    return lines.join('\n') + '\n';
+  }
+
+  function toPrometheusRules(kpis, app){
+    const hdr = [
+      'groups:',
+      '- name: missionsmith.rules',
+      '  interval: 30s',
+      '  rules:'
+    ];
+    const rules = [];
+    kpis.forEach(k => {
+      if(/error_rate/.test(k.key)){
+        rules.push(
+`  - alert: HighErrorRate
+    expr: rate(http_requests_total{service="${app}",status=~"5.."}[5m]) / clamp_min(rate(http_requests_total{service="${app}"}[5m]),1) * 100 > ${k.target||1}
+    for: 10m
+    labels: { severity: "page" }
+    annotations:
+      summary: "High error rate on ${app}"
+      description: "Error rate > ${k.target||1}% for 10m"`);
+      }
+      if(/latency|p95/.test(k.key)){
+        rules.push(
+`  - alert: HighLatencyP95
+    expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="${app}"}[5m])) by (le)) * 1000 > ${k.target||300}
+    for: 10m
+    labels: { severity: "page" }
+    annotations:
+      summary: "High latency p95 on ${app}"
+      description: "Latency p95 > ${k.target||300}ms for 10m"`);
+      }
+    });
+    if (rules.length===0){
+      rules.push(
+`  - alert: ServiceDown
+    expr: up{service="${app}"} == 0
+    for: 5m
+    labels: { severity: "page" }
+    annotations:
+      summary: "${app} is down"
+      description: "No scrape targets reporting for 5m"`);
+    }
+    return hdr.concat(rules).join('\n') + '\n';
+  }
+
+  function toGrafanaDashboard(kpis, app){
+    // Minimal Grafana JSON model (v5+ export-ish, not strict; user can import and tweak).
+    const dash = {
+      annotations: { list: [{builtIn:1, datasource:'-- Grafana --', enable:true, hide:true, iconColor:'rgba(0, 211, 255, 1)', name:'Annotations & Alerts', type:'dashboard'}]},
+      editable: true,
+      graphTooltip: 0,
+      panels: [],
+      schemaVersion: 25,
+      style: 'dark',
+      tags: ['missionsmith','starter'],
+      templating: { list: [{name: 'service', type: 'query', query: `label_values(up, service)`, label: 'Service', current: {text: app, value: app}}]},
+      time: { from: 'now-6h', to: 'now' },
+      timepicker: {},
+      timezone: '',
+      title: `${app} | MissionSmith Analytics`,
+      version: 1
+    };
+
+    let id = 1; let y=0;
+    function panelFor(key, title, expr){
+      const p = {
+        id: id++,
+        gridPos: {h:8, w:12, x: (id%2?0:12), y: y + (id%2?0:8)},
+        type: 'timeseries',
+        title: `${title}`,
+        targets: [{expr, refId:'A'}]
+      };
+      return p;
+    }
+
+    // Basic panels
+    dash.panels.push(panelFor('rps', 'Throughput (RPS)', `sum(rate(http_requests_total{service="$service"}[1m]))`));
+    dash.panels.push(panelFor('latency_p95', 'Latency p95 (ms)', `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="$service"}[5m])) by (le)) * 1000`));
+    dash.panels.push(panelFor('error_rate', 'Error Rate (%)', `sum(rate(http_requests_total{service="$service",status=~"5.."}[5m])) / clamp_min(sum(rate(http_requests_total{service="$service"}[5m])),1) * 100`));
+
+    // KPI panels
+    kpis.forEach(k => {
+      if (/latency|p95/.test(k.key) || /error_rate/.test(k.key) || /throughput|rps/.test(k.key)) return;
+      // Put generic counter panels — user can edit later
+      dash.panels.push(panelFor(k.key, k.name, `sum(missionsmith_${k.key}{service="$service"})`));
+    });
+
+    return JSON.stringify(dash, null, 2);
+  }
+
+  function toDBTScaffold(app){
+    return `# dbt project for MissionSmith
+name: 'missionsmith_${app}'
+version: '1.0'
+config-version: 2
+
+profile: 'default'
+
+models:
+  missionsmith_${app}:
+    +materialized: view
+`;
+  }
+
+  function toDBTModelSQL(kpis){
+    const lines = [];
+    lines.push('-- Example KPI model (replace with your warehouse SQL)');
+    lines.push('with events as (');
+    lines.push('  select * from source(\'app\', \'events\')');
+    lines.push(')');
+    lines.push('select');
+    kpis.forEach((k,i)=>{
+      const comma = (i<kpis.length-1)?',':'';
+      lines.push(`  /* ${k.name} */ null as ${k.key}${comma}`);
+    });
+    lines.push('from events');
+    lines.push('limit 1');
+    return lines.join('\n') + '\n';
+  }
+
+  if (window.MS_actions){
+    const orig = window.MS_actions;
+    orig.generateAnalytics = function(){
+      try{
+        const data = (typeof window.__ms_getData === 'function' ? window.__ms_getData() : window.__ms_data) || {};
+        const sc = data?.serviceConfig || {};
+        const app = (sc.default_service_name || 'app').toString().trim();
+        const kpis = extractKPIs(data);
+
+        const files = [
+          { path: 'analytics/metrics-catalog.yaml', content: toMetricsCatalog(kpis) },
+          { path: 'analytics/prometheus-rules.yaml', content: toPrometheusRules(kpis, app) },
+          { path: 'analytics/grafana-dashboard.json', content: toGrafanaDashboard(kpis, app) },
+          { path: 'analytics/dbt/project.yml', content: toDBTScaffold(app) },
+          { path: 'analytics/dbt/models/kpis.sql', content: toDBTModelSQL(kpis) },
+          { path: 'analytics/README-ANALYTICS.md', content:
+`# MissionSmith Analytics Bundle
+
+This starter pack gives you:
+- **metrics-catalog.yaml** — canonical KPI list (keys, units, targets, ownership).
+- **prometheus-rules.yaml** — alert rules keyed off latency, error rate, and common KPIs.
+- **grafana-dashboard.json** — importable dashboard with RPS, p95 latency, error %, and KPI panels.
+- **dbt/** — a minimal scaffold to materialize KPI views in your warehouse.
+
+## Next steps
+1. Import \`grafana-dashboard.json\` into Grafana; set Prometheus as the data source.
+2. Load \`prometheus-rules.yaml\` into your Prometheus/Alertmanager setup.
+3. Store your KPI definitions in \`metrics-catalog.yaml\` and keep them versioned with code.
+4. Point \`dbt/models/kpis.sql\` at your real warehouse schema and build with \`dbt build\`.
+
+> KPIs were inferred from your MissionSmith data (nfr.slo / nfr.kpis / analytics.kpis / objectives). Edit this bundle as needed.
+`}
+        ];
+
+        const chunks = ['# --- BEGIN MISSIONSMITH ANALYTICS BUNDLE ---'];
+        files.forEach(f => chunks.push(`\n# FILE: ${f.path}\n\n${f.content}`));
+        const blob = new Blob([chunks.join('\n')], {type:'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mission-analytics-bundle.txt';
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 200);
+
+        alert('✅ Analytics bundle generated: metrics catalog, Prometheus rules, Grafana dashboard, dbt scaffold.');
+      }catch(e){
+        console.error('generateAnalytics failed', e);
+        alert('Failed to generate analytics bundle.');
+      }
+    };
+    window.MS_actions = orig;
+  }
+})();
+</script>
+
+</body>
+</html>
