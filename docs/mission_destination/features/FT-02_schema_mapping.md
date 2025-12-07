@@ -10,13 +10,9 @@ stories:
   - ST-03
   - ST-04
 
+
 overall_status: Complete
 
-testing_status: Complete
-halo_adherence: aggregated
-guardrail_adherence: Complete
-code_quality_adherence: Complete
-security_policy_adherence: Complete
 
 last_updated: <auto>
 ---

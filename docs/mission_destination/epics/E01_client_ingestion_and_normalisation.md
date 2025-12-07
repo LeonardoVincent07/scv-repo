@@ -14,13 +14,9 @@ features:
   - FT-03
   - FT-04
 
+
 overall_status: In Progress
 
-testing_status: In Progress
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---

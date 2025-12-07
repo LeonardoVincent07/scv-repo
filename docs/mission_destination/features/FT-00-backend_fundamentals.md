@@ -11,12 +11,8 @@ description: |
 stories:
   - ST-00
 
+
 overall_status: Complete
-testing_status: Planned
-halo_adherence: Planned
-guardrail_adherence: Planned
-code_quality_adherence: Planned
-security_policy_adherence: Planned
 
 last_updated: <auto>
 ---

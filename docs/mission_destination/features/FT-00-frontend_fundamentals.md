@@ -9,12 +9,8 @@ description: |
 stories:
   - ST-00-FRONTEND-UI-SHELL
 
+
 overall_status: In Progress
-testing_status: Planned
-halo_adherence: Planned
-guardrail_adherence: Planned
-code_quality_adherence: Planned
-security_policy_adherence: Planned
 
 last_updated: <auto>
 

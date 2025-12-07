@@ -4,20 +4,57 @@ Mission Control Overall Status Roll-up
 
 Responsibilities:
 - For each Story:
-    - Derive overall_status from its testing / guardrail / code / security /
-      halo fields (no implementation_presence).
+    - Derive overall_status from its testing / halo / guardrail /
+      code-quality / security fields (MVP dimensions only).
 - Aggregate Story overall_status up to Feature overall_status.
 - Aggregate Feature overall_status up to Epic overall_status.
 
+Rules
+=====
+
+Story overall_status (MVP):
+
+Let dims = {
+  testing_status,
+  halo_adherence,
+  guardrail_adherence,
+  code_quality_adherence,
+  security_policy_adherence
+}
+
+Normalise each dim:
+  - pass / ok / success / compliant     -> Complete
+  - fail / error / non_compliant        -> In Progress
+  - not_run / planned / empty / missing -> Planned
+
+Then:
+  - Complete  if all dims Complete
+  - Planned   if all dims Planned
+  - In Progress otherwise
+
+Feature overall_status:
+  - Planned   if all child Stories Planned
+  - Complete  if all child Stories Complete
+  - In Progress otherwise
+
+Epic overall_status:
+  - Planned   if all child Features Planned
+  - Complete  if all child Features Complete
+  - In Progress otherwise
+
 IMPORTANT:
-- We ONLY ever write 'overall_status' fields.
-- We NEVER touch testing_status / guardrail_adherence / code_quality_adherence /
-  security_policy_adherence / halo_adherence directly; we just read them.
+- We ONLY ever write 'overall_status' + 'last_updated' fields.
+- We NEVER touch the individual Story dimensions directly.
+- We NEVER change the Story→Feature or Feature→Epic mapping;
+  we only *read*:
+    - Story.frontmatter.feature
+    - Feature.frontmatter.epic
 """
 
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -28,7 +65,8 @@ FEATURES_DIR = REPO_ROOT / "docs" / "mission_destination" / "features"
 EPICS_DIR = REPO_ROOT / "docs" / "mission_destination" / "epics"
 
 
-# -------------------- helpers -------------------- #
+# -------------------- basic helpers -------------------- #
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -54,34 +92,10 @@ def _extract_scalar(text: str, key: str) -> Optional[str]:
     return val or None
 
 
-def _extract_yaml_list(text: str, key: str) -> List[str]:
-    """
-    Extract:
-
-      key:
-        - item1
-        - item2
-
-    Returns [item1, item2].
-    """
-    pattern = rf"^{re.escape(key)}:\s*\n(?P<body>(?:\s+- .*\n)+)"
-    m = re.search(pattern, text, flags=re.MULTILINE)
-    if not m:
-        return []
-    body = m.group("body")
-    items: List[str] = []
-    for line in body.splitlines():
-        s = line.strip()
-        if s.startswith("- "):
-            val = s[2:].strip()
-            if val:
-                items.append(val)
-    return items
-
-
 def _replace_scalar(text: str, key: str, value: str) -> str:
     """
     Replace or insert 'key: value' in the front matter.
+    We always insert before 'last_updated' if present, otherwise append.
     """
     pattern = rf"^{re.escape(key)}:\s*.*$"
     replacement = f"{key}: {value}"
@@ -102,7 +116,23 @@ def _replace_scalar(text: str, key: str, value: str) -> str:
     return text + replacement + "\n"
 
 
+def _now_iso_utc() -> str:
+    """
+    Current time in ISO UTC, matching the status model docs, e.g.
+    2025-01-01T12:00:00Z
+    """
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _touch_last_updated(text: str) -> str:
+    """
+    Ensure last_updated is set to "now" in ISO UTC.
+    """
+    return _replace_scalar(text, "last_updated", _now_iso_utc())
+
+
 # -------------------- status helpers -------------------- #
+
 
 def _norm_overall(raw: Optional[str]) -> str:
     """
@@ -145,208 +175,245 @@ def _aggregate_overall(child_statuses: List[str]) -> Optional[str]:
     return "In Progress"
 
 
-def _norm_flag(raw: Optional[str]) -> str:
+def _norm_dim(raw: Optional[str]) -> str:
     """
-    Normalise pass/fail/planned-ish flags used in story front matter.
+    Normalise a Story dimension value into one of:
+        Planned | In Progress | Complete
+
+    Used for:
+      testing_status
+      halo_adherence
+      guardrail_adherence
+      code_quality_adherence
+      security_policy_adherence
     """
     if raw is None:
-        return "planned"
-    t = raw.strip().strip("\"'").lower()
-    if t in {"pass", "passed", "ok", "true"}:
-        return "pass"
-    if t in {"fail", "failed", "error", "false"}:
-        return "fail"
-    if t in {"planned", "n/a", "na"}:
-        return "planned"
-    # fallback: treat unknown as planned
-    return "planned"
-
-
-def derive_story_overall(text: str) -> str:
-    """
-    Derive a Story's overall_status from its detailed fields.
-
-    Rules:
-
-    - If *nothing has started* (all flags 'planned')
-      -> Planned
-    - Else if ALL of
-        testing_status, guardrail_adherence, code_quality_adherence,
-        security_policy_adherence are 'pass'
-      AND halo_adherence is not 'fail'
-      -> Complete
-    - Otherwise
-      -> In Progress
-    """
-    testing = _norm_flag(_extract_scalar(text, "testing_status"))
-    guardrail = _norm_flag(_extract_scalar(text, "guardrail_adherence"))
-    code = _norm_flag(_extract_scalar(text, "code_quality_adherence"))
-    security = _norm_flag(_extract_scalar(text, "security_policy_adherence"))
-    halo_raw = _extract_scalar(text, "halo_adherence")
-    halo = _norm_flag(halo_raw) if halo_raw is not None else "planned"
-
-    flags = [testing, guardrail, code, security, halo]
-
-    # 1) Nothing touched yet
-    if all(f == "planned" for f in flags):
         return "Planned"
 
-    # 2) Everything green
-    if (
-        testing == "pass"
-        and guardrail == "pass"
-        and code == "pass"
-        and security == "pass"
-        and halo != "fail"
-    ):
+    t = raw.strip().strip("\"'")
+    tl = t.lower()
+
+    if tl in {"pass", "ok", "success", "successful", "compliant"}:
         return "Complete"
 
-    # 3) Something has happened but we are not complete
+    if tl in {"fail", "failed", "error", "errors", "non_compliant", "non-compliant"}:
+        return "In Progress"
+
+    # Treat not_run, planned, empty, and unknown as Planned (no evidence yet)
+    if tl in {"not_run", "not-run", "pending", "planned", ""}:
+        return "Planned"
+
+    # Default safely to "In Progress" if it's something unexpected but non-empty
     return "In Progress"
 
 
-# -------------------- main roll-up logic -------------------- #
-
-def update_story_overall() -> Dict[str, Dict[str, str]]:
+def _derive_story_overall(text: str) -> str:
     """
-    For every story file:
-    - derive overall_status from detailed fields
-    - write it back to the file
-    - return mapping story_id -> {feature, overall}
+    Derive Story overall_status from the 5 MVP dimensions.
     """
-    stories: Dict[str, Dict[str, str]] = {}
+    dims_keys = [
+        "testing_status",
+        "halo_adherence",
+        "guardrail_adherence",
+        "code_quality_adherence",
+        "security_policy_adherence",
+    ]
 
+    dim_states: List[str] = []
+    for key in dims_keys:
+        raw = _extract_scalar(text, key)
+        dim_states.append(_norm_dim(raw))
+
+    # Aggregate those Planned/In Progress/Complete values
+    agg = _aggregate_overall(dim_states)
+    if agg is None:
+        # shouldn't happen (we always have 5 dims) but be defensive
+        return "Planned"
+    return agg
+
+
+# -------------------- roll-up implementation -------------------- #
+
+
+def rollup_stories() -> Dict[str, Dict[str, str]]:
+    """
+    Process Stories:
+
+    - Derive Story overall_status from dimension fields.
+    - Update overall_status + last_updated when it changes.
+    - Build mapping Story -> Feature and Story overall_status.
+
+    Returns:
+        {
+          "story_status": {story_id: overall_status},
+          "story_feature": {story_id: feature_id},
+        }
+    """
+    story_status: Dict[str, str] = {}
+    story_feature: Dict[str, str] = {}
+
+    print(">>> Rolling up Story statuses...")
     for path in sorted(STORIES_DIR.glob("*.md")):
         text = _read(path)
+        story_id = _extract_scalar(text, "story_id")
+        if not story_id:
+            continue
 
-        sid = _extract_scalar(text, "story_id")
-        if not sid:
-            continue  # ignore legacy / non-story docs
+        feature_id = _extract_scalar(text, "feature")
+        if not feature_id:
+            # If a Story is not mapped to a Feature, we skip it for roll-up
+            print(f"    [WARN] Story {story_id} has no 'feature' mapping; skipping.")
+            continue
 
-        feature_id = _extract_scalar(text, "feature") or ""
+        old_overall_raw = _extract_scalar(text, "overall_status")
+        old_overall = _norm_overall(old_overall_raw)
+        new_overall = _derive_story_overall(text)
 
-        derived_overall = derive_story_overall(text)
-        new_text = _replace_scalar(text, "overall_status", derived_overall)
-
-        if new_text != text:
+        if new_overall != old_overall:
+            new_text = _replace_scalar(text, "overall_status", new_overall)
+            new_text = _touch_last_updated(new_text)
             _write(path, new_text)
-            print(f">>> Updated Story {sid} overall_status -> {derived_overall}")
-
-        stories[sid] = {"feature": feature_id, "overall": derived_overall}
-
-    return stories
-
-
-def rollup_features(stories: Dict[str, Dict[str, str]]) -> Dict[str, str]:
-    """
-    Compute overall_status per feature and write it into feature files.
-
-    Returns mapping: feature_id -> overall_status
-    """
-    feature_overall: Dict[str, str] = {}
-
-    # Build feature -> [story_ids] from stories
-    feature_to_stories: Dict[str, List[str]] = {}
-    for sid, info in stories.items():
-        fid = info["feature"]
-        if not fid:
-            continue
-        feature_to_stories.setdefault(fid, []).append(sid)
-
-    for path in sorted(FEATURES_DIR.glob("*.md")):
-        text = _read(path)
-
-        fid = _extract_scalar(text, "feature_id")
-        if not fid:
-            continue
-
-        # Prefer explicit list in front matter if present
-        listed_story_ids = _extract_yaml_list(text, "stories")
-        if listed_story_ids:
-            story_ids = listed_story_ids
+            print(f"    Story {story_id}: {old_overall} -> {new_overall}")
         else:
-            story_ids = feature_to_stories.get(fid, [])
+            # still ensure we store the normalised value
+            new_overall = old_overall
 
-        child_overall: List[str] = []
-        for sid in story_ids:
-            info = stories.get(sid)
-            if info is None:
-                child_overall.append("Planned")
-            else:
-                child_overall.append(info["overall"])
+        story_status[story_id] = new_overall
+        story_feature[story_id] = feature_id
 
-        agg = _aggregate_overall(child_overall)
-
-        new_text = text
-        if agg:
-            new_text = _replace_scalar(new_text, "overall_status", agg)
-
-        if new_text != text:
-            _write(path, new_text)
-            print(f">>> Updated Feature {fid} overall_status -> {agg}")
-
-        # Read back final value (may have existed already)
-        final_text = _read(path)
-        final_overall = _norm_overall(_extract_scalar(final_text, "overall_status"))
-        feature_overall[fid] = final_overall
-
-    return feature_overall
+    return {
+        "story_status": story_status,
+        "story_feature": story_feature,
+    }
 
 
-def rollup_epics(feature_overall: Dict[str, str]) -> None:
+def rollup_features(story_status: Dict[str, str], story_feature: Dict[str, str]) -> Dict[str, Dict[str, str]]:
     """
-    Compute overall_status per epic and write it into epic files.
-    """
-    # Build epic -> [feature_ids] from features
-    epic_to_features: Dict[str, List[str]] = {}
+    Process Features:
 
+    - Determine child Stories from the Story->Feature mapping.
+    - Aggregate their overall_status to Feature overall_status.
+    - Update Feature overall_status + last_updated when it changes.
+    - Build mapping Feature -> Epic and Feature overall_status.
+
+    Returns:
+        {
+          "feature_status": {feature_id: overall_status},
+          "feature_epic": {feature_id: epic_id},
+        }
+    """
+    # Build feature -> [story_id] from story_feature mapping
+    stories_by_feature: Dict[str, List[str]] = {}
+    for sid, fid in story_feature.items():
+        stories_by_feature.setdefault(fid, []).append(sid)
+
+    feature_status: Dict[str, str] = {}
+    feature_epic: Dict[str, str] = {}
+
+    print(">>> Rolling up Feature statuses...")
     for path in sorted(FEATURES_DIR.glob("*.md")):
         text = _read(path)
-        fid = _extract_scalar(text, "feature_id")
-        epic_id = _extract_scalar(text, "epic")
-        if not fid or not epic_id:
+        feature_id = _extract_scalar(text, "feature_id")
+        if not feature_id:
             continue
-        epic_to_features.setdefault(epic_id, []).append(fid)
 
+        epic_id = _extract_scalar(text, "epic")
+        if epic_id:
+            feature_epic[feature_id] = epic_id
+
+        child_story_ids = stories_by_feature.get(feature_id, [])
+        child_overalls = [story_status[sid] for sid in child_story_ids if sid in story_status]
+
+        agg = _aggregate_overall(child_overalls)
+        if agg is None:
+            # No child stories mapped; leave overall_status as-is
+            old = _norm_overall(_extract_scalar(text, "overall_status"))
+            feature_status[feature_id] = old
+            if not child_story_ids:
+                print(f"    [WARN] Feature {feature_id} has no mapped Stories; leaving status as {old}.")
+            else:
+                print(f"    [WARN] Feature {feature_id} has Stories but none with known status; leaving as {old}.")
+            continue
+
+        old_overall = _norm_overall(_extract_scalar(text, "overall_status"))
+        new_overall = agg
+
+        if new_overall != old_overall:
+            new_text = _replace_scalar(text, "overall_status", new_overall)
+            new_text = _touch_last_updated(new_text)
+            _write(path, new_text)
+            print(f"    Feature {feature_id}: {old_overall} -> {new_overall}")
+        else:
+            new_overall = old_overall
+
+        feature_status[feature_id] = new_overall
+
+    return {
+        "feature_status": feature_status,
+        "feature_epic": feature_epic,
+    }
+
+
+def rollup_epics(feature_status: Dict[str, str], feature_epic: Dict[str, str]) -> None:
+    """
+    Process Epics:
+
+    - Determine child Features from the Feature->Epic mapping.
+    - Aggregate their overall_status to Epic overall_status.
+    - Update Epic overall_status + last_updated when it changes.
+    """
+    # Build epic -> [feature_id] from feature_epic mapping
+    features_by_epic: Dict[str, List[str]] = {}
+    for fid, eid in feature_epic.items():
+        features_by_epic.setdefault(eid, []).append(fid)
+
+    print(">>> Rolling up Epic statuses...")
     for path in sorted(EPICS_DIR.glob("*.md")):
         text = _read(path)
-
-        eid = _extract_scalar(text, "epic_id")
-        if not eid:
+        epic_id = _extract_scalar(text, "epic_id")
+        if not epic_id:
             continue
 
-        feature_ids = _extract_yaml_list(text, "features")
-        if not feature_ids:
-            feature_ids = epic_to_features.get(eid, [])
+        child_feature_ids = features_by_epic.get(epic_id, [])
+        child_overalls = [feature_status[fid] for fid in child_feature_ids if fid in feature_status]
 
-        child_overall: List[str] = []
-        for fid in feature_ids:
-            child_overall.append(feature_overall.get(fid, "Planned"))
+        agg = _aggregate_overall(child_overalls)
+        if agg is None:
+            old = _norm_overall(_extract_scalar(text, "overall_status"))
+            if not child_feature_ids:
+                print(f"    [WARN] Epic {epic_id} has no mapped Features; leaving status as {old}.")
+            else:
+                print(f"    [WARN] Epic {epic_id} has Features but none with known status; leaving as {old}.")
+            continue
 
-        agg = _aggregate_overall(child_overall)
+        old_overall = _norm_overall(_extract_scalar(text, "overall_status"))
+        new_overall = agg
 
-        new_text = text
-        if agg:
-            new_text = _replace_scalar(new_text, "overall_status", agg)
-
-        if new_text != text:
+        if new_overall != old_overall:
+            new_text = _replace_scalar(text, "overall_status", new_overall)
+            new_text = _touch_last_updated(new_text)
             _write(path, new_text)
-            print(f">>> Updated Epic {eid} overall_status -> {agg}")
+            print(f"    Epic {epic_id}: {old_overall} -> {new_overall}")
+
+
+# -------------------- CLI -------------------- #
 
 
 def main() -> int:
     print("=== Mission Control Overall Status Roll-up ===")
     print(f"Repo root: {REPO_ROOT}")
 
-    stories = update_story_overall()
-    print(f"Updated and collected {len(stories)} stories.")
+    story_maps = rollup_stories()
+    feature_maps = rollup_features(
+        story_status=story_maps["story_status"],
+        story_feature=story_maps["story_feature"],
+    )
+    rollup_epics(
+        feature_status=feature_maps["feature_status"],
+        feature_epic=feature_maps["feature_epic"],
+    )
 
-    feature_overall = rollup_features(stories)
-    print(f"Rolled up {len(feature_overall)} features.")
-
-    rollup_epics(feature_overall)
-    print("Rolled up epics.")
-    print("=== Done ===")
+    print("=== Roll-up complete. ===")
     return 0
 
 

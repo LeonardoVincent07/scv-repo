@@ -6,11 +6,8 @@ name: "Application Bootstrapping"
 features:
   - FT-00-BE
 
+
 overall_status: Complete
-testing_status: Planned
-guardrail_adherence: Planned
-code_quality_adherence: Planned
-security_policy_adherence: Planned
 
 last_updated: <auto>
 
