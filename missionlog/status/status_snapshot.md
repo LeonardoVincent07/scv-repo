@@ -21,7 +21,7 @@
 | FT-00-BE | E00 | Backend Fundamentals | Complete | ST-00 |
 | FT-00-UI | E00-UI | Frontend Fundamentals | In Progress | ST-00-FRONTEND-UI-SHELL |
 | FT-01 | EP-01 | Source System Configuration | In Progress | ST-01, ST-02 |
-| FT-02 | EP-01 | Schema Mapping to Canonical Model | In Progress | ST-03, ST-04 |
+| FT-02 | EP-01 | Schema Mapping to Canonical Model | Complete | ST-03, ST-04 |
 | FT-03 | EP-01 | Initial Bulk Ingestion | In Progress | ST-05, ST-06 |
 | FT-04 | EP-01 | Incremental Ingestion & Change Detection | In Progress | ST-07, ST-08 |
 | FT-05 | EP-02 | Exact Match Rules | In Progress | ST-09, ST-10 |
@@ -47,13 +47,13 @@
 | ST-00-FRONTEND-UI-SHELL | FT-00-UI | Provide Frontend UI Shell Availability | In Progress |
 | ST-01 | FT-01 | Register CRM source | In Progress |
 | ST-02 | FT-01 | Register KYC source | In Progress |
-| ST-03 | FT-02 | Map identity fields | In Progress |
-| ST-04 | FT-02 | Map identifiers | In Progress |
+| ST-03 | FT-02 | Map identity fields | Complete |
+| ST-04 | FT-02 | Map identifiers | Complete |
 | ST-05 | FT-03 | Bulk load CRM | In Progress |
 | ST-06 | FT-03 | Bulk load KYC | In Progress |
 | ST-07 | FT-04 | Detect upstream deltas | In Progress |
 | ST-08 | FT-04 | Apply deltas | In Progress |
-| ST-09 | FT-05 | Match by tax ID | In Progress |
+| ST-09 | FT-05 | Match by tax ID | Complete |
 | ST-10 | FT-05 | Match by registration number | In Progress |
 | ST-11 | FT-06 | Fuzzy name match | In Progress |
 | ST-12 | FT-06 | Attribute confidence | In Progress |
@@ -64,7 +64,7 @@
 | ST-17 | FT-08 | Normalise search fields | In Progress |
 | ST-18 | FT-09 | Fuzzy search queries | In Progress |
 | ST-19 | FT-09 | Search ranking | In Progress |
-| ST-20 | FT-10 | Assemble base profile | In Progress |
+| ST-20 | FT-10 | Assemble base profile | Complete |
 | ST-21 | FT-10 | Assemble metadata | In Progress |
 | ST-22 | FT-11 | Expose lineage | In Progress |
 | ST-23 | FT-11 | Drill-down lineage | In Progress |

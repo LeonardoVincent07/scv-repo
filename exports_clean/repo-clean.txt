@@ -1,73 +1,49 @@
 ﻿===== CLEAN REPO EXPORT =====
 
 ===== FILE: app_backend\main.py =====
-# Story: ST-00-backend-api-availability
-# Feature: FT-00-backend-fundamentals
-# Epic: E00
-# Purpose: Backend bootstrapping and health endpoint.
-
-from typing import Any, Dict, List
-import json
-import os
+import os  # <-- Added the os import
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+import json
 
 from .db import Base, engine, SessionLocal
 from . import models, schemas
-
-# Import your existing SCV domain service
 from src.services.client_profile.service import ClientProfileService
 
-# ------------------------------------
 # Initialise database
-# ------------------------------------
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Single Client View (SCV) Backend")
 
-# ------------------------------------
-# CORS (kept for optional Vite dev server use)
-# ------------------------------------
+# CORS (for frontend dev server access)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ------------------------------------
-# Serve built frontend (Vite dist)
-# ------------------------------------
-FRONTEND_DIST = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "app_frontend", "dist")
-)
-
+# Serve frontend static files (React app)
+FRONTEND_DIST = "app_frontend/dist"
 if os.path.isdir(FRONTEND_DIST):
-    # Serve static assets (JS/CSS, etc.)
-    app.mount(
-        "/assets",
-        StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")),
-        name="assets",
-    )
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
 
     @app.get("/", include_in_schema=False)
-    async def serve_react_index():
-        """Serve the built React single-page app."""
+    async def serve_index():
         index_path = os.path.join(FRONTEND_DIST, "index.html")
         return FileResponse(index_path)
 
+# Serve MissionLog status snapshot JSON file
+MISSIONLOG_PUBLIC = "app_frontend/public/missionlog"
+if os.path.isdir(MISSIONLOG_PUBLIC):
+    app.mount("/missionlog", StaticFiles(directory=MISSIONLOG_PUBLIC), name="missionlog")
 
-# ------------------------------------
-# DB session dependency
-# ------------------------------------
+# Dependency to get database session
 def get_db():
     db = SessionLocal()
     try:
@@ -75,18 +51,22 @@ def get_db():
     finally:
         db.close()
 
+# Health check endpoint
+@app.get("/health", tags=["system"])
+def health_check():
+    return {"status": "ok"}
 
 # ------------------------------------
 # Load raw records for a client
 # ------------------------------------
-def _load_raw_records_for_client(db: Session, client_id: str) -> List[Dict[str, Any]]:
-    rows: List[models.SourceRecord] = (
+def _load_raw_records_for_client(db: Session, client_id: str) -> list[dict[str, any]]:
+    rows: list[models.SourceRecord] = (
         db.query(models.SourceRecord)
         .filter(models.SourceRecord.client_id == client_id)
         .all()
     )
 
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, any]] = []
     for row in rows:
         try:
             payload = json.loads(row.payload_json)
@@ -100,102 +80,9 @@ def _load_raw_records_for_client(db: Session, client_id: str) -> List[Dict[str, 
 
     return records
 
-
-# ------------------------------------
-# Health check
-# ------------------------------------
-@app.get("/health", tags=["system"])
-def health_check():
-    return {"status": "ok"}
-
-
-# ------------------------------------
-# Ingestion endpoint
-# ------------------------------------
-@app.post("/ingest", response_model=schemas.SourceRecordRead, tags=["ingestion"])
-def ingest_source_record(
-    record_in: schemas.SourceRecordCreate,
-    db: Session = Depends(get_db),
-):
-    """
-    Upsert a source record, then return it in the API schema shape.
-    """
-    existing = (
-        db.query(models.SourceRecord)
-        .filter(
-            models.SourceRecord.client_id == record_in.client_id,
-            models.SourceRecord.system == record_in.system,
-        )
-        .one_or_none()
-    )
-
-    payload_json = json.dumps(record_in.payload)
-
-    if existing:
-        existing.payload_json = payload_json
-        db.add(existing)
-        db.commit()
-        db.refresh(existing)
-        row = existing
-    else:
-        row = models.SourceRecord(
-            client_id=record_in.client_id,
-            system=record_in.system,
-            payload_json=payload_json,
-        )
-        db.add(row)
-        db.commit()
-        db.refresh(row)
-
-    # Normalise to the Pydantic schema so FastAPI doesnâ€™t choke
-    return schemas.SourceRecordRead(
-        id=row.id,
-        client_id=row.client_id,
-        system=row.system,
-        payload=json.loads(row.payload_json),
-    )
-
-
-
-
-# ------------------------------------
-# List raw source records
-# ------------------------------------
-@app.get(
-    "/clients/{client_id}/sources",
-    response_model=list[schemas.SourceRecordRead],
-    tags=["clients"],
-)
-def list_client_sources(
-    client_id: str,
-    db: Session = Depends(get_db),
-):
-    rows = (
-        db.query(models.SourceRecord)
-        .filter(models.SourceRecord.client_id == client_id)
-        .all()
-    )
-    out: List[schemas.SourceRecordRead] = []
-    for row in rows:
-        out.append(
-            schemas.SourceRecordRead(
-                id=row.id,
-                client_id=row.client_id,
-                system=row.system,
-                payload=json.loads(row.payload_json),
-            )
-        )
-    return out
-
-
-# ------------------------------------
-# SCV Profile endpoint (LDM aligned)
-# ------------------------------------
+# Endpoint to get client profile
 @app.get("/clients/{client_id}/profile", tags=["clients"])
-def get_client_profile(
-    client_id: str,
-    db: Session = Depends(get_db),
-):
+def get_client_profile(client_id: str, db: Session = Depends(get_db)):
     raw_records = _load_raw_records_for_client(db, client_id)
 
     service = ClientProfileService()
@@ -205,6 +92,24 @@ def get_client_profile(
         raise HTTPException(status_code=404, detail="Profile could not be assembled")
 
     return profile
+
+# ------------------------------------
+# Endpoint to get client sources
+# ------------------------------------
+@app.get("/clients/{client_id}/sources", tags=["clients"])
+def get_client_sources(client_id: str, db: Session = Depends(get_db)):
+    # Query the source records for the given client_id
+    rows = db.query(models.SourceRecord).filter(models.SourceRecord.client_id == client_id).all()
+
+    # If no sources found, return an empty list
+    if not rows:
+        return []
+
+    # Otherwise, return the source records
+    return rows
+
+
+
 
 
 
@@ -257,6 +162,9 @@ def get_client_profile(
 
 ===== FILE: app_frontend\src\App.jsx =====
 import React, { useState } from "react";
+import MissionLogPanel from "./MissionLogPanel";
+import MissionAtlasPanel from "./MissionAtlasPanel";
+import logo from "./assets/m7_single_client_view.png";
 
 const BACKEND_BASE_URL = "http://127.0.0.1:8000";
 
@@ -267,34 +175,39 @@ function App() {
   const [sources, setSources] = useState([]);
   const [error, setError] = useState("");
 
+  // 'scv' | 'missionLog' | 'missionAtlas'
+  const [activeView, setActiveView] = useState("scv");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!clientId.trim()) {
       setError("Please enter a Client ID.");
       return;
     }
+
     setError("");
     setLoading(true);
     setProfile(null);
     setSources([]);
 
     try {
+      const encodedId = encodeURIComponent(clientId.trim());
+
       const profileRes = await fetch(
-        `${BACKEND_BASE_URL}/clients/${encodeURIComponent(clientId)}/profile`
+        `${BACKEND_BASE_URL}/clients/${encodedId}/profile`
       );
       if (!profileRes.ok) {
         const detail = await profileRes.json().catch(() => ({}));
         throw new Error(detail.detail || "Failed to fetch profile.");
       }
       const profileJson = await profileRes.json();
+      console.log('Profile:', profileJson); // Log to confirm
 
       const sourcesRes = await fetch(
-        `${BACKEND_BASE_URL}/clients/${encodeURIComponent(clientId)}/sources`
+        `${BACKEND_BASE_URL}/clients/${encodedId}/sources`
       );
-      let sourcesJson = [];
-      if (sourcesRes.ok) {
-        sourcesJson = await sourcesRes.json();
-      }
+      const sourcesJson = sourcesRes.ok ? await sourcesRes.json() : [];
+      console.log('Sources:', sourcesJson); // Log to confirm
 
       setProfile(profileJson);
       setSources(sourcesJson);
@@ -306,241 +219,261 @@ function App() {
     }
   };
 
+  const isMissionLog = activeView === "missionLog";
+  const isMissionAtlas = activeView === "missionAtlas";
+
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Top bar */}
+      {/* Header with MissionHalo logo */}
       <header className="bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-heading text-halo-primary">
-              Single Client View
-            </span>
-            <span className="text-sm font-body text-gray-500">
-              MissionHalo MVP
-            </span>
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <img
+            src={logo}
+            alt="M7 single client view"
+            className="h-16 w-auto md:h-20"
+          />
+        </div>
+
+        {/* Mission buttons bar */}
+        <div className="bg-gray-100 border-t border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex justify-end gap-4">
+            {/* MissionSmith: open HTML via backend route /missionsmith */}
+            <button
+              type="button"
+              style={{ fontFamily: "Fjalla One" }}
+              className="inline-flex items-center justify-center px-8 py-2.5 rounded-md border text-base text-gray-900 bg-[rgb(176,192,159)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
+              onClick={() =>
+                window.open("/missionsmith", "_blank", "noopener,noreferrer")
+              }
+            >
+              MissionSmith
+            </button>
+
+            {/* MissionAtlas */}
+            <button
+              type="button"
+              style={{ fontFamily: "Fjalla One" }}
+              className="inline-flex items-center justify-center px-8 py-2.5 rounded-md border text-base text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
+              onClick={() => setActiveView("missionAtlas")}
+            >
+              MissionAtlas
+            </button>
+
+            {/* MissionLog */}
+            <button
+              type="button"
+              style={{ fontFamily: "Fjalla One" }}
+              className="inline-flex items-center justify-center px-8 py-2.5 rounded-md border text-base text-gray-900 bg-[rgb(241,205,86)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
+              onClick={() => setActiveView("missionLog")}
+            >
+              MissionLog
+            </button>
           </div>
-          <span className="text-xs font-body text-gray-400">
-            Backend: {BACKEND_BASE_URL}
-          </span>
         </div>
       </header>
 
-      {/* Main layout */}
       <main className="max-w-6xl mx-auto px-4 py-6">
-        {/* Search card */}
-        <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="font-heading text-lg text-gray-800 mb-4">
-            Find client profile
-          </h2>
+        {isMissionLog ? (
+          <MissionLogPanel setActiveView={setActiveView} />
+        ) : isMissionAtlas ? (
+          <MissionAtlasPanel />
+        ) : (
+          <>
+            {/* Search */}
+            <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+              <h2 className="font-heading text-lg text-gray-800 mb-4">
+                Find client profile
+              </h2>
 
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col md:flex-row gap-4 items-stretch md:items-end"
-          >
-            <div className="flex-1">
-              <label
-                htmlFor="clientId"
-                className="block text-sm font-body text-gray-600 mb-1"
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col md:flex-row gap-4 items-stretch md:items-end"
               >
-                Client ID
-              </label>
-              <input
-                id="clientId"
-                type="text"
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-halo-primary focus:border-halo-primary font-body text-sm"
-                placeholder="e.g. 123"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-md font-body text-sm font-medium bg-halo-primary text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? "Loadingâ€¦" : "Get profile"}
-            </button>
-          </form>
-
-          {error && (
-            <p className="mt-3 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded-md px-3 py-2 font-body">
-              {error}
-            </p>
-          )}
-        </section>
-
-        {/* Content grid */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Profile card */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
-              <h3 className="font-heading text-lg text-gray-800 mb-4 flex items-center justify-between">
-                <span>Client profile</span>
-                {profile && (
-                  <span className="text-xs font-body text-gray-500">
-                    Client ID: {profile.client_id}
-                  </span>
-                )}
-              </h3>
-
-              {!profile && !loading && (
-                <p className="text-sm font-body text-gray-500">
-                  Enter a Client ID and click{" "}
-                  <span className="font-medium">Get profile</span> to see the
-                  assembled Single Client View.
-                </p>
-              )}
-
-              {profile && (
-                <div className="space-y-4">
-                  {/* Core identity */}
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="font-heading text-sm text-gray-700 mb-2">
-                      Core identity
-                    </h4>
-                    <dl className="grid grid-cols-2 gap-y-2 text-sm font-body">
-                      <div>
-                        <dt className="text-gray-500">Name</dt>
-                        <dd className="text-gray-900">
-                          {profile.name || "â€”"}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Email</dt>
-                        <dd className="text-gray-900">
-                          {profile.email || "â€”"}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Country</dt>
-                        <dd className="text-gray-900">
-                          {profile.country || "â€”"}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  {/* Identifiers */}
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="font-heading text-sm text-gray-700 mb-2">
-                      Identifiers
-                    </h4>
-                    {profile.identifiers && profile.identifiers.length > 0 ? (
-                      <ul className="space-y-1 text-sm font-body">
-                        {profile.identifiers.map((id, idx) => (
-                          <li
-                            key={idx}
-                            className="flex justify-between border-b border-gray-200 last:border-b-0 pb-1"
-                          >
-                            <span className="text-gray-600">
-                              {id.system || id["system"]}
-                            </span>
-                            <span className="text-gray-900 font-mono">
-                              {id.value || id["value"]}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-gray-500 font-body">
-                        No identifiers found.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Addresses */}
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="font-heading text-sm text-gray-700 mb-2">
-                      Addresses
-                    </h4>
-                    {profile.addresses && profile.addresses.length > 0 ? (
-                      <ul className="space-y-2 text-sm font-body">
-                        {profile.addresses.map((addr, idx) => (
-                          <li
-                            key={idx}
-                            className="border-b border-gray-200 pb-2 last:border-b-0"
-                          >
-                            <div className="text-gray-900">
-                              {[
-                                addr.line1 || addr["line1"],
-                                addr.line2 || addr["line2"],
-                                addr.city || addr["city"],
-                                addr.postcode || addr["postcode"],
-                                addr.country || addr["country"],
-                              ]
-                                .filter(Boolean)
-                                .join(", ")}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              Source: {addr.source || addr["source"] || "â€”"}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-gray-500 font-body">
-                        No addresses available.
-                      </p>
-                    )}
-                  </div>
+                {/* Input */}
+                <div className="flex-1">
+                  <label
+                    htmlFor="client-id"
+                    className="block text-sm font-body text-gray-600 mb-1"
+                  >
+                    Client ID
+                  </label>
+                  <input
+                    id="client-id"
+                    type="text"
+                    value={clientId}
+                    onChange={(e) => setClientId(e.target.value)}
+                    placeholder="e.g. 123"
+                    className="w-full px-3 py-2 rounded-md border border-gray-300 font-body text-sm focus:outline-none focus:ring-2 focus:ring-[#1A9988] focus:border-[#1A9988]"
+                  />
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Raw sources / lineage card */}
-          <div>
-            <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
-              <h3 className="font-heading text-lg text-gray-800 mb-4">
-                Raw sources
-              </h3>
+                {/* MissionHalo button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-md w-32 bg-[#1A9988] text-white font-body text-sm font-medium shadow-sm transition-colors transition-transform duration-150 hover:bg-[#178c7d] hover:-translate-y-0.5 active:bg-[#147c6f] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Loadingâ€¦" : "Get profile"}
+                </button>
+              </form>
 
-              {!profile && !loading && (
-                <p className="text-sm font-body text-gray-500">
-                  Once a profile is loaded, you&apos;ll see the upstream source
-                  records here.
+              {error && (
+                <p className="mt-4 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded-md px-3 py-2 font-body">
+                  {error}
                 </p>
               )}
+            </section>
 
-              {sources && sources.length > 0 && (
-                <div className="space-y-3 text-xs font-mono bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-[400px] overflow-auto">
-                  {sources.map((src) => (
-                    <div
-                      key={src.id}
-                      className="bg-white border border-gray-200 rounded-md p-2"
-                    >
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-body text-xs text-gray-600">
-                          {src.system}
-                        </span>
-                        <span className="font-body text-[10px] text-gray-400">
-                          client_id: {src.client_id}
-                        </span>
+            {/* Content */}
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Client profile */}
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
+                  <h3 className="font-heading text-lg text-gray-800 mb-4">
+                    Client profile
+                  </h3>
+
+                  {!profile && !loading && (
+                    <p className="text-sm font-body text-gray-500">
+                      Enter a Client ID and click{" "}
+                      <span className="font-semibold">Get profile</span> to see
+                      the assembled Single Client View.
+                    </p>
+                  )}
+
+                  {loading && (
+                    <p className="text-sm font-body text-gray-500">
+                      Loadingâ€¦
+                    </p>
+                  )}
+
+                  {profile && (
+                    <div className="space-y-4">
+                      {/* Basic details */}
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h4 className="font-heading text-sm text-gray-700 mb-2">
+                          Basic details
+                        </h4>
+
+                        <dl className="grid grid-cols-2 gap-y-2 text-sm font-body">
+                          <div>
+                            <dt className="text-gray-500">Client ID</dt>
+                            <dd className="text-gray-900">
+                              {profile.client_id || "â€”"}
+                            </dd>
+                          </div>
+
+                          <div>
+                            <dt className="text-gray-500">Name</dt>
+                            <dd className="text-gray-900">
+                              {profile.name || "â€”"}
+                            </dd>
+                          </div>
+
+                          <div>
+                            <dt className="text-gray-500">Email</dt>
+                            <dd className="text-gray-900">
+                              {profile.email || "â€”"}
+                            </dd>
+                          </div>
+
+                          <div>
+                            <dt className="text-gray-500">Country</dt>
+                            <dd className="text-gray-900">
+                              {profile.country || "â€”"}
+                            </dd>
+                          </div>
+                        </dl>
                       </div>
-                      <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
-                        {JSON.stringify(src.payload, null, 2)}
-                      </pre>
+
+                      {/* Addresses */}
+                      {profile.addresses?.length > 0 && (
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <h4 className="font-heading text-sm text-gray-700 mb-2">
+                            Addresses
+                          </h4>
+
+                          <ul className="space-y-2 text-sm font-body">
+                            {profile.addresses.map((addr, idx) => (
+                              <li
+                                key={idx}
+                                className="border-b border-gray-200 pb-2 last:border-none"
+                              >
+                                <div className="text-gray-900">
+                                  {[addr.line1, addr.line2, addr.city, addr.postcode, addr.country]
+                                    .filter(Boolean)
+                                    .join(", ")}
+                                </div>
+
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Source: {addr.source || "â€”"}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+              </div>
 
-              {profile && profile.lineage && (
-                <>
-                  <h4 className="font-heading text-sm text-gray-700 mt-4 mb-2">
-                    Lineage
-                  </h4>
-                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-xs font-body max-h-[200px] overflow-auto">
-                    <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
-                      {JSON.stringify(profile.lineage, null, 2)}
-                    </pre>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </section>
+              {/* Raw sources + lineage */}
+              <div>
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
+                  <h3 className="font-heading text-lg text-gray-800 mb-4">
+                    Raw sources
+                  </h3>
+
+                  {!profile && !loading && (
+                    <p className="text-sm font-body text-gray-500">
+                      Once a profile is loaded, youâ€™ll see the upstream records
+                      here.
+                    </p>
+                  )}
+
+                  {sources.length > 0 && (
+                    <div className="space-y-3 text-xs font-mono bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-[400px] overflow-auto">
+                      {sources.map((src) => (
+                        <div
+                          key={src.id}
+                          className="bg-white border border-gray-200 rounded-md p-2"
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-body text-xs text-gray-600">
+                              {src.system}
+                            </span>
+                            <span className="font-body text-[10px] text-gray-400">
+                              client_id: {src.client_id}
+                            </span>
+                          </div>
+
+                          <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
+                            {JSON.stringify(src.payload, null, 2)}
+                          </pre>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {profile?.lineage && (
+                    <>
+                      <h4 className="font-heading text-sm text-gray-700 mt-4 mb-2">
+                        Lineage
+                      </h4>
+
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-xs font-body max-h-[200px] overflow-auto">
+                        <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
+                          {JSON.stringify(profile.lineage, null, 2)}
+                        </pre>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </section>
+          </>
+        )}
       </main>
     </div>
   );
@@ -552,13 +485,20 @@ export default App;
 
 
 
+
+
+
+
+
+
+
 ===== FILE: app_frontend\src\index.css =====
 /* app_frontend/src/index.css */
 
-/* This pulls in Tailwind v4 (base, components, utilities) */
+/* Tailwind v4 (base, components, utilities) */
 @import "tailwindcss";
 
-/* Simple global defaults â€“ Tailwind utilities handle the rest */
+/* Global defaults */
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -575,6 +515,12 @@ body {
   min-height: 100vh;
 }
 
+/* ------------------------------------------------------------ */
+/* Fjalla One font class (used for MissionSmith / Atlas / Log)  */
+/* ------------------------------------------------------------ */
+.font-fjalla {
+  font-family: "Fjalla One", sans-serif;
+}
 
 
 
@@ -589,6 +535,1037 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+
+
+===== FILE: app_frontend\src\MissionAtlasPanel.jsx =====
+// app_frontend/src/MissionAtlasPanel.jsx
+import React, { useState } from "react";
+
+const domains = [
+  {
+    id: "domain-ingestion",
+    name: "Ingestion",
+    description: "Bring CRM and KYC client records into the SCV platform.",
+    keyEntities: ["SourceRecord", "IngestionBatch"],
+  },
+  {
+    id: "domain-matching",
+    name: "Matching",
+    description: "Resolve records into a single client identity.",
+    keyEntities: ["MatchCandidate", "MatchGroup", "MatchScore"],
+  },
+  {
+    id: "domain-profile",
+    name: "Client Profile",
+    description: "Assemble and expose the golden client profile.",
+    keyEntities: ["ClientProfile", "ClientAttribute", "Address"],
+  },
+  {
+    id: "domain-search",
+    name: "Search",
+    description: "Help users quickly find the right client profile.",
+    keyEntities: ["SearchQuery", "SearchResult"],
+  },
+  {
+    id: "domain-lineage",
+    name: "Lineage & Audit",
+    description: "Track where data came from and how it was transformed.",
+    keyEntities: ["LineageEvent", "AuditEvent"],
+  },
+  {
+    id: "domain-ux",
+    name: "Single Client View UI",
+    description: "Visualise client profile, sources and lineage.",
+    keyEntities: ["ClientView", "SourcePanel", "LineagePanel"],
+  },
+];
+
+const services = [
+  {
+    id: "svc-ingestion",
+    name: "Ingestion Service",
+    domain: "Ingestion",
+    responsibilities: [
+      "Load CRM and KYC records.",
+      "Normalise incoming payloads to canonical structures.",
+      "Emit ingestion audit events.",
+    ],
+    consumes: ["CRM feed", "KYC feed"],
+    produces: ["SourceRecord", "IngestionBatch", "AuditEvent"],
+    exposes: [],
+  },
+  {
+    id: "svc-matching",
+    name: "Matching Service",
+    domain: "Matching",
+    responsibilities: [
+      "Apply exact and fuzzy match rules.",
+      "Group records into candidate client identities.",
+    ],
+    consumes: ["SourceRecord"],
+    produces: ["MatchCandidate", "MatchGroup", "MatchScore"],
+    exposes: [],
+  },
+  {
+    id: "svc-profile-core",
+    name: "Client Profile Service",
+    domain: "Client Profile",
+    responsibilities: [
+      "Build ClientProfile from MatchGroup + source records.",
+      "Merge core attributes and addresses.",
+      "Attach lineage references.",
+    ],
+    consumes: ["MatchGroup", "SourceRecord"],
+    produces: ["ClientProfile", "ClientAttribute", "Address", "LineageEvent"],
+    exposes: ["Client Profile API"],
+  },
+  {
+    id: "svc-search",
+    name: "Client Search Service",
+    domain: "Search",
+    responsibilities: [
+      "Index ClientProfile documents.",
+      "Serve search queries with ranking.",
+    ],
+    consumes: ["ClientProfile"],
+    produces: ["SearchResult"],
+    exposes: ["Client Search API"],
+  },
+  {
+    id: "svc-lineage",
+    name: "Lineage Service",
+    domain: "Lineage & Audit",
+    responsibilities: [
+      "Store lineage and audit events.",
+      "Expose lineage graph for a given client.",
+    ],
+    consumes: ["LineageEvent", "AuditEvent"],
+    produces: ["Lineage graph view"],
+    exposes: ["Lineage API"],
+  },
+  {
+    id: "svc-ui",
+    name: "SCV Frontend",
+    domain: "Single Client View UI",
+    responsibilities: [
+      "Call search and profile APIs.",
+      "Render Single Client View: profile, sources, lineage.",
+    ],
+    consumes: ["Client Profile API", "Client Search API", "Lineage API"],
+    produces: ["ClientView"],
+    exposes: ["SCV screen"],
+  },
+];
+
+const flows = [
+  {
+    id: "flow-01",
+    name: "Client onboarding (CRM route)",
+    steps: [
+      "CRM feed",
+      "Ingestion Service",
+      "SourceRecord",
+      "Matching Service",
+      "MatchGroup",
+      "Client Profile Service",
+      "ClientProfile",
+      "Client Search Service",
+      "SCV Frontend",
+    ],
+  },
+  {
+    id: "flow-02",
+    name: "Client onboarding (KYC route)",
+    steps: [
+      "KYC feed",
+      "Ingestion Service",
+      "SourceRecord",
+      "Matching Service",
+      "MatchGroup",
+      "Client Profile Service",
+      "ClientProfile",
+      "SCV Frontend",
+    ],
+  },
+  {
+    id: "flow-03",
+    name: "Search & view client",
+    steps: [
+      "SCV Frontend",
+      "Client Search API",
+      "Client Search Service",
+      "SearchResult",
+      "Client Profile API",
+      "Client Profile Service",
+      "ClientProfile",
+      "SCV Frontend",
+    ],
+  },
+  {
+    id: "flow-04",
+    name: "Lineage drill-down",
+    steps: [
+      "SCV Frontend",
+      "Lineage API",
+      "Lineage Service",
+      "Lineage graph view",
+      "SCV Frontend",
+    ],
+  },
+];
+
+export default function MissionAtlasPanel() {
+  const [selectedDomain, setSelectedDomain] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
+
+  // Reset when clicking outside domain or service
+  const resetSelection = () => {
+    setSelectedDomain(null);
+    setSelectedService(null);
+  };
+
+  // Determine which services to show
+  const visibleServices = selectedDomain
+    ? services.filter((s) => s.domain === selectedDomain.name)
+    : services;
+
+  // Determine which flows to show
+  const visibleFlows = selectedService
+    ? flows.filter((flow) =>
+        flow.steps.some((step) =>
+          step.toLowerCase().includes(selectedService.name.toLowerCase())
+        )
+      )
+    : selectedDomain
+    ? flows.filter((flow) =>
+        flow.steps.some((step) =>
+          step.toLowerCase().includes(selectedDomain.name.toLowerCase())
+        )
+      )
+    : flows;
+
+  return (
+    <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2
+          style={{ fontFamily: "Fjalla One" }}
+          className="text-lg text-gray-900 tracking-wide"
+        >
+          MissionAtlas Single Client View
+        </h2>
+
+        {(selectedDomain || selectedService) && (
+          <button
+            onClick={resetSelection}
+            className="text-sm text-[#1A9988] underline hover:text-[#147c6f]"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* DOMAINS */}
+        <div className="space-y-3">
+          <h3 className="font-heading text-sm text-gray-800 mb-1">
+            Domains
+          </h3>
+          {domains.map((d) => {
+            const active = selectedDomain?.id === d.id;
+            return (
+              <div
+                key={d.id}
+                onClick={() => {
+                  setSelectedService(null);
+                  setSelectedDomain(active ? null : d);
+                }}
+                className={`cursor-pointer rounded-md p-3 border ${
+                  active
+                    ? "bg-teal-50 border-teal-300 shadow"
+                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                <p className="font-heading text-sm text-gray-900">{d.name}</p>
+                <p className="text-xs font-body text-gray-600 mb-2">
+                  {d.description}
+                </p>
+                <p className="text-[11px] font-mono text-gray-500">
+                  Entities: {d.keyEntities.join(", ")}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* SERVICES */}
+        <div className="space-y-3">
+          <h3 className="font-heading text-sm text-gray-800 mb-1">
+            Services
+          </h3>
+          {visibleServices.map((s) => {
+            const active = selectedService?.id === s.id;
+            const faded =
+              selectedDomain && s.domain !== selectedDomain.name;
+
+            return (
+              <div
+                key={s.id}
+                onClick={() => setSelectedService(active ? null : s)}
+                className={`cursor-pointer rounded-md p-3 border transition ${
+                  active
+                    ? "bg-amber-50 border-amber-300 shadow"
+                    : faded
+                    ? "opacity-50 bg-gray-50 border-gray-200"
+                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                <p className="font-heading text-sm text-gray-900 mb-1">
+                  {s.name}
+                </p>
+                <p className="text-[11px] font-body text-gray-500 mb-1">
+                  Domain: {s.domain}
+                </p>
+                <ul className="list-disc pl-4 mb-1 space-y-0.5">
+                  {s.responsibilities.map((r, idx) => (
+                    <li
+                      key={idx}
+                      className="text-xs font-body text-gray-700"
+                    >
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* FLOWS */}
+        <div className="space-y-3">
+          <h3 className="font-heading text-sm text-gray-800 mb-1">Flows</h3>
+          {visibleFlows.map((flow) => (
+            <div
+              key={flow.id}
+              className="rounded-md p-3 border bg-gray-50 border-gray-200"
+            >
+              <p className="font-heading text-sm text-gray-900 mb-2">
+                {flow.name}
+              </p>
+              <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
+                {flow.steps.join("  â†’  ")}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+
+===== FILE: app_frontend\src\MissionLogPanel.jsx =====
+import React, { useEffect, useState } from "react";
+
+// Status categories for easy reference
+const STATUS_MAP = {
+  Complete: "Complete",
+  "In Progress": "In Progress",
+  Planned: "Planned",
+};
+
+// Status Chip (adjusted for right alignment and consistent look)
+function StatusChip({ label, status, extraClass }) {
+  const statusClass = status === "Complete" ? "bg-green-100" :
+    status === "In Progress" ? "bg-yellow-100" :
+    status === "Planned" ? "bg-blue-100" : "bg-gray-100";
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-body border ${statusClass} ${extraClass}`}>
+      {label}
+    </span>
+  );
+}
+
+// MissionLog Panel with added Key, alignment, and Back button
+export default function MissionLogPanel({ setActiveView }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch("/missionlog/status_snapshot.json", {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const json = await res.json();
+        if (!cancelled) {
+          setData(json);
+          setError("");
+        }
+      } catch (err) {
+        console.error("Failed to load MissionLog status snapshot", err);
+        if (!cancelled) {
+          setError("Could not load latest status snapshot.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const epics = data?.epics || [];
+
+  // Handle Back button
+  const handleBack = () => {
+    if (typeof setActiveView === "function") {
+      setActiveView("scv");
+    } else {
+      window.location.reload();
+    }
+  };
+
+  return (
+    <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+      {/* Back to Single Client View button */}
+      <div className="flex justify-between mb-4">
+        <h2 style={{ fontFamily: "Fjalla One" }} className="text-lg text-gray-900 tracking-wide">
+          MissionLog Single Client View
+        </h2>
+
+        <button
+          type="button"
+          onClick={handleBack}
+          className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-[#1A9988] text-white font-body text-sm font-medium shadow-sm transition-all duration-150 hover:bg-[#178c7d] hover:-translate-y-0.5 hover:shadow-md active:bg-[#147c6f] active:translate-y-0 active:shadow-sm"
+        >
+          Back to Single Client View
+        </button>
+      </div>
+
+      {/* Key/Legend for Statuses */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-md text-sm font-body text-gray-800">
+        <strong>Status Key:</strong>
+        <div className="flex gap-4 mt-2">
+          <div className="flex items-center">
+            <StatusChip label="Complete" status="Complete" />
+            <span className="ml-2">Complete</span>
+          </div>
+          <div className="flex items-center">
+            <StatusChip label="In Progress" status="In Progress" />
+            <span className="ml-2">In Progress</span>
+          </div>
+          <div className="flex items-center">
+            <StatusChip label="Planned" status="Planned" />
+            <span className="ml-2">Planned</span>
+          </div>
+        </div>
+      </div>
+
+      {loading && (
+        <p className="text-sm font-body text-gray-500">
+          Loading latest status snapshotâ€¦
+        </p>
+      )}
+
+      {!loading && error && (
+        <p className="text-sm font-body text-red-600 mb-2">{error}</p>
+      )}
+
+      {!loading && !error && epics.length === 0 && (
+        <p className="text-sm font-body text-gray-500">
+          No status data available.
+        </p>
+      )}
+
+      {/* MissionLog Data */}
+      {!loading && !error && epics.length > 0 && (
+        <div className="space-y-6">
+          {epics.map((epic) => (
+            <div key={epic.epic_id} className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="font-heading text-sm text-gray-900">
+                    Epic {epic.epic_id}: {epic.name}
+                  </p>
+                </div>
+                <StatusChip label={normaliseStatus(epic.overall_status)} status={epic.overall_status} extraClass="ml-auto" />
+              </div>
+
+              <div className="space-y-4">
+                {epic.features.map((feature) => {
+                  const stories = feature.stories || [];
+                  const totalStories = stories.length;
+                  const completedStories = stories.filter(
+                    (s) => normaliseStatus(s.overall_status) === "Complete"
+                  ).length;
+
+                  return (
+                    <div key={feature.feature_id} className="bg-white rounded-md border border-gray-200 p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-heading text-sm text-gray-900">
+                            Feature {feature.feature_id}: {feature.name}
+                          </p>
+                          <p className="text-xs font-body text-gray-500">
+                            {completedStories}/{totalStories} stories complete
+                          </p>
+                        </div>
+                        <StatusChip label={normaliseStatus(feature.overall_status)} status={feature.overall_status} extraClass="ml-auto" />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {stories.map((story) => (
+                          <div key={story.story_id} className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-body text-gray-700">{story.name}</p>
+                            </div>
+                            <StatusChip label={normaliseStatus(story.overall_status)} status={story.overall_status} extraClass="ml-auto" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+
+
+===== FILE: app_frontend\src\MissionNavButtons.jsx =====
+import React from "react";
+import logo from "./assets/m7_single_client_view.png";
+
+/* 
+  Base button layout + animation.
+  Font is controlled by the custom .font-fjalla class.
+*/
+
+const baseButtonClasses = `
+  inline-flex items-center justify-center
+  px-8 py-2.5 rounded-md border
+  text-base text-gray-900
+  shadow-sm
+  transition
+  transform
+  hover:-translate-y-0.5 hover:shadow-md
+  active:translate-y-0 active:shadow-sm
+  font-fjalla
+`;
+
+export default function MissionNavButtons() {
+  return (
+    <header className="bg-white border-b">
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
+
+        {/* Logo */}
+        <div className="flex items-center">
+          <img
+            src={logo}
+            alt="M7 Single Client View"
+            className="h-10"
+          />
+        </div>
+
+        {/* Buttons */}
+        <div className="flex items-center gap-4">
+
+          {/* MissionSmith */}
+          <button
+            type="button"
+            className={`${baseButtonClasses}
+              bg-[rgb(189,199,155)]
+              border-[rgb(158,170,121)]
+              hover:bg-[rgb(176,186,142)]
+            `}
+            onClick={() => {}}
+          >
+            MissionSmith
+          </button>
+
+          {/* MissionAtlas */}
+          <button
+            type="button"
+            className={`${baseButtonClasses}
+              bg-[rgb(241,205,86)]
+              border-[rgb(214,182,75)]
+              hover:bg-[rgb(232,196,80)]
+            `}
+            onClick={() => {}}
+          >
+            MissionAtlas
+          </button>
+
+          {/* MissionLog */}
+          <button
+            type="button"
+            className={`${baseButtonClasses}
+              bg-[rgb(167,198,223)]
+              border-[rgb(142,172,195)]
+              hover:bg-[rgb(157,187,210)]
+            `}
+            onClick={() => {}}
+          >
+            MissionLog
+          </button>
+        </div>
+
+      </div>
+    </header>
+  );
+}
+
+
+
+
+===== FILE: app_frontend\src\MissionSmithPanel.jsx =====
+// app_frontend/src/App.jsx
+import React, { useState } from "react";
+import MissionLogPanel from "./MissionLogPanel";
+import MissionAtlasPanel from "./MissionAtlasPanel";
+import MissionSmithPanel from "./MissionSmithPanel";
+import logo from "./assets/m7_single_client_view.png";
+
+const BACKEND_BASE_URL = "http://127.0.0.1:8000";
+
+function App() {
+  const [clientId, setClientId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [sources, setSources] = useState([]);
+  const [error, setError] = useState("");
+
+  // 'scv' | 'missionLog' | 'missionAtlas' | 'missionSmith'
+  const [activeView, setActiveView] = useState("scv");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!clientId.trim()) {
+      setError("Please enter a Client ID.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+    setProfile(null);
+    setSources([]);
+
+    try {
+      const encodedId = encodeURIComponent(clientId.trim());
+
+      const profileRes = await fetch(
+        `${BACKEND_BASE_URL}/clients/${encodedId}/profile`
+      );
+      if (!profileRes.ok) {
+        const detail = await profileRes.json().catch(() => ({}));
+        throw new Error(detail.detail || "Failed to fetch profile.");
+      }
+      const profileJson = await profileRes.json();
+
+      const sourcesRes = await fetch(
+        `${BACKEND_BASE_URL}/clients/${encodedId}/sources`
+      );
+      const sourcesJson = sourcesRes.ok ? await sourcesRes.json() : [];
+
+      setProfile(profileJson);
+      setSources(sourcesJson);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isMissionLog = activeView === "missionLog";
+  const isMissionAtlas = activeView === "missionAtlas";
+  const isMissionSmith = activeView === "missionSmith";
+  const isSCV = activeView === "scv";
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Header with logo and mission buttons */}
+      <header className="bg-white shadow-sm">
+        {/* Logo */}
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <img
+            src={logo}
+            alt="M7 single client view"
+            className="h-16 w-auto md:h-20"
+          />
+        </div>
+
+        {/* Mission buttons */}
+        <div className="bg-gray-100 border-t border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex justify-end gap-4">
+            {/* MissionSmith -> embedded HTML view */}
+            <button
+              type="button"
+              style={{ fontFamily: "Fjalla One" }}
+              className={`
+                inline-flex items-center justify-center
+                px-8 py-2.5 rounded-md border
+                text-base text-gray-900
+                bg-[rgb(176,192,159)]
+                shadow-sm
+                transition-colors transition-transform duration-150
+                hover:-translate-y-0.5
+                active:translate-y-0
+                ${isMissionSmith ? "border-gray-500 shadow-md" : "border-gray-300"}
+              `}
+              onClick={() => setActiveView("missionSmith")}
+            >
+              MissionSmith
+            </button>
+
+            {/* MissionAtlas */}
+            <button
+              type="button"
+              style={{ fontFamily: "Fjalla One" }}
+              className={`
+                inline-flex items-center justify-center
+                px-8 py-2.5 rounded-md border
+                text-base text-gray-900
+                bg-[rgb(205,226,235)]
+                shadow-sm
+                transition-colors transition-transform duration-150
+                hover:-translate-y-0.5
+                active:translate-y-0
+                ${isMissionAtlas ? "border-gray-500 shadow-md" : "border-gray-300"}
+              `}
+              onClick={() => setActiveView("missionAtlas")}
+            >
+              MissionAtlas
+            </button>
+
+            {/* MissionLog */}
+            <button
+              type="button"
+              style={{ fontFamily: "Fjalla One" }}
+              className={`
+                inline-flex items-center justify-center
+                px-8 py-2.5 rounded-md border
+                text-base text-gray-900
+                bg-[rgb(241,205,86)]
+                shadow-sm
+                transition-colors transition-transform duration-150
+                hover:-translate-y-0.5
+                active:translate-y-0
+                ${isMissionLog ? "border-gray-500 shadow-md" : "border-gray-300"}
+              `}
+              onClick={() => setActiveView("missionLog")}
+            >
+              MissionLog
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-6">
+        {isMissionSmith ? (
+          <>
+            <MissionSmithPanel />
+            <div className="flex justify-start">
+              <button
+                type="button"
+                className="
+                  inline-flex items-center justify-center
+                  px-4 py-2 rounded-md
+                  bg-white text-[#1A9988]
+                  border border-[#1A9988]
+                  font-body text-sm font-medium
+                  shadow-sm
+                  transition-colors transition-transform duration-150
+                  hover:bg-[#1A9988] hover:text-white hover:-translate-y-0.5
+                  active:translate-y-0
+                "
+                onClick={() => setActiveView("scv")}
+              >
+                Back to Single Client View
+              </button>
+            </div>
+          </>
+        ) : isMissionLog ? (
+          <>
+            <MissionLogPanel />
+            <div className="flex justify-start">
+              <button
+                type="button"
+                className="
+                  inline-flex items-center justify-center
+                  px-4 py-2 rounded-md
+                  bg-white text-[#1A9988]
+                  border border-[#1A9988]
+                  font-body text-sm font-medium
+                  shadow-sm
+                  transition-colors transition-transform duration-150
+                  hover:bg-[#1A9988] hover:text-white hover:-translate-y-0.5
+                  active:translate-y-0
+                "
+                onClick={() => setActiveView("scv")}
+              >
+                Back to Single Client View
+              </button>
+            </div>
+          </>
+        ) : isMissionAtlas ? (
+          <>
+            <MissionAtlasPanel />
+            <div className="flex justify-start">
+              <button
+                type="button"
+                className="
+                  inline-flex items-center justify-center
+                  px-4 py-2 rounded-md
+                  bg-white text-[#1A9988]
+                  border border-[#1A9988]
+                  font-body text-sm font-medium
+                  shadow-sm
+                  transition-colors transition-transform duration-150
+                  hover:bg-[#1A9988] hover:text-white hover:-translate-y-0.5
+                  active:translate-y-0
+                "
+                onClick={() => setActiveView("scv")}
+              >
+                Back to Single Client View
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Find client profile */}
+            <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+              <h2 className="font-heading text-lg text-gray-800 mb-4">
+                Find client profile
+              </h2>
+
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col md:flex-row gap-4 items-stretch md:items-end"
+              >
+                <div className="flex-1">
+                  <label
+                    htmlFor="client-id"
+                    className="block text-sm font-body text-gray-600 mb-1"
+                  >
+                    Client ID
+                  </label>
+                  <input
+                    id="client-id"
+                    type="text"
+                    value={clientId}
+                    onChange={(e) => setClientId(e.target.value)}
+                    placeholder="e.g. C-004"
+                    className="
+                      w-full px-3 py-2 rounded-md border border-gray-300 
+                      font-body text-sm
+                      focus:outline-none focus:ring-2 
+                      focus:ring-[#1A9988] focus:border-[#1A9988]
+                    "
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="
+                    inline-flex items-center justify-center
+                    px-4 py-2 rounded-md w-32
+                    bg-[#1A9988] text-white
+                    font-body text-sm font-medium shadow-sm
+                    transition-colors transition-transform duration-150
+                    hover:bg-[#178c7d] hover:-translate-y-0.5
+                    active:bg-[#147c6f] active:translate-y-0
+                    disabled:opacity-60 disabled:cursor-not-allowed
+                  "
+                >
+                  {loading ? "Loadingâ€¦" : "Get profile"}
+                </button>
+              </form>
+
+              {error && (
+                <p className="mt-4 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded-md px-3 py-2 font-body">
+                  {error}
+                </p>
+              )}
+            </section>
+
+            {/* Client profile + raw sources */}
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
+                  <h3 className="font-heading text-lg text-gray-800 mb-4">
+                    Client profile
+                  </h3>
+
+                  {!profile && !loading && (
+                    <p className="text-sm font-body text-gray-500">
+                      Enter a Client ID and click{" "}
+                      <span className="font-semibold">Get profile</span> to see
+                      the assembled Single Client View.
+                    </p>
+                  )}
+
+                  {loading && (
+                    <p className="text-sm font-body text-gray-500">
+                      Loadingâ€¦
+                    </p>
+                  )}
+
+                  {profile && (
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h4 className="font-heading text-sm text-gray-700 mb-2">
+                          Basic details
+                        </h4>
+
+                        <dl className="grid grid-cols-2 gap-y-2 text-sm font-body">
+                          <div>
+                            <dt className="text-gray-500">Client ID</dt>
+                            <dd className="text-gray-900">
+                              {profile.client_id || "â€”"}
+                            </dd>
+                          </div>
+
+                          <div>
+                            <dt className="text-gray-500">Name</dt>
+                            <dd className="text-gray-900">
+                              {profile.name || "â€”"}
+                            </dd>
+                          </div>
+
+                          <div>
+                            <dt className="text-gray-500">Email</dt>
+                            <dd className="text-gray-900">
+                              {profile.email || "â€”"}
+                            </dd>
+                          </div>
+
+                          <div>
+                            <dt className="text-gray-500">Country</dt>
+                            <dd className="text-gray-900">
+                              {profile.country || "â€”"}
+                            </dd>
+                          </div>
+                        </dl>
+                      </div>
+
+                      {profile.addresses?.length > 0 && (
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <h4 className="font-heading text-sm text-gray-700 mb-2">
+                            Addresses
+                          </h4>
+
+                          <ul className="space-y-2 text-sm font-body">
+                            {profile.addresses.map((addr, idx) => (
+                              <li
+                                key={idx}
+                                className="border-b border-gray-200 pb-2 last:border-none"
+                              >
+                                <div className="text-gray-900">
+                                  {[
+                                    addr.line1,
+                                    addr.line2,
+                                    addr.city,
+                                    addr.postcode,
+                                    addr.country,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(", ")}
+                                </div>
+
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Source: {addr.source || "â€”"}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
+                  <h3 className="font-heading text-lg text-gray-800 mb-4">
+                    Raw sources
+                  </h3>
+
+                  {!profile && !loading && (
+                    <p className="text-sm font-body text-gray-500">
+                      Once a profile is loaded, youâ€™ll see the upstream records
+                      here.
+                    </p>
+                  )}
+
+                  {sources.length > 0 && (
+                    <div className="space-y-3 text-xs font-mono bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-[400px] overflow-auto">
+                      {sources.map((src) => (
+                        <div
+                          key={src.id}
+                          className="bg-white border border-gray-200 rounded-md p-2"
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-body text-xs text-gray-600">
+                              {src.system}
+                            </span>
+                            <span className="font-body text-[10px] text-gray-400">
+                              client_id: {src.client_id}
+                            </span>
+                          </div>
+
+                          <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
+                            {JSON.stringify(src.payload, null, 2)}
+                          </pre>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {profile?.lineage && (
+                    <>
+                      <h4 className="font-heading text-sm text-gray-700 mt-4 mb-2">
+                        Lineage
+                      </h4>
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-xs font-body max-h-[200px] overflow-auto">
+                        <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
+                          {JSON.stringify(profile.lineage, null, 2)}
+                        </pre>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;
 
 
 
@@ -608,7 +1585,14 @@ createRoot(document.getElementById('root')).render(
       href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;700&family=Raleway:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Fjalla One for MissionSmith / MissionAtlas / MissionLog -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fjalla+One&display=swap"
+      rel="stylesheet"
+    />
   </head>
+
   <body class="bg-gray-100">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
@@ -794,7 +1778,7 @@ jobs:
 | FT-00-BE | E00 | Backend Fundamentals | Complete | ST-00 |
 | FT-00-UI | E00-UI | Frontend Fundamentals | In Progress | ST-00-FRONTEND-UI-SHELL |
 | FT-01 | EP-01 | Source System Configuration | In Progress | ST-01, ST-02 |
-| FT-02 | EP-01 | Schema Mapping to Canonical Model | In Progress | ST-03, ST-04 |
+| FT-02 | EP-01 | Schema Mapping to Canonical Model | Complete | ST-03, ST-04 |
 | FT-03 | EP-01 | Initial Bulk Ingestion | In Progress | ST-05, ST-06 |
 | FT-04 | EP-01 | Incremental Ingestion & Change Detection | In Progress | ST-07, ST-08 |
 | FT-05 | EP-02 | Exact Match Rules | In Progress | ST-09, ST-10 |
@@ -820,13 +1804,13 @@ jobs:
 | ST-00-FRONTEND-UI-SHELL | FT-00-UI | Provide Frontend UI Shell Availability | In Progress |
 | ST-01 | FT-01 | Register CRM source | In Progress |
 | ST-02 | FT-01 | Register KYC source | In Progress |
-| ST-03 | FT-02 | Map identity fields | In Progress |
-| ST-04 | FT-02 | Map identifiers | In Progress |
+| ST-03 | FT-02 | Map identity fields | Complete |
+| ST-04 | FT-02 | Map identifiers | Complete |
 | ST-05 | FT-03 | Bulk load CRM | In Progress |
 | ST-06 | FT-03 | Bulk load KYC | In Progress |
 | ST-07 | FT-04 | Detect upstream deltas | In Progress |
 | ST-08 | FT-04 | Apply deltas | In Progress |
-| ST-09 | FT-05 | Match by tax ID | In Progress |
+| ST-09 | FT-05 | Match by tax ID | Complete |
 | ST-10 | FT-05 | Match by registration number | In Progress |
 | ST-11 | FT-06 | Fuzzy name match | In Progress |
 | ST-12 | FT-06 | Attribute confidence | In Progress |
@@ -837,7 +1821,7 @@ jobs:
 | ST-17 | FT-08 | Normalise search fields | In Progress |
 | ST-18 | FT-09 | Fuzzy search queries | In Progress |
 | ST-19 | FT-09 | Search ranking | In Progress |
-| ST-20 | FT-10 | Assemble base profile | In Progress |
+| ST-20 | FT-10 | Assemble base profile | Complete |
 | ST-21 | FT-10 | Assemble metadata | In Progress |
 | ST-22 | FT-11 | Expose lineage | In Progress |
 | ST-23 | FT-11 | Drill-down lineage | In Progress |
@@ -1263,11 +2247,8 @@ name: "Application Bootstrapping"
 features:
   - FT-00-BE
 
+
 overall_status: Complete
-testing_status: Planned
-guardrail_adherence: Planned
-code_quality_adherence: Planned
-security_policy_adherence: Planned
 
 last_updated: <auto>
 
@@ -1302,11 +2283,8 @@ name: "User Interface Bootstrapping"
 features:
   - FT-00-UI
 
+
 overall_status: In Progress
-testing_status: Planned
-guardrail_adherence: Planned
-code_quality_adherence: Planned
-security_policy_adherence: Planned
 
 last_updated: <auto>
 ---
@@ -1366,13 +2344,9 @@ features:
   - FT-03
   - FT-04
 
+
 overall_status: In Progress
 
-testing_status: In Progress
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1394,13 +2368,9 @@ features:
   - FT-06
   - FT-07
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1421,13 +2391,9 @@ features:
   - FT-08
   - FT-09
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1449,13 +2415,9 @@ features:
   - FT-11
   - FT-12
 
+
 overall_status: In Progress
 
-testing_status: In Progress
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1477,13 +2439,9 @@ features:
   - FT-14
   - FT-15
 
+
 overall_status: In Progress
 
-testing_status: In Progress
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1504,13 +2462,9 @@ features:
   - FT-16
   - FT-17
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1531,12 +2485,8 @@ description: |
 stories:
   - ST-00
 
+
 overall_status: Complete
-testing_status: Planned
-halo_adherence: Planned
-guardrail_adherence: Planned
-code_quality_adherence: Planned
-security_policy_adherence: Planned
 
 last_updated: <auto>
 ---
@@ -1556,12 +2506,8 @@ description: |
 stories:
   - ST-00-FRONTEND-UI-SHELL
 
+
 overall_status: In Progress
-testing_status: Planned
-halo_adherence: Planned
-guardrail_adherence: Planned
-code_quality_adherence: Planned
-security_policy_adherence: Planned
 
 last_updated: <auto>
 
@@ -1609,13 +2555,9 @@ stories:
   - ST-01
   - ST-02
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1635,13 +2577,9 @@ stories:
   - ST-03
   - ST-04
 
+
 overall_status: Complete
 
-testing_status: Complete
-halo_adherence: aggregated
-guardrail_adherence: Complete
-code_quality_adherence: Complete
-security_policy_adherence: Complete
 
 last_updated: <auto>
 ---
@@ -1661,13 +2599,9 @@ stories:
   - ST-05
   - ST-06
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1687,13 +2621,9 @@ stories:
   - ST-07
   - ST-08
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1713,13 +2643,9 @@ stories:
   - ST-09
   - ST-10
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1739,13 +2665,9 @@ stories:
   - ST-11
   - ST-12
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1766,13 +2688,9 @@ stories:
   - ST-14
   - ST-15
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1791,13 +2709,9 @@ stories:
   - ST-16
   - ST-17
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1816,13 +2730,9 @@ stories:
   - ST-18
   - ST-19
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1842,13 +2752,9 @@ stories:
   - ST-20
   - ST-21
 
+
 overall_status: In Progress
 
-testing_status: In Progress
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1868,13 +2774,9 @@ stories:
   - ST-22
   - ST-23
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1894,13 +2796,9 @@ stories:
   - ST-24
   - ST-25
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1919,13 +2817,9 @@ stories:
   - ST-26
   - ST-27
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1945,13 +2839,9 @@ stories:
   - ST-28
   - ST-29
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1971,13 +2861,9 @@ stories:
   - ST-30
   - ST-31
 
+
 overall_status: In Progress
 
-testing_status: In Progress
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -1997,13 +2883,9 @@ stories:
   - ST-32
   - ST-33
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -2023,13 +2905,9 @@ stories:
   - ST-34
   - ST-35
 
+
 overall_status: In Progress
 
-testing_status: Planned
-halo_adherence: aggregated
-guardrail_adherence: In Progress
-code_quality_adherence: In Progress
-security_policy_adherence: In Progress
 
 last_updated: <auto>
 ---
@@ -2043,7 +2921,6 @@ slug: st-00-backend-api-availability
 name: Provide Basic Backend API Availability
 epic: E00
 feature: FT-00-BE
-status: Complete
 
 # MissionSmith Status Fields (used by CI + tools/*.py)
 testing_status: pass
@@ -2052,6 +2929,11 @@ guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
 overall_status: Complete
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: 2025-12-04
 ---
 
@@ -2090,7 +2972,6 @@ slug: st-00-frontend-ui-shell
 name: Provide Frontend UI Shell Availability
 epic: E00-UI
 feature: FT-00-UI
-status: Complete
 
 # MissionSmith Status Fields (used by CI + tools/*.py)
 testing_status: pass
@@ -2099,6 +2980,11 @@ guardrail_adherence: not_run
 code_quality_adherence: pass
 security_policy_adherence: pass
 overall_status: In Progress
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: 2025-12-04
 ---
 
@@ -2153,6 +3039,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2178,6 +3069,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2203,6 +3099,11 @@ guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2227,6 +3128,11 @@ guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2251,6 +3157,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2275,6 +3186,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2299,6 +3215,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2323,6 +3244,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2347,6 +3273,11 @@ guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2371,6 +3302,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2395,6 +3331,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2419,6 +3360,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2443,6 +3389,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2467,6 +3418,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2491,6 +3447,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2515,6 +3476,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2539,6 +3505,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2563,6 +3534,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2587,6 +3563,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2611,6 +3592,11 @@ guardrail_adherence: pass
 code_quality_adherence: pass
 security_policy_adherence: pass
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2635,6 +3621,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2659,6 +3650,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2683,6 +3679,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2707,6 +3708,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2731,6 +3737,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2755,6 +3766,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2779,6 +3795,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2803,6 +3824,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2827,6 +3853,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2851,6 +3882,11 @@ guardrail_adherence: fail
 code_quality_adherence: pass
 security_policy_adherence: pass
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2875,6 +3911,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2899,6 +3940,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2923,6 +3969,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2947,6 +3998,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -2971,6 +4027,11 @@ guardrail_adherence: fail
 code_quality_adherence: fail
 security_policy_adherence: fail
 
+policy_adherence: not_run
+technology_lineage_adherence: not_run
+business_data_lineage_adherence: not_run
+self_healing_adherence: not_run
+analytics_adherence: not_run
 last_updated: <auto>
 ---
 
@@ -5489,6 +6550,425 @@ if __name__ == "__main__":
 
 
 
+===== FILE: tools\normalize_status_frontmatter_schema.py =====
+#!/usr/bin/env python
+"""
+Normalize MissionDestination front matter and hierarchy:
+
+1) Epics
+   - Keep ONLY `overall_status` as a status field.
+   - Remove other status/adherence fields (testing_status, guardrail_adherence, etc).
+   - Regenerate `features:` list from Features' `epic` mappings
+     (story -> feature -> epic is the golden source).
+
+2) Features
+   - Keep ONLY `overall_status` as a status field.
+   - Remove other status/adherence fields and any old mapping blocks.
+   - Regenerate `stories:` list from Stories' `feature` mappings.
+
+3) Stories
+   - Remove stray `status:` scalar if present (do NOT touch `overall_status`).
+   - Ensure full status schema (MVP + non-MVP) exists in front matter:
+       overall_status
+       testing_status
+       halo_adherence
+       guardrail_adherence
+       code_quality_adherence
+       security_policy_adherence
+       policy_adherence
+       technology_lineage_adherence
+       business_data_lineage_adherence
+       self_healing_adherence
+       analytics_adherence
+     preserving existing values and only filling in defaults when missing.
+
+This script is intended to be run manually:
+
+    python tools/normalize_status_frontmatter_schema.py
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Dict, List, Optional
+import re
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+EPICS_DIR = REPO_ROOT / "docs" / "mission_destination" / "epics"
+FEATURES_DIR = REPO_ROOT / "docs" / "mission_destination" / "features"
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+
+
+# ---------------------------------------------------------------------------
+# Basic helpers
+# ---------------------------------------------------------------------------
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _write(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+def _extract_scalar(text: str, key: str) -> Optional[str]:
+    """
+    Extract 'key: value' from front matter. Returns the value or None.
+    Very simple line-based parser; assumes `key: value` is on a single line.
+    """
+    pattern = rf"^{re.escape(key)}:\s*(.+)$"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return None
+    val = m.group(1).strip()
+    if val and val[0] in {"'", '"'} and val[-1:] == val[0]:
+        val = val[1:-1]
+    return val or None
+
+
+def _replace_scalar(text: str, key: str, value: str) -> str:
+    """
+    Replace or insert 'key: value' in the front matter.
+
+    - If the key exists, replace its first occurrence.
+    - Otherwise insert before `last_updated:` if present, else append at end.
+    """
+    pattern = rf"^{re.escape(key)}:\s*.*$"
+    replacement = f"{key}: {value}"
+
+    if re.search(pattern, text, flags=re.MULTILINE):
+        return re.sub(pattern, replacement, text, count=1, flags=re.MULTILINE)
+
+    # Insert before last_updated: if present
+    lu_pattern = r"^last_updated:\s*.*$"
+    m = re.search(lu_pattern, text, flags=re.MULTILINE)
+    if m:
+        start = m.start()
+        return text[:start] + replacement + "\n" + text[start:]
+
+    # Fallback: append
+    if not text.endswith("\n"):
+        text += "\n"
+    return text + replacement + "\n"
+
+
+def _remove_block(text: str, key: str) -> str:
+    """
+    Remove a scalar or YAML block starting with `key:` at the beginning of a line.
+
+    Matches, for example:
+
+      key: something
+        child1: ...
+        - list item
+      <stops when a non-indented line is reached>
+    """
+    pattern = rf"^{re.escape(key)}:.*\n(?:^[ \t].*\n)*"
+    return re.sub(pattern, "", text, flags=re.MULTILINE)
+
+
+def _extract_yaml_list(text: str, key: str) -> List[str]:
+    """
+    Extract:
+
+      key:
+        - item1
+        - item2
+
+    Returns ['item1', 'item2'].
+    """
+    pattern = rf"^{re.escape(key)}:\s*\n(?P<body>(?:\s+- .*\n)+)"
+    m = re.search(pattern, text, flags=re.MULTILINE)
+    if not m:
+        return []
+    body = m.group("body")
+    items: List[str] = []
+    for line in body.splitlines():
+        s = line.strip()
+        if s.startswith("- "):
+            val = s[2:].strip()
+            if val:
+                items.append(val)
+    return items
+
+
+def _replace_yaml_list(text: str, key: str, items: List[str]) -> str:
+    """
+    Replace or insert a YAML list block:
+
+      key:
+        - item1
+        - item2
+
+    If `items` is empty, any existing block is removed.
+    """
+    block_pattern = rf"^{re.escape(key)}:\s*\n(?:\s+- .*\n)*"
+
+    if not items:
+        # Remove any existing list block for this key
+        return re.sub(block_pattern, "", text, flags=re.MULTILINE)
+
+    new_block = key + ":\n" + "".join(f"  - {item}\n" for item in items)
+
+    if re.search(block_pattern, text, flags=re.MULTILINE):
+        return re.sub(block_pattern, new_block + "\n", text, count=1, flags=re.MULTILINE)
+
+    # Insert before overall_status if present, otherwise before last_updated,
+    # otherwise append near the top.
+    os_pattern = r"^overall_status:\s*.*$"
+    m = re.search(os_pattern, text, flags=re.MULTILINE)
+    if m:
+        start = m.start()
+        return text[:start] + new_block + "\n" + text[start:]
+
+    lu_pattern = r"^last_updated:\s*.*$"
+    m = re.search(lu_pattern, text, flags=re.MULTILINE)
+    if m:
+        start = m.start()
+        return text[:start] + new_block + "\n" + text[start:]
+
+    # Fallback: append after first line of front matter
+    return text + ("\n" if not text.endswith("\n") else "") + new_block + "\n"
+
+
+# ---------------------------------------------------------------------------
+# 1. Normalise Epics
+# ---------------------------------------------------------------------------
+
+EPIC_STATUS_KEYS_TO_REMOVE = {
+    "testing_status",
+    "halo_adherence",
+    "guardrail_adherence",
+    "code_quality_adherence",
+    "security_policy_adherence",
+    "feature_statuses",   # old rollup mapping
+}
+
+
+def normalize_epic_frontmatter() -> int:
+    print(f"=== Normalising Epic front matter in {EPICS_DIR} ===")
+    updated = 0
+
+    for path in sorted(EPICS_DIR.glob("*.md")):
+        text = _read(path)
+        original = text
+
+        # Strip non-overall status fields
+        for key in EPIC_STATUS_KEYS_TO_REMOVE:
+            text = _remove_block(text, key)
+
+        if text != original:
+            _write(path, text)
+            updated += 1
+            print(f"  updated {path.relative_to(REPO_ROOT)}")
+
+    print(f"Epics updated (status cleanup): {updated}")
+    return updated
+
+
+# ---------------------------------------------------------------------------
+# 2. Normalise Features
+# ---------------------------------------------------------------------------
+
+FEATURE_STATUS_KEYS_TO_REMOVE = {
+    "testing_status",
+    "halo_adherence",
+    "guardrail_adherence",
+    "code_quality_adherence",
+    "security_policy_adherence",
+    "story_statuses",     # old rollup mapping
+}
+
+
+def normalize_feature_frontmatter() -> int:
+    print(f"=== Normalising Feature front matter in {FEATURES_DIR} ===")
+    updated = 0
+
+    for path in sorted(FEATURES_DIR.glob("*.md")):
+        text = _read(path)
+        original = text
+
+        for key in FEATURE_STATUS_KEYS_TO_REMOVE:
+            text = _remove_block(text, key)
+
+        if text != original:
+            _write(path, text)
+            updated += 1
+            print(f"  updated {path.relative_to(REPO_ROOT)}")
+
+    print(f"Features updated (status cleanup): {updated}")
+    return updated
+
+
+# ---------------------------------------------------------------------------
+# 3. Normalise Stories
+# ---------------------------------------------------------------------------
+
+STORY_STATUS_DEFAULTS: Dict[str, str] = {
+    # Overall status of story (Planned / In Progress / Complete)
+    "overall_status": "Planned",
+
+    # MVP status dimensions
+    "testing_status": "not_run",
+    # For MVP, halo is effectively defaulted to pass
+    "halo_adherence": "pass",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+
+    # Non-MVP but part of full schema (all default 'not_run')
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+}
+
+
+def normalize_story_frontmatter() -> int:
+    print(f"=== Normalising Story front matter in {STORIES_DIR} ===")
+    updated = 0
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = _read(path)
+        original = text
+
+        story_id = _extract_scalar(text, "story_id")
+        if not story_id:
+            continue  # ignore non-story docs
+
+        # Remove stray 'status:' scalar (do NOT touch overall_status)
+        text = re.sub(
+            r"^status:\s*.*\n",
+            "",
+            text,
+            flags=re.MULTILINE,
+        )
+
+        # Ensure all status fields exist, do not overwrite existing values
+        for key, default in STORY_STATUS_DEFAULTS.items():
+            existing = _extract_scalar(text, key)
+            if existing is None:
+                text = _replace_scalar(text, key, default)
+
+        if text != original:
+            _write(path, text)
+            updated += 1
+            print(f"  updated {path.relative_to(REPO_ROOT)}")
+
+    print(f"Stories updated (status schema + stray status): {updated}")
+    return updated
+
+
+# ---------------------------------------------------------------------------
+# 4. Sync hierarchy lists using golden mapping
+# ---------------------------------------------------------------------------
+
+def sync_hierarchy_lists() -> None:
+    """
+    Make `features:` lists in Epics and `stories:` lists in Features consistent
+    with the golden mapping:
+
+        Story.frontmatter.feature  -> Feature.feature_id
+        Feature.frontmatter.epic   -> Epic.epic_id
+    """
+    print("=== Syncing Epic.features and Feature.stories from golden mapping ===")
+
+    # Build feature_id -> epic_id mapping and epic_id -> [feature_ids]
+    feature_to_epic: Dict[str, str] = {}
+    epic_to_features: Dict[str, List[str]] = {}
+
+    for path in sorted(FEATURES_DIR.glob("*.md")):
+        text = _read(path)
+        feature_id = _extract_scalar(text, "feature_id")
+        epic_id = _extract_scalar(text, "epic")
+        if not feature_id or not epic_id:
+            continue
+        feature_to_epic[feature_id] = epic_id
+        epic_to_features.setdefault(epic_id, []).append(feature_id)
+
+    # Build story_id -> feature_id mapping and feature_id -> [story_ids]
+    feature_to_stories: Dict[str, List[str]] = {}
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = _read(path)
+        story_id = _extract_scalar(text, "story_id")
+        feature_id = _extract_scalar(text, "feature")
+        if not story_id or not feature_id:
+            continue
+        feature_to_stories.setdefault(feature_id, []).append(story_id)
+
+    # Normalise ordering
+    for eid, lst in epic_to_features.items():
+        epic_to_features[eid] = sorted(set(lst))
+    for fid, lst in feature_to_stories.items():
+        feature_to_stories[fid] = sorted(set(lst))
+
+    # Update Epics: features list
+    epic_updates = 0
+    for path in sorted(EPICS_DIR.glob("*.md")):
+        text = _read(path)
+        original = text
+
+        epic_id = _extract_scalar(text, "epic_id")
+        if not epic_id:
+            continue
+
+        features_list = epic_to_features.get(epic_id, [])
+        text = _replace_yaml_list(text, "features", features_list)
+
+        if text != original:
+            _write(path, text)
+            epic_updates += 1
+            print(f"  synced features list for epic {epic_id} ({path.relative_to(REPO_ROOT)})")
+
+    # Update Features: stories list
+    feature_updates = 0
+    for path in sorted(FEATURES_DIR.glob("*.md")):
+        text = _read(path)
+        original = text
+
+        feature_id = _extract_scalar(text, "feature_id")
+        if not feature_id:
+            continue
+
+        stories_list = feature_to_stories.get(feature_id, [])
+        text = _replace_yaml_list(text, "stories", stories_list)
+
+        if text != original:
+            _write(path, text)
+            feature_updates += 1
+            print(f"  synced stories list for feature {feature_id} ({path.relative_to(REPO_ROOT)})")
+
+    print(f"Hierarchy sync complete: epics_updated={epic_updates}, features_updated={feature_updates}")
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def main() -> int:
+    print("=== Normalising MissionDestination front matter & hierarchy ===")
+    print(f"Repo root: {REPO_ROOT}")
+
+    normalize_epic_frontmatter()
+    normalize_feature_frontmatter()
+    normalize_story_frontmatter()
+    sync_hierarchy_lists()
+
+    print("=== Done normalising ===")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
 ===== FILE: tools\normalize_story_frontmatter.py =====
 #!/usr/bin/env python
 
@@ -5666,20 +7146,57 @@ Mission Control Overall Status Roll-up
 
 Responsibilities:
 - For each Story:
-    - Derive overall_status from its testing / guardrail / code / security /
-      halo fields (no implementation_presence).
+    - Derive overall_status from its testing / halo / guardrail /
+      code-quality / security fields (MVP dimensions only).
 - Aggregate Story overall_status up to Feature overall_status.
 - Aggregate Feature overall_status up to Epic overall_status.
 
+Rules
+=====
+
+Story overall_status (MVP):
+
+Let dims = {
+  testing_status,
+  halo_adherence,
+  guardrail_adherence,
+  code_quality_adherence,
+  security_policy_adherence
+}
+
+Normalise each dim:
+  - pass / ok / success / compliant     -> Complete
+  - fail / error / non_compliant        -> In Progress
+  - not_run / planned / empty / missing -> Planned
+
+Then:
+  - Complete  if all dims Complete
+  - Planned   if all dims Planned
+  - In Progress otherwise
+
+Feature overall_status:
+  - Planned   if all child Stories Planned
+  - Complete  if all child Stories Complete
+  - In Progress otherwise
+
+Epic overall_status:
+  - Planned   if all child Features Planned
+  - Complete  if all child Features Complete
+  - In Progress otherwise
+
 IMPORTANT:
-- We ONLY ever write 'overall_status' fields.
-- We NEVER touch testing_status / guardrail_adherence / code_quality_adherence /
-  security_policy_adherence / halo_adherence directly; we just read them.
+- We ONLY ever write 'overall_status' + 'last_updated' fields.
+- We NEVER touch the individual Story dimensions directly.
+- We NEVER change the Storyâ†’Feature or Featureâ†’Epic mapping;
+  we only *read*:
+    - Story.frontmatter.feature
+    - Feature.frontmatter.epic
 """
 
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -5690,7 +7207,8 @@ FEATURES_DIR = REPO_ROOT / "docs" / "mission_destination" / "features"
 EPICS_DIR = REPO_ROOT / "docs" / "mission_destination" / "epics"
 
 
-# -------------------- helpers -------------------- #
+# -------------------- basic helpers -------------------- #
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -5716,34 +7234,10 @@ def _extract_scalar(text: str, key: str) -> Optional[str]:
     return val or None
 
 
-def _extract_yaml_list(text: str, key: str) -> List[str]:
-    """
-    Extract:
-
-      key:
-        - item1
-        - item2
-
-    Returns [item1, item2].
-    """
-    pattern = rf"^{re.escape(key)}:\s*\n(?P<body>(?:\s+- .*\n)+)"
-    m = re.search(pattern, text, flags=re.MULTILINE)
-    if not m:
-        return []
-    body = m.group("body")
-    items: List[str] = []
-    for line in body.splitlines():
-        s = line.strip()
-        if s.startswith("- "):
-            val = s[2:].strip()
-            if val:
-                items.append(val)
-    return items
-
-
 def _replace_scalar(text: str, key: str, value: str) -> str:
     """
     Replace or insert 'key: value' in the front matter.
+    We always insert before 'last_updated' if present, otherwise append.
     """
     pattern = rf"^{re.escape(key)}:\s*.*$"
     replacement = f"{key}: {value}"
@@ -5764,7 +7258,23 @@ def _replace_scalar(text: str, key: str, value: str) -> str:
     return text + replacement + "\n"
 
 
+def _now_iso_utc() -> str:
+    """
+    Current time in ISO UTC, matching the status model docs, e.g.
+    2025-01-01T12:00:00Z
+    """
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _touch_last_updated(text: str) -> str:
+    """
+    Ensure last_updated is set to "now" in ISO UTC.
+    """
+    return _replace_scalar(text, "last_updated", _now_iso_utc())
+
+
 # -------------------- status helpers -------------------- #
+
 
 def _norm_overall(raw: Optional[str]) -> str:
     """
@@ -5807,208 +7317,245 @@ def _aggregate_overall(child_statuses: List[str]) -> Optional[str]:
     return "In Progress"
 
 
-def _norm_flag(raw: Optional[str]) -> str:
+def _norm_dim(raw: Optional[str]) -> str:
     """
-    Normalise pass/fail/planned-ish flags used in story front matter.
+    Normalise a Story dimension value into one of:
+        Planned | In Progress | Complete
+
+    Used for:
+      testing_status
+      halo_adherence
+      guardrail_adherence
+      code_quality_adherence
+      security_policy_adherence
     """
     if raw is None:
-        return "planned"
-    t = raw.strip().strip("\"'").lower()
-    if t in {"pass", "passed", "ok", "true"}:
-        return "pass"
-    if t in {"fail", "failed", "error", "false"}:
-        return "fail"
-    if t in {"planned", "n/a", "na"}:
-        return "planned"
-    # fallback: treat unknown as planned
-    return "planned"
-
-
-def derive_story_overall(text: str) -> str:
-    """
-    Derive a Story's overall_status from its detailed fields.
-
-    Rules:
-
-    - If *nothing has started* (all flags 'planned')
-      -> Planned
-    - Else if ALL of
-        testing_status, guardrail_adherence, code_quality_adherence,
-        security_policy_adherence are 'pass'
-      AND halo_adherence is not 'fail'
-      -> Complete
-    - Otherwise
-      -> In Progress
-    """
-    testing = _norm_flag(_extract_scalar(text, "testing_status"))
-    guardrail = _norm_flag(_extract_scalar(text, "guardrail_adherence"))
-    code = _norm_flag(_extract_scalar(text, "code_quality_adherence"))
-    security = _norm_flag(_extract_scalar(text, "security_policy_adherence"))
-    halo_raw = _extract_scalar(text, "halo_adherence")
-    halo = _norm_flag(halo_raw) if halo_raw is not None else "planned"
-
-    flags = [testing, guardrail, code, security, halo]
-
-    # 1) Nothing touched yet
-    if all(f == "planned" for f in flags):
         return "Planned"
 
-    # 2) Everything green
-    if (
-        testing == "pass"
-        and guardrail == "pass"
-        and code == "pass"
-        and security == "pass"
-        and halo != "fail"
-    ):
+    t = raw.strip().strip("\"'")
+    tl = t.lower()
+
+    if tl in {"pass", "ok", "success", "successful", "compliant"}:
         return "Complete"
 
-    # 3) Something has happened but we are not complete
+    if tl in {"fail", "failed", "error", "errors", "non_compliant", "non-compliant"}:
+        return "In Progress"
+
+    # Treat not_run, planned, empty, and unknown as Planned (no evidence yet)
+    if tl in {"not_run", "not-run", "pending", "planned", ""}:
+        return "Planned"
+
+    # Default safely to "In Progress" if it's something unexpected but non-empty
     return "In Progress"
 
 
-# -------------------- main roll-up logic -------------------- #
-
-def update_story_overall() -> Dict[str, Dict[str, str]]:
+def _derive_story_overall(text: str) -> str:
     """
-    For every story file:
-    - derive overall_status from detailed fields
-    - write it back to the file
-    - return mapping story_id -> {feature, overall}
+    Derive Story overall_status from the 5 MVP dimensions.
     """
-    stories: Dict[str, Dict[str, str]] = {}
+    dims_keys = [
+        "testing_status",
+        "halo_adherence",
+        "guardrail_adherence",
+        "code_quality_adherence",
+        "security_policy_adherence",
+    ]
 
+    dim_states: List[str] = []
+    for key in dims_keys:
+        raw = _extract_scalar(text, key)
+        dim_states.append(_norm_dim(raw))
+
+    # Aggregate those Planned/In Progress/Complete values
+    agg = _aggregate_overall(dim_states)
+    if agg is None:
+        # shouldn't happen (we always have 5 dims) but be defensive
+        return "Planned"
+    return agg
+
+
+# -------------------- roll-up implementation -------------------- #
+
+
+def rollup_stories() -> Dict[str, Dict[str, str]]:
+    """
+    Process Stories:
+
+    - Derive Story overall_status from dimension fields.
+    - Update overall_status + last_updated when it changes.
+    - Build mapping Story -> Feature and Story overall_status.
+
+    Returns:
+        {
+          "story_status": {story_id: overall_status},
+          "story_feature": {story_id: feature_id},
+        }
+    """
+    story_status: Dict[str, str] = {}
+    story_feature: Dict[str, str] = {}
+
+    print(">>> Rolling up Story statuses...")
     for path in sorted(STORIES_DIR.glob("*.md")):
         text = _read(path)
+        story_id = _extract_scalar(text, "story_id")
+        if not story_id:
+            continue
 
-        sid = _extract_scalar(text, "story_id")
-        if not sid:
-            continue  # ignore legacy / non-story docs
+        feature_id = _extract_scalar(text, "feature")
+        if not feature_id:
+            # If a Story is not mapped to a Feature, we skip it for roll-up
+            print(f"    [WARN] Story {story_id} has no 'feature' mapping; skipping.")
+            continue
 
-        feature_id = _extract_scalar(text, "feature") or ""
+        old_overall_raw = _extract_scalar(text, "overall_status")
+        old_overall = _norm_overall(old_overall_raw)
+        new_overall = _derive_story_overall(text)
 
-        derived_overall = derive_story_overall(text)
-        new_text = _replace_scalar(text, "overall_status", derived_overall)
-
-        if new_text != text:
+        if new_overall != old_overall:
+            new_text = _replace_scalar(text, "overall_status", new_overall)
+            new_text = _touch_last_updated(new_text)
             _write(path, new_text)
-            print(f">>> Updated Story {sid} overall_status -> {derived_overall}")
-
-        stories[sid] = {"feature": feature_id, "overall": derived_overall}
-
-    return stories
-
-
-def rollup_features(stories: Dict[str, Dict[str, str]]) -> Dict[str, str]:
-    """
-    Compute overall_status per feature and write it into feature files.
-
-    Returns mapping: feature_id -> overall_status
-    """
-    feature_overall: Dict[str, str] = {}
-
-    # Build feature -> [story_ids] from stories
-    feature_to_stories: Dict[str, List[str]] = {}
-    for sid, info in stories.items():
-        fid = info["feature"]
-        if not fid:
-            continue
-        feature_to_stories.setdefault(fid, []).append(sid)
-
-    for path in sorted(FEATURES_DIR.glob("*.md")):
-        text = _read(path)
-
-        fid = _extract_scalar(text, "feature_id")
-        if not fid:
-            continue
-
-        # Prefer explicit list in front matter if present
-        listed_story_ids = _extract_yaml_list(text, "stories")
-        if listed_story_ids:
-            story_ids = listed_story_ids
+            print(f"    Story {story_id}: {old_overall} -> {new_overall}")
         else:
-            story_ids = feature_to_stories.get(fid, [])
+            # still ensure we store the normalised value
+            new_overall = old_overall
 
-        child_overall: List[str] = []
-        for sid in story_ids:
-            info = stories.get(sid)
-            if info is None:
-                child_overall.append("Planned")
-            else:
-                child_overall.append(info["overall"])
+        story_status[story_id] = new_overall
+        story_feature[story_id] = feature_id
 
-        agg = _aggregate_overall(child_overall)
-
-        new_text = text
-        if agg:
-            new_text = _replace_scalar(new_text, "overall_status", agg)
-
-        if new_text != text:
-            _write(path, new_text)
-            print(f">>> Updated Feature {fid} overall_status -> {agg}")
-
-        # Read back final value (may have existed already)
-        final_text = _read(path)
-        final_overall = _norm_overall(_extract_scalar(final_text, "overall_status"))
-        feature_overall[fid] = final_overall
-
-    return feature_overall
+    return {
+        "story_status": story_status,
+        "story_feature": story_feature,
+    }
 
 
-def rollup_epics(feature_overall: Dict[str, str]) -> None:
+def rollup_features(story_status: Dict[str, str], story_feature: Dict[str, str]) -> Dict[str, Dict[str, str]]:
     """
-    Compute overall_status per epic and write it into epic files.
-    """
-    # Build epic -> [feature_ids] from features
-    epic_to_features: Dict[str, List[str]] = {}
+    Process Features:
 
+    - Determine child Stories from the Story->Feature mapping.
+    - Aggregate their overall_status to Feature overall_status.
+    - Update Feature overall_status + last_updated when it changes.
+    - Build mapping Feature -> Epic and Feature overall_status.
+
+    Returns:
+        {
+          "feature_status": {feature_id: overall_status},
+          "feature_epic": {feature_id: epic_id},
+        }
+    """
+    # Build feature -> [story_id] from story_feature mapping
+    stories_by_feature: Dict[str, List[str]] = {}
+    for sid, fid in story_feature.items():
+        stories_by_feature.setdefault(fid, []).append(sid)
+
+    feature_status: Dict[str, str] = {}
+    feature_epic: Dict[str, str] = {}
+
+    print(">>> Rolling up Feature statuses...")
     for path in sorted(FEATURES_DIR.glob("*.md")):
         text = _read(path)
-        fid = _extract_scalar(text, "feature_id")
-        epic_id = _extract_scalar(text, "epic")
-        if not fid or not epic_id:
+        feature_id = _extract_scalar(text, "feature_id")
+        if not feature_id:
             continue
-        epic_to_features.setdefault(epic_id, []).append(fid)
 
+        epic_id = _extract_scalar(text, "epic")
+        if epic_id:
+            feature_epic[feature_id] = epic_id
+
+        child_story_ids = stories_by_feature.get(feature_id, [])
+        child_overalls = [story_status[sid] for sid in child_story_ids if sid in story_status]
+
+        agg = _aggregate_overall(child_overalls)
+        if agg is None:
+            # No child stories mapped; leave overall_status as-is
+            old = _norm_overall(_extract_scalar(text, "overall_status"))
+            feature_status[feature_id] = old
+            if not child_story_ids:
+                print(f"    [WARN] Feature {feature_id} has no mapped Stories; leaving status as {old}.")
+            else:
+                print(f"    [WARN] Feature {feature_id} has Stories but none with known status; leaving as {old}.")
+            continue
+
+        old_overall = _norm_overall(_extract_scalar(text, "overall_status"))
+        new_overall = agg
+
+        if new_overall != old_overall:
+            new_text = _replace_scalar(text, "overall_status", new_overall)
+            new_text = _touch_last_updated(new_text)
+            _write(path, new_text)
+            print(f"    Feature {feature_id}: {old_overall} -> {new_overall}")
+        else:
+            new_overall = old_overall
+
+        feature_status[feature_id] = new_overall
+
+    return {
+        "feature_status": feature_status,
+        "feature_epic": feature_epic,
+    }
+
+
+def rollup_epics(feature_status: Dict[str, str], feature_epic: Dict[str, str]) -> None:
+    """
+    Process Epics:
+
+    - Determine child Features from the Feature->Epic mapping.
+    - Aggregate their overall_status to Epic overall_status.
+    - Update Epic overall_status + last_updated when it changes.
+    """
+    # Build epic -> [feature_id] from feature_epic mapping
+    features_by_epic: Dict[str, List[str]] = {}
+    for fid, eid in feature_epic.items():
+        features_by_epic.setdefault(eid, []).append(fid)
+
+    print(">>> Rolling up Epic statuses...")
     for path in sorted(EPICS_DIR.glob("*.md")):
         text = _read(path)
-
-        eid = _extract_scalar(text, "epic_id")
-        if not eid:
+        epic_id = _extract_scalar(text, "epic_id")
+        if not epic_id:
             continue
 
-        feature_ids = _extract_yaml_list(text, "features")
-        if not feature_ids:
-            feature_ids = epic_to_features.get(eid, [])
+        child_feature_ids = features_by_epic.get(epic_id, [])
+        child_overalls = [feature_status[fid] for fid in child_feature_ids if fid in feature_status]
 
-        child_overall: List[str] = []
-        for fid in feature_ids:
-            child_overall.append(feature_overall.get(fid, "Planned"))
+        agg = _aggregate_overall(child_overalls)
+        if agg is None:
+            old = _norm_overall(_extract_scalar(text, "overall_status"))
+            if not child_feature_ids:
+                print(f"    [WARN] Epic {epic_id} has no mapped Features; leaving status as {old}.")
+            else:
+                print(f"    [WARN] Epic {epic_id} has Features but none with known status; leaving as {old}.")
+            continue
 
-        agg = _aggregate_overall(child_overall)
+        old_overall = _norm_overall(_extract_scalar(text, "overall_status"))
+        new_overall = agg
 
-        new_text = text
-        if agg:
-            new_text = _replace_scalar(new_text, "overall_status", agg)
-
-        if new_text != text:
+        if new_overall != old_overall:
+            new_text = _replace_scalar(text, "overall_status", new_overall)
+            new_text = _touch_last_updated(new_text)
             _write(path, new_text)
-            print(f">>> Updated Epic {eid} overall_status -> {agg}")
+            print(f"    Epic {epic_id}: {old_overall} -> {new_overall}")
+
+
+# -------------------- CLI -------------------- #
 
 
 def main() -> int:
     print("=== Mission Control Overall Status Roll-up ===")
     print(f"Repo root: {REPO_ROOT}")
 
-    stories = update_story_overall()
-    print(f"Updated and collected {len(stories)} stories.")
+    story_maps = rollup_stories()
+    feature_maps = rollup_features(
+        story_status=story_maps["story_status"],
+        story_feature=story_maps["story_feature"],
+    )
+    rollup_epics(
+        feature_status=feature_maps["feature_status"],
+        feature_epic=feature_maps["feature_epic"],
+    )
 
-    feature_overall = rollup_features(stories)
-    print(f"Rolled up {len(feature_overall)} features.")
-
-    rollup_epics(feature_overall)
-    print("Rolled up epics.")
-    print("=== Done ===")
+    print("=== Roll-up complete. ===")
     return 0
 
 
@@ -7507,22 +9054,59 @@ if __name__ == "__main__":
 ===== FILE: tools\status_snapshot.py =====
 #!/usr/bin/env python
 """
-Mission Control Status Snapshot (overall_status only)
+Mission Control Status Snapshot
 
 Reads epics, features, and stories and writes:
 
-  missionlog/status/status_snapshot.md
+  missionlog/status/status_snapshot.md     (Markdown tables for humans)
+  app_frontend/public/missionlog/status_snapshot.json  (JSON for MissionLog UI)
 
-with three tables:
-- Epics:   Epic | Name | Overall
+Markdown contains three tables:
+- Epics:    Epic | Name | Overall
 - Features: Feature | Epic | Name | Overall | Stories
-- Stories: Story | Feature | Name | Overall
+- Stories:  Story | Feature | Name | Overall
+
+JSON contains a nested structure:
+
+{
+  "generated_at": "...",
+  "epics": [
+    {
+      "epic_id": "...",
+      "name": "...",
+      "overall_status": "...",
+      "features": [
+        {
+          "feature_id": "...",
+          "name": "...",
+          "epic_id": "...",
+          "overall_status": "...",
+          "stories": [
+            {
+              "story_id": "...",
+              "name": "...",
+              "feature_id": "...",
+              "overall_status": "...",
+              "testing_status": "...",
+              "halo_adherence": "...",
+              "guardrail_adherence": "...",
+              "code_quality_adherence": "...",
+              "security_policy_adherence": "..."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 """
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -7534,6 +9118,9 @@ STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
 
 SNAPSHOT_DIR = REPO_ROOT / "missionlog" / "status"
 SNAPSHOT_PATH = SNAPSHOT_DIR / "status_snapshot.md"
+
+PUBLIC_STATUS_DIR = REPO_ROOT / "app_frontend" / "public" / "missionlog"
+PUBLIC_STATUS_JSON = PUBLIC_STATUS_DIR / "status_snapshot.json"
 
 
 # -------------------- helpers -------------------- #
@@ -7585,6 +9172,22 @@ def _safe_overall(val: Optional[str]) -> str:
     return lookup.get(t.lower(), t)
 
 
+def _safe_dim(val: Optional[str]) -> str:
+    """
+    Normalise dimension statuses to: pass / fail / not_run.
+    """
+    if not val:
+        return "not_run"
+    t = val.strip().strip('"\'').lower()
+    if t in {"pass", "ok", "success", "compliant"}:
+        return "pass"
+    if t in {"fail", "error", "non_compliant", "non-compliant"}:
+        return "fail"
+    if t in {"not_run", "not run", "pending", "planned"}:
+        return "not_run"
+    return t
+
+
 # -------------------- data structures -------------------- #
 
 @dataclass
@@ -7609,6 +9212,11 @@ class StoryRow:
     feature_id: str
     name: str
     overall: str
+    testing_status: str
+    halo_adherence: str
+    guardrail_adherence: str
+    code_quality_adherence: str
+    security_policy_adherence: str
 
 
 # -------------------- collectors -------------------- #
@@ -7626,7 +9234,11 @@ def collect_epics() -> Dict[str, EpicRow]:
         name = _extract_scalar(text, "name") or path.stem
         overall = _safe_overall(_extract_scalar(text, "overall_status"))
 
-        rows[epic_id] = EpicRow(epic_id=epic_id, name=name, overall=overall)
+        rows[epic_id] = EpicRow(
+            epic_id=epic_id,
+            name=name,
+            overall=overall,
+        )
 
     return rows
 
@@ -7643,8 +9255,8 @@ def collect_features() -> Dict[str, FeatureRow]:
 
         epic_id = _extract_scalar(text, "epic") or ""
         name = _extract_scalar(text, "name") or path.stem
-        stories = _extract_yaml_list(text, "stories")
         overall = _safe_overall(_extract_scalar(text, "overall_status"))
+        stories = _extract_yaml_list(text, "stories")
 
         rows[feature_id] = FeatureRow(
             feature_id=feature_id,
@@ -7667,21 +9279,32 @@ def collect_stories() -> Dict[str, StoryRow]:
         if not story_id:
             continue
 
-        feature_id = _extract_scalar(text, "feature") or ""
+        feature_id = _extract_scalar(text, "feature")
         name = _extract_scalar(text, "name") or path.stem
         overall = _safe_overall(_extract_scalar(text, "overall_status"))
 
+        testing = _safe_dim(_extract_scalar(text, "testing_status"))
+        halo = _safe_dim(_extract_scalar(text, "halo_adherence"))
+        guardrail = _safe_dim(_extract_scalar(text, "guardrail_adherence"))
+        code_quality = _safe_dim(_extract_scalar(text, "code_quality_adherence"))
+        security = _safe_dim(_extract_scalar(text, "security_policy_adherence"))
+
         rows[story_id] = StoryRow(
             story_id=story_id,
-            feature_id=feature_id,
+            feature_id=feature_id or "",
             name=name,
             overall=overall,
+            testing_status=testing,
+            halo_adherence=halo,
+            guardrail_adherence=guardrail,
+            code_quality_adherence=code_quality,
+            security_policy_adherence=security,
         )
 
     return rows
 
 
-# -------------------- markdown rendering -------------------- #
+# -------------------- Markdown renderers -------------------- #
 
 def _render_epics_table(epics: Dict[str, EpicRow]) -> str:
     if not epics:
@@ -7698,7 +9321,8 @@ def _render_epics_table(epics: Dict[str, EpicRow]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _render_features_table(features: Dict[str, FeatureRow]) -> str:
+def _render_features_table(features: Dict[str, FeatureRow],
+                           feature_to_story_ids: Dict[str, List[str]]) -> str:
     if not features:
         return "_No features found._\n"
 
@@ -7708,8 +9332,11 @@ def _render_features_table(features: Dict[str, FeatureRow]) -> str:
 
     for fid in sorted(features.keys()):
         f = features[fid]
-        stories_str = ", ".join(f.stories) if f.stories else ""
-        lines.append(f"| {f.feature_id} | {f.epic_id} | {f.name} | {f.overall} | {stories_str} |")
+        story_ids = feature_to_story_ids.get(fid, f.stories or [])
+        stories_str = ", ".join(sorted(story_ids)) if story_ids else ""
+        lines.append(
+            f"| {f.feature_id} | {f.epic_id} | {f.name} | {f.overall} | {stories_str} |"
+        )
 
     return "\n".join(lines) + "\n"
 
@@ -7734,6 +9361,13 @@ def build_snapshot_markdown() -> str:
     features = collect_features()
     stories = collect_stories()
 
+    # Golden mapping: story.feature_id drives which stories belong to a feature.
+    feature_to_story_ids: Dict[str, List[str]] = {}
+    for s in stories.values():
+        if not s.feature_id:
+            continue
+        feature_to_story_ids.setdefault(s.feature_id, []).append(s.story_id)
+
     parts: List[str] = []
     parts.append("# Mission Control Status Snapshot\n")
 
@@ -7741,7 +9375,7 @@ def build_snapshot_markdown() -> str:
     parts.append(_render_epics_table(epics))
 
     parts.append("\n## Features\n")
-    parts.append(_render_features_table(features))
+    parts.append(_render_features_table(features, feature_to_story_ids))
 
     parts.append("\n## Stories\n")
     parts.append(_render_stories_table(stories))
@@ -7749,18 +9383,105 @@ def build_snapshot_markdown() -> str:
     return "\n".join(parts)
 
 
+# -------------------- JSON snapshot for MissionLog -------------------- #
+
+def build_snapshot_json() -> Dict[str, object]:
+    epics = collect_epics()
+    features = collect_features()
+    stories = collect_stories()
+
+    # Map feature -> [StoryRow] via golden mapping (Story.feature_id)
+    feature_to_stories: Dict[str, List[StoryRow]] = {}
+    for s in stories.values():
+        if not s.feature_id:
+            continue
+        feature_to_stories.setdefault(s.feature_id, []).append(s)
+
+    # Map epic -> [FeatureRow] via Feature.epic_id
+    epic_to_features: Dict[str, List[FeatureRow]] = {}
+    for f in features.values():
+        if not f.epic_id:
+            continue
+        epic_to_features.setdefault(f.epic_id, []).append(f)
+
+    epics_payload: List[Dict[str, object]] = []
+
+    for eid in sorted(epics.keys()):
+        e = epics[eid]
+        feature_rows = sorted(
+            epic_to_features.get(eid, []),
+            key=lambda fr: fr.feature_id,
+        )
+
+        features_payload: List[Dict[str, object]] = []
+        for f in feature_rows:
+            story_rows = sorted(
+                feature_to_stories.get(f.feature_id, []),
+                key=lambda sr: sr.story_id,
+            )
+            stories_payload: List[Dict[str, object]] = []
+            for s in story_rows:
+                stories_payload.append(
+                    {
+                        "story_id": s.story_id,
+                        "name": s.name,
+                        "feature_id": s.feature_id,
+                        "overall_status": s.overall,
+                        "testing_status": s.testing_status,
+                        "halo_adherence": s.halo_adherence,
+                        "guardrail_adherence": s.guardrail_adherence,
+                        "code_quality_adherence": s.code_quality_adherence,
+                        "security_policy_adherence": s.security_policy_adherence,
+                    }
+                )
+
+            features_payload.append(
+                {
+                    "feature_id": f.feature_id,
+                    "name": f.name,
+                    "epic_id": f.epic_id,
+                    "overall_status": f.overall,
+                    "stories": stories_payload,
+                }
+            )
+
+        epics_payload.append(
+            {
+                "epic_id": e.epic_id,
+                "name": e.name,
+                "overall_status": e.overall,
+                "features": features_payload,
+            }
+        )
+
+    return {
+        "generated_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "epics": epics_payload,
+    }
+
+
 # -------------------- CLI -------------------- #
 
 def main() -> int:
-    print("=== Generating Mission Control Status Snapshot (overall only) ===")
+    print("=== Generating Mission Control Status Snapshot (overall + JSON) ===")
     print(f"Repo root: {REPO_ROOT}")
 
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    PUBLIC_STATUS_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Markdown snapshot (for the repo / docs)
     markdown = build_snapshot_markdown()
     SNAPSHOT_PATH.write_text(markdown, encoding="utf-8")
+    print(f"Wrote Markdown snapshot to {SNAPSHOT_PATH.relative_to(REPO_ROOT)}")
 
-    print(f"Wrote snapshot to {SNAPSHOT_PATH.relative_to(REPO_ROOT)}")
+    # JSON snapshot (for MissionLog UI)
+    json_data = build_snapshot_json()
+    PUBLIC_STATUS_JSON.write_text(
+        json.dumps(json_data, indent=2),
+        encoding="utf-8",
+    )
+    print(f"Wrote JSON snapshot to {PUBLIC_STATUS_JSON.relative_to(REPO_ROOT)}")
+
     print("=== Done ===")
     return 0
 

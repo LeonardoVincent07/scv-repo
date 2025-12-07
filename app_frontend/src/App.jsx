@@ -1,4 +1,3 @@
-// app_frontend/src/App.jsx
 import React, { useState } from "react";
 import MissionLogPanel from "./MissionLogPanel";
 import MissionAtlasPanel from "./MissionAtlasPanel";
@@ -39,11 +38,13 @@ function App() {
         throw new Error(detail.detail || "Failed to fetch profile.");
       }
       const profileJson = await profileRes.json();
+      console.log('Profile:', profileJson); // Log to confirm
 
       const sourcesRes = await fetch(
         `${BACKEND_BASE_URL}/clients/${encodedId}/sources`
       );
       const sourcesJson = sourcesRes.ok ? await sourcesRes.json() : [];
+      console.log('Sources:', sourcesJson); // Log to confirm
 
       setProfile(profileJson);
       setSources(sourcesJson);
@@ -77,19 +78,9 @@ function App() {
             <button
               type="button"
               style={{ fontFamily: "Fjalla One" }}
-              className="
-                inline-flex items-center justify-center
-                px-8 py-2.5 rounded-md border
-                text-base text-gray-900
-                bg-[rgb(176,192,159)]
-                shadow-sm
-              "
+              className="inline-flex items-center justify-center px-8 py-2.5 rounded-md border text-base text-gray-900 bg-[rgb(176,192,159)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
               onClick={() =>
-                window.open(
-                  "/missionsmith",
-                  "_blank",
-                  "noopener,noreferrer"
-                )
+                window.open("/missionsmith", "_blank", "noopener,noreferrer")
               }
             >
               MissionSmith
@@ -99,13 +90,7 @@ function App() {
             <button
               type="button"
               style={{ fontFamily: "Fjalla One" }}
-              className="
-                inline-flex items-center justify-center
-                px-8 py-2.5 rounded-md border
-                text-base text-gray-900
-                bg-[rgb(205,226,235)]
-                shadow-sm
-              "
+              className="inline-flex items-center justify-center px-8 py-2.5 rounded-md border text-base text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
               onClick={() => setActiveView("missionAtlas")}
             >
               MissionAtlas
@@ -115,13 +100,7 @@ function App() {
             <button
               type="button"
               style={{ fontFamily: "Fjalla One" }}
-              className="
-                inline-flex items-center justify-center
-                px-8 py-2.5 rounded-md border
-                text-base text-gray-900
-                bg-[rgb(241,205,86)]
-                shadow-sm
-              "
+              className="inline-flex items-center justify-center px-8 py-2.5 rounded-md border text-base text-gray-900 bg-[rgb(241,205,86)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
               onClick={() => setActiveView("missionLog")}
             >
               MissionLog
@@ -132,7 +111,7 @@ function App() {
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {isMissionLog ? (
-          <MissionLogPanel />
+          <MissionLogPanel setActiveView={setActiveView} />
         ) : isMissionAtlas ? (
           <MissionAtlasPanel />
         ) : (
@@ -161,12 +140,7 @@ function App() {
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
                     placeholder="e.g. 123"
-                    className="
-                      w-full px-3 py-2 rounded-md border border-gray-300 
-                      font-body text-sm
-                      focus:outline-none focus:ring-2 
-                      focus:ring-[#1A9988] focus:border-[#1A9988]
-                    "
+                    className="w-full px-3 py-2 rounded-md border border-gray-300 font-body text-sm focus:outline-none focus:ring-2 focus:ring-[#1A9988] focus:border-[#1A9988]"
                   />
                 </div>
 
@@ -174,16 +148,7 @@ function App() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="
-                    inline-flex items-center justify-center
-                    px-4 py-2 rounded-md w-32
-                    bg-[#1A9988] text-white
-                    font-body text-sm font-medium shadow-sm
-                    transition-colors transition-transform duration-150
-                    hover:bg-[#178c7d] hover:-translate-y-0.5
-                    active:bg-[#147c6f] active:translate-y-0
-                    disabled:opacity-60 disabled:cursor-not-allowed
-                  "
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-md w-32 bg-[#1A9988] text-white font-body text-sm font-medium shadow-sm transition-colors transition-transform duration-150 hover:bg-[#178c7d] hover:-translate-y-0.5 active:bg-[#147c6f] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? "Loading…" : "Get profile"}
                 </button>
@@ -272,13 +237,7 @@ function App() {
                                 className="border-b border-gray-200 pb-2 last:border-none"
                               >
                                 <div className="text-gray-900">
-                                  {[
-                                    addr.line1,
-                                    addr.line2,
-                                    addr.city,
-                                    addr.postcode,
-                                    addr.country,
-                                  ]
+                                  {[addr.line1, addr.line2, addr.city, addr.postcode, addr.country]
                                     .filter(Boolean)
                                     .join(", ")}
                                 </div>
@@ -358,6 +317,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

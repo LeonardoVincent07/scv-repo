@@ -1,0 +1,620 @@
+{
+  "generated_at": "2025-12-07T07:48:56Z",
+  "epics": [
+    {
+      "epic_id": "E00",
+      "name": "Application Bootstrapping",
+      "overall_status": "Complete",
+      "features": [
+        {
+          "feature_id": "FT-00-BE",
+          "name": "Backend Fundamentals",
+          "epic_id": "E00",
+          "overall_status": "Complete",
+          "stories": [
+            {
+              "story_id": "ST-00",
+              "name": "Provide Basic Backend API Availability",
+              "feature_id": "FT-00-BE",
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epic_id": "E00-UI",
+      "name": "User Interface Bootstrapping",
+      "overall_status": "In Progress",
+      "features": [
+        {
+          "feature_id": "FT-00-UI",
+          "name": "Frontend Fundamentals",
+          "epic_id": "E00-UI",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-00-FRONTEND-UI-SHELL",
+              "name": "Provide Frontend UI Shell Availability",
+              "feature_id": "FT-00-UI",
+              "overall_status": "In Progress",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epic_id": "EP-01",
+      "name": "Client Ingestion & Normalisation",
+      "overall_status": "In Progress",
+      "features": [
+        {
+          "feature_id": "FT-01",
+          "name": "Source System Configuration",
+          "epic_id": "EP-01",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-01",
+              "name": "Register CRM source",
+              "feature_id": "FT-01",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-02",
+              "name": "Register KYC source",
+              "feature_id": "FT-01",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-02",
+          "name": "Schema Mapping to Canonical Model",
+          "epic_id": "EP-01",
+          "overall_status": "Complete",
+          "stories": [
+            {
+              "story_id": "ST-03",
+              "name": "Map identity fields",
+              "feature_id": "FT-02",
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
+            },
+            {
+              "story_id": "ST-04",
+              "name": "Map identifiers",
+              "feature_id": "FT-02",
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-03",
+          "name": "Initial Bulk Ingestion",
+          "epic_id": "EP-01",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-05",
+              "name": "Bulk load CRM",
+              "feature_id": "FT-03",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-06",
+              "name": "Bulk load KYC",
+              "feature_id": "FT-03",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-04",
+          "name": "Incremental Ingestion & Change Detection",
+          "epic_id": "EP-01",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-07",
+              "name": "Detect upstream deltas",
+              "feature_id": "FT-04",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-08",
+              "name": "Apply deltas",
+              "feature_id": "FT-04",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epic_id": "EP-02",
+      "name": "Client Matching & Golden Record",
+      "overall_status": "In Progress",
+      "features": [
+        {
+          "feature_id": "FT-05",
+          "name": "Exact Match Rules",
+          "epic_id": "EP-02",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-09",
+              "name": "Match by tax ID",
+              "feature_id": "FT-05",
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
+            },
+            {
+              "story_id": "ST-10",
+              "name": "Match by registration number",
+              "feature_id": "FT-05",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-06",
+          "name": "Fuzzy & Probabilistic Matching",
+          "epic_id": "EP-02",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-11",
+              "name": "Fuzzy name match",
+              "feature_id": "FT-06",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-12",
+              "name": "Attribute confidence",
+              "feature_id": "FT-06",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-07",
+          "name": "Golden Record Construction",
+          "epic_id": "EP-02",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-13",
+              "name": "Merge identity",
+              "feature_id": "FT-07",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-14",
+              "name": "Merge addresses",
+              "feature_id": "FT-07",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-15",
+              "name": "Record lineage",
+              "feature_id": "FT-07",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epic_id": "EP-03",
+      "name": "Client Search",
+      "overall_status": "In Progress",
+      "features": [
+        {
+          "feature_id": "FT-08",
+          "name": "Search Index & Normalisation",
+          "epic_id": "EP-03",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-16",
+              "name": "Build index",
+              "feature_id": "FT-08",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-17",
+              "name": "Normalise search fields",
+              "feature_id": "FT-08",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-09",
+          "name": "Fuzzy Search & Ranking",
+          "epic_id": "EP-03",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-18",
+              "name": "Fuzzy search queries",
+              "feature_id": "FT-09",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-19",
+              "name": "Search ranking",
+              "feature_id": "FT-09",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epic_id": "EP-04",
+      "name": "Client Profile Assembly",
+      "overall_status": "In Progress",
+      "features": [
+        {
+          "feature_id": "FT-10",
+          "name": "Assemble Canonical Profile",
+          "epic_id": "EP-04",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-20",
+              "name": "Assemble base profile",
+              "feature_id": "FT-10",
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
+            },
+            {
+              "story_id": "ST-21",
+              "name": "Assemble metadata",
+              "feature_id": "FT-10",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-11",
+          "name": "Lineage Exposure",
+          "epic_id": "EP-04",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-22",
+              "name": "Expose lineage",
+              "feature_id": "FT-11",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-23",
+              "name": "Drill-down lineage",
+              "feature_id": "FT-11",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-12",
+          "name": "Conflict Presentation",
+          "epic_id": "EP-04",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-24",
+              "name": "Flag conflicts",
+              "feature_id": "FT-12",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-25",
+              "name": "Show merge logic",
+              "feature_id": "FT-12",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epic_id": "EP-05",
+      "name": "Data Quality & Lineage",
+      "overall_status": "In Progress",
+      "features": [
+        {
+          "feature_id": "FT-13",
+          "name": "Lineage Tracking",
+          "epic_id": "EP-05",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-26",
+              "name": "Store lineage history",
+              "feature_id": "FT-13",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-27",
+              "name": "Timestamp lineage",
+              "feature_id": "FT-13",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-14",
+          "name": "Data Quality Scoring",
+          "epic_id": "EP-05",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-28",
+              "name": "Compute freshness",
+              "feature_id": "FT-14",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-29",
+              "name": "Compute completeness",
+              "feature_id": "FT-14",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-15",
+          "name": "Auditability & Evidence",
+          "epic_id": "EP-05",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-30",
+              "name": "Audit ingestion",
+              "feature_id": "FT-15",
+              "overall_status": "In Progress",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
+            },
+            {
+              "story_id": "ST-31",
+              "name": "Audit merge",
+              "feature_id": "FT-15",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epic_id": "EP-06",
+      "name": "Integration & API Exposure",
+      "overall_status": "In Progress",
+      "features": [
+        {
+          "feature_id": "FT-16",
+          "name": "Search API",
+          "epic_id": "EP-06",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-32",
+              "name": "Search API basic",
+              "feature_id": "FT-16",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-33",
+              "name": "Search API ranking",
+              "feature_id": "FT-16",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        },
+        {
+          "feature_id": "FT-17",
+          "name": "Client Profile API",
+          "epic_id": "EP-06",
+          "overall_status": "In Progress",
+          "stories": [
+            {
+              "story_id": "ST-34",
+              "name": "Profile API basic",
+              "feature_id": "FT-17",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            },
+            {
+              "story_id": "ST-35",
+              "name": "Profile API lineage",
+              "feature_id": "FT-17",
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "fail"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

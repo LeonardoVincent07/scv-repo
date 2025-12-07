@@ -1,21 +1,58 @@
 #!/usr/bin/env python
 """
-Mission Control Status Snapshot (overall_status only)
+Mission Control Status Snapshot
 
 Reads epics, features, and stories and writes:
 
-  missionlog/status/status_snapshot.md
+  missionlog/status/status_snapshot.md     (Markdown tables for humans)
+  app_frontend/public/missionlog/status_snapshot.json  (JSON for MissionLog UI)
 
-with three tables:
-- Epics:   Epic | Name | Overall
+Markdown contains three tables:
+- Epics:    Epic | Name | Overall
 - Features: Feature | Epic | Name | Overall | Stories
-- Stories: Story | Feature | Name | Overall
+- Stories:  Story | Feature | Name | Overall
+
+JSON contains a nested structure:
+
+{
+  "generated_at": "...",
+  "epics": [
+    {
+      "epic_id": "...",
+      "name": "...",
+      "overall_status": "...",
+      "features": [
+        {
+          "feature_id": "...",
+          "name": "...",
+          "epic_id": "...",
+          "overall_status": "...",
+          "stories": [
+            {
+              "story_id": "...",
+              "name": "...",
+              "feature_id": "...",
+              "overall_status": "...",
+              "testing_status": "...",
+              "halo_adherence": "...",
+              "guardrail_adherence": "...",
+              "code_quality_adherence": "...",
+              "security_policy_adherence": "..."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 """
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -27,6 +64,9 @@ STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
 
 SNAPSHOT_DIR = REPO_ROOT / "missionlog" / "status"
 SNAPSHOT_PATH = SNAPSHOT_DIR / "status_snapshot.md"
+
+PUBLIC_STATUS_DIR = REPO_ROOT / "app_frontend" / "public" / "missionlog"
+PUBLIC_STATUS_JSON = PUBLIC_STATUS_DIR / "status_snapshot.json"
 
 
 # -------------------- helpers -------------------- #
@@ -78,6 +118,22 @@ def _safe_overall(val: Optional[str]) -> str:
     return lookup.get(t.lower(), t)
 
 
+def _safe_dim(val: Optional[str]) -> str:
+    """
+    Normalise dimension statuses to: pass / fail / not_run.
+    """
+    if not val:
+        return "not_run"
+    t = val.strip().strip('"\'').lower()
+    if t in {"pass", "ok", "success", "compliant"}:
+        return "pass"
+    if t in {"fail", "error", "non_compliant", "non-compliant"}:
+        return "fail"
+    if t in {"not_run", "not run", "pending", "planned"}:
+        return "not_run"
+    return t
+
+
 # -------------------- data structures -------------------- #
 
 @dataclass
@@ -102,6 +158,11 @@ class StoryRow:
     feature_id: str
     name: str
     overall: str
+    testing_status: str
+    halo_adherence: str
+    guardrail_adherence: str
+    code_quality_adherence: str
+    security_policy_adherence: str
 
 
 # -------------------- collectors -------------------- #
@@ -119,7 +180,11 @@ def collect_epics() -> Dict[str, EpicRow]:
         name = _extract_scalar(text, "name") or path.stem
         overall = _safe_overall(_extract_scalar(text, "overall_status"))
 
-        rows[epic_id] = EpicRow(epic_id=epic_id, name=name, overall=overall)
+        rows[epic_id] = EpicRow(
+            epic_id=epic_id,
+            name=name,
+            overall=overall,
+        )
 
     return rows
 
@@ -136,8 +201,8 @@ def collect_features() -> Dict[str, FeatureRow]:
 
         epic_id = _extract_scalar(text, "epic") or ""
         name = _extract_scalar(text, "name") or path.stem
-        stories = _extract_yaml_list(text, "stories")
         overall = _safe_overall(_extract_scalar(text, "overall_status"))
+        stories = _extract_yaml_list(text, "stories")
 
         rows[feature_id] = FeatureRow(
             feature_id=feature_id,
@@ -160,21 +225,32 @@ def collect_stories() -> Dict[str, StoryRow]:
         if not story_id:
             continue
 
-        feature_id = _extract_scalar(text, "feature") or ""
+        feature_id = _extract_scalar(text, "feature")
         name = _extract_scalar(text, "name") or path.stem
         overall = _safe_overall(_extract_scalar(text, "overall_status"))
 
+        testing = _safe_dim(_extract_scalar(text, "testing_status"))
+        halo = _safe_dim(_extract_scalar(text, "halo_adherence"))
+        guardrail = _safe_dim(_extract_scalar(text, "guardrail_adherence"))
+        code_quality = _safe_dim(_extract_scalar(text, "code_quality_adherence"))
+        security = _safe_dim(_extract_scalar(text, "security_policy_adherence"))
+
         rows[story_id] = StoryRow(
             story_id=story_id,
-            feature_id=feature_id,
+            feature_id=feature_id or "",
             name=name,
             overall=overall,
+            testing_status=testing,
+            halo_adherence=halo,
+            guardrail_adherence=guardrail,
+            code_quality_adherence=code_quality,
+            security_policy_adherence=security,
         )
 
     return rows
 
 
-# -------------------- markdown rendering -------------------- #
+# -------------------- Markdown renderers -------------------- #
 
 def _render_epics_table(epics: Dict[str, EpicRow]) -> str:
     if not epics:
@@ -191,7 +267,8 @@ def _render_epics_table(epics: Dict[str, EpicRow]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _render_features_table(features: Dict[str, FeatureRow]) -> str:
+def _render_features_table(features: Dict[str, FeatureRow],
+                           feature_to_story_ids: Dict[str, List[str]]) -> str:
     if not features:
         return "_No features found._\n"
 
@@ -201,8 +278,11 @@ def _render_features_table(features: Dict[str, FeatureRow]) -> str:
 
     for fid in sorted(features.keys()):
         f = features[fid]
-        stories_str = ", ".join(f.stories) if f.stories else ""
-        lines.append(f"| {f.feature_id} | {f.epic_id} | {f.name} | {f.overall} | {stories_str} |")
+        story_ids = feature_to_story_ids.get(fid, f.stories or [])
+        stories_str = ", ".join(sorted(story_ids)) if story_ids else ""
+        lines.append(
+            f"| {f.feature_id} | {f.epic_id} | {f.name} | {f.overall} | {stories_str} |"
+        )
 
     return "\n".join(lines) + "\n"
 
@@ -227,6 +307,13 @@ def build_snapshot_markdown() -> str:
     features = collect_features()
     stories = collect_stories()
 
+    # Golden mapping: story.feature_id drives which stories belong to a feature.
+    feature_to_story_ids: Dict[str, List[str]] = {}
+    for s in stories.values():
+        if not s.feature_id:
+            continue
+        feature_to_story_ids.setdefault(s.feature_id, []).append(s.story_id)
+
     parts: List[str] = []
     parts.append("# Mission Control Status Snapshot\n")
 
@@ -234,7 +321,7 @@ def build_snapshot_markdown() -> str:
     parts.append(_render_epics_table(epics))
 
     parts.append("\n## Features\n")
-    parts.append(_render_features_table(features))
+    parts.append(_render_features_table(features, feature_to_story_ids))
 
     parts.append("\n## Stories\n")
     parts.append(_render_stories_table(stories))
@@ -242,18 +329,105 @@ def build_snapshot_markdown() -> str:
     return "\n".join(parts)
 
 
+# -------------------- JSON snapshot for MissionLog -------------------- #
+
+def build_snapshot_json() -> Dict[str, object]:
+    epics = collect_epics()
+    features = collect_features()
+    stories = collect_stories()
+
+    # Map feature -> [StoryRow] via golden mapping (Story.feature_id)
+    feature_to_stories: Dict[str, List[StoryRow]] = {}
+    for s in stories.values():
+        if not s.feature_id:
+            continue
+        feature_to_stories.setdefault(s.feature_id, []).append(s)
+
+    # Map epic -> [FeatureRow] via Feature.epic_id
+    epic_to_features: Dict[str, List[FeatureRow]] = {}
+    for f in features.values():
+        if not f.epic_id:
+            continue
+        epic_to_features.setdefault(f.epic_id, []).append(f)
+
+    epics_payload: List[Dict[str, object]] = []
+
+    for eid in sorted(epics.keys()):
+        e = epics[eid]
+        feature_rows = sorted(
+            epic_to_features.get(eid, []),
+            key=lambda fr: fr.feature_id,
+        )
+
+        features_payload: List[Dict[str, object]] = []
+        for f in feature_rows:
+            story_rows = sorted(
+                feature_to_stories.get(f.feature_id, []),
+                key=lambda sr: sr.story_id,
+            )
+            stories_payload: List[Dict[str, object]] = []
+            for s in story_rows:
+                stories_payload.append(
+                    {
+                        "story_id": s.story_id,
+                        "name": s.name,
+                        "feature_id": s.feature_id,
+                        "overall_status": s.overall,
+                        "testing_status": s.testing_status,
+                        "halo_adherence": s.halo_adherence,
+                        "guardrail_adherence": s.guardrail_adherence,
+                        "code_quality_adherence": s.code_quality_adherence,
+                        "security_policy_adherence": s.security_policy_adherence,
+                    }
+                )
+
+            features_payload.append(
+                {
+                    "feature_id": f.feature_id,
+                    "name": f.name,
+                    "epic_id": f.epic_id,
+                    "overall_status": f.overall,
+                    "stories": stories_payload,
+                }
+            )
+
+        epics_payload.append(
+            {
+                "epic_id": e.epic_id,
+                "name": e.name,
+                "overall_status": e.overall,
+                "features": features_payload,
+            }
+        )
+
+    return {
+        "generated_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "epics": epics_payload,
+    }
+
+
 # -------------------- CLI -------------------- #
 
 def main() -> int:
-    print("=== Generating Mission Control Status Snapshot (overall only) ===")
+    print("=== Generating Mission Control Status Snapshot (overall + JSON) ===")
     print(f"Repo root: {REPO_ROOT}")
 
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    PUBLIC_STATUS_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Markdown snapshot (for the repo / docs)
     markdown = build_snapshot_markdown()
     SNAPSHOT_PATH.write_text(markdown, encoding="utf-8")
+    print(f"Wrote Markdown snapshot to {SNAPSHOT_PATH.relative_to(REPO_ROOT)}")
 
-    print(f"Wrote snapshot to {SNAPSHOT_PATH.relative_to(REPO_ROOT)}")
+    # JSON snapshot (for MissionLog UI)
+    json_data = build_snapshot_json()
+    PUBLIC_STATUS_JSON.write_text(
+        json.dumps(json_data, indent=2),
+        encoding="utf-8",
+    )
+    print(f"Wrote JSON snapshot to {PUBLIC_STATUS_JSON.relative_to(REPO_ROOT)}")
+
     print("=== Done ===")
     return 0
 
