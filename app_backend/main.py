@@ -26,6 +26,22 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Single Client View (SCV) Backend")
 
+# --------------------------------------
+# MissionSmith static HTML route
+# --------------------------------------
+from fastapi.responses import FileResponse
+
+@app.get("/missionsmith", include_in_schema=False)
+def missionsmith_page():
+    return FileResponse(
+        "C:/Dev/scv-repo/app_frontend/public/MissionSmith-M7-SingleClientView.html",
+        media_type="text/html",
+    )
+
+# --------------------------------------
+# CORS (kept for optional Vite dev server use)
+# --------------------------------------
+
 # ------------------------------------
 # CORS (kept for optional Vite dev server use)
 # ------------------------------------

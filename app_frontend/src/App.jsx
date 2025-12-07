@@ -73,7 +73,7 @@ function App() {
         {/* Mission buttons bar */}
         <div className="bg-gray-100 border-t border-gray-200">
           <div className="max-w-6xl mx-auto px-4 py-3 flex justify-end gap-4">
-            {/* MissionSmith: open static HTML from FRONTEND dev server */}
+            {/* MissionSmith: open HTML via backend route /missionsmith */}
             <button
               type="button"
               style={{ fontFamily: "Fjalla One" }}
@@ -86,7 +86,7 @@ function App() {
               "
               onClick={() =>
                 window.open(
-                  "http://127.0.0.1:5173/MissionSmith-M7-SingleClientView.html",
+                  "/missionsmith",
                   "_blank",
                   "noopener,noreferrer"
                 )
@@ -358,7 +358,6 @@ function App() {
 }
 
 export default App;
-
 
 
 
