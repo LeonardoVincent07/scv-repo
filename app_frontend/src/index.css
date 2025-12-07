@@ -1,9 +1,9 @@
 /* app_frontend/src/index.css */
 
-/* This pulls in Tailwind v4 (base, components, utilities) */
+/* Tailwind v4 (base, components, utilities) */
 @import "tailwindcss";
 
-/* Simple global defaults – Tailwind utilities handle the rest */
+/* Global defaults */
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -20,3 +20,9 @@ body {
   min-height: 100vh;
 }
 
+/* ------------------------------------------------------------ */
+/* Fjalla One font class (used for MissionSmith / Atlas / Log)  */
+/* ------------------------------------------------------------ */
+.font-fjalla {
+  font-family: "Fjalla One", sans-serif;
+}
