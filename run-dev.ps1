@@ -1,53 +1,50 @@
-Param(
-    # Use -SkipFrontendBuild if you only changed backend code
-    [switch]$SkipFrontendBuild
+# run-dev.ps1 - Start backend_v2 (Postgres) + frontend + open browser
+
+$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+$backendPath   = Join-Path $root "backend_v2"
+$venvActivate  = Join-Path $root "app_backend\venv\Scripts\Activate.ps1"
+$frontendPath  = Join-Path $root "app_frontend"
+
+Write-Host "=== Starting Full SCV Dev Environment ===" -ForegroundColor Cyan
+
+# -------------------------------
+# Start backend_v2 (Postgres API)
+# -------------------------------
+Write-Host "`nStarting backend_v2..." -ForegroundColor Yellow
+
+Start-Process powershell -ArgumentList @(
+    "-NoExit",
+    "-Command",
+    @"
+cd `"$backendPath`"
+& `"$venvActivate`"
+python -m uvicorn app.main:app --reload --port 8000
+"@
 )
 
-$ErrorActionPreference = "Stop"
+# -------------------------------
+# Start frontend
+# -------------------------------
+Write-Host "`nStarting frontend..." -ForegroundColor Yellow
 
-# Go to repo root (folder where this script lives)
-Set-Location $PSScriptRoot
+Start-Process powershell -ArgumentList @(
+    "-NoExit",
+    "-Command",
+    @"
+cd `"$frontendPath`"
+npm run dev
+"@
+)
 
-Write-Host "== [1/4] Python virtualenv =="
+# -------------------------------
+# Open browser automatically
+# -------------------------------
+Start-Sleep -Seconds 2  # small delay so Vite starts
+Write-Host "`nOpening browser to http://localhost:5173 ..." -ForegroundColor Cyan
+Start-Process "http://localhost:5173"
 
-if (-not (Test-Path ".\venv")) {
-    Write-Host "Creating virtualenv 'venv'..."
-    python -m venv venv
-}
+Write-Host "`n=== Dev Environment Launched ===" -ForegroundColor Green
 
-Write-Host "Activating virtualenv..."
-& ".\venv\Scripts\Activate.ps1"
 
-Write-Host "Installing backend Python dependencies..."
-pip install -r ".\app_backend\requirements.txt"
 
-# Make sure Python can see src/
-$env:PYTHONPATH = "$PSScriptRoot;$PSScriptRoot\src"
-
-# ----------------- Frontend build -----------------
-if (-not $SkipFrontendBuild) {
-    Write-Host "== [2/4] Frontend build =="
-
-    Push-Location ".\app_frontend"
-
-    if (-not (Test-Path ".\node_modules")) {
-        Write-Host "Running npm install (first time only)..."
-        npm install
-    } else {
-        Write-Host "node_modules exists - skipping npm install"
-    }
-
-    Write-Host "Running npm run build..."
-    npm run build
-
-    Pop-Location
-} else {
-    Write-Host "Skipping frontend build (use -SkipFrontendBuild to enable this)."
-}
-
-# ----------------- Start backend -----------------
-Write-Host "== [3/4] Starting backend on http://127.0.0.1:8000 =="
-Start-Process "http://127.0.0.1:8000"
-
-Write-Host "== [4/4] Launching uvicorn (Ctrl+C to stop) =="
-python -m uvicorn app_backend.main:app --reload
