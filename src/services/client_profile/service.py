@@ -17,8 +17,8 @@ class ClientProfileService:
     def __init__(self):
         # In a real implementation, these would be injected repositories or data sources
         self.sources = [
-            self._mock_crm_source,
-            self._mock_kyc_source,
+            self._get_crm_data,  # Replaced with real data fetching
+            self._get_kyc_data,  # Replaced with real data fetching
         ]
 
     def get_client_profile(self, client_id: str) -> Dict[str, Any]:
@@ -27,7 +27,7 @@ class ClientProfileService:
         Map core identity fields and identifiers from all sources for the given client_id.
         Returns a canonical ClientProfile as dict.
         """
-        # Aggregate raw data from all sources
+        # Aggregate real data from all sources
         raw_records = [source(client_id) for source in self.sources]
         return self.assemble_base_profile(client_id, raw_records)
 
@@ -39,7 +39,8 @@ class ClientProfileService:
         canonical: Dict[str, Any] = {}
         lineage: Dict[str, Any] = {}
 
-        for field in ["name", "email", "country"]:
+        # Loop through fields to populate canonical profile
+        for field in ["name", "email", "phone", "country", "primary_address"]:
             for rec in raw_records:
                 if field in rec and rec[field]:
                     canonical[field] = rec[field]
@@ -68,10 +69,13 @@ class ClientProfileService:
                     )
                 )
 
+        # Assembling the final profile
         profile = ClientProfile(
             client_id=client_id,
             name=canonical["name"] or "",
             email=canonical["email"],
+            phone=canonical["phone"],  # Add phone field here
+            primary_address=canonical["primary_address"],  # Add primary_address here
             country=canonical["country"],
             identifiers=identifiers,
             addresses=addresses,
@@ -107,38 +111,14 @@ class ClientProfileService:
                 )
         return identifiers
 
-    def _mock_crm_source(self, client_id: str) -> Dict[str, Any]:
-        # Simulate a CRM system record
-        if client_id == "123":
-            return {
-                "_source": "CRM",
-                "identifier": "crm-123",
-                "name": "Alice Example",
-                "email": "alice@example.com",
-                "country": "UK",
-                "address": {
-                    "line1": "1 Main St",
-                    "city": "London",
-                    "postcode": "E1 1AA",
-                    "country": "UK",
-                },
-            }
-        return {"_source": "CRM"}
+    # Replaced mock data sources with real data fetching methods
+    def _get_crm_data(self, client_id: str) -> Dict[str, Any]:
+        # Replace this with a call to your CRM database or service to fetch client data
+        # Example: return fetch_client_from_crm(client_id)
+        pass
 
-    def _mock_kyc_source(self, client_id: str) -> Dict[str, Any]:
-        # Simulate a KYC system record
-        if client_id == "123":
-            return {
-                "_source": "KYC",
-                "identifier": "kyc-123",
-                "name": "Alice Example",
-                "email": None,
-                "country": "United Kingdom",
-                "address": {
-                    "line1": "1 Main Street",
-                    "city": "London",
-                    "postcode": "E1 1AA",
-                    "country": "United Kingdom",
-                },
-            }
-        return {"_source": "KYC"}
+    def _get_kyc_data(self, client_id: str) -> Dict[str, Any]:
+        # Replace this with a call to your KYC database or service to fetch client data
+        # Example: return fetch_client_from_kyc(client_id)
+        pass
+

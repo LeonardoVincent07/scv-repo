@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MissionLogPanel from "./MissionLogPanel";
 import MissionAtlasPanel from "./MissionAtlasPanel";
 import logo from "./assets/m7_single_client_view.png";
@@ -12,8 +12,52 @@ function App() {
   const [sources, setSources] = useState([]);
   const [error, setError] = useState("");
 
+  // NEW: clients list from BFF
+  const [clients, setClients] = useState([]);
+  const [clientsLoading, setClientsLoading] = useState(false);
+
   // 'scv' | 'missionLog' | 'missionAtlas'
   const [activeView, setActiveView] = useState("scv");
+
+  // NEW: fetch clients from /bff/clients (used only for suggestions)
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchClients = async () => {
+      setClientsLoading(true);
+      try {
+        const res = await fetch(`${BACKEND_BASE_URL}/bff/clients`);
+        if (!res.ok) throw new Error("Failed to fetch clients list.");
+        const data = await res.json();
+
+        if (cancelled) return;
+
+        const raw = Array.isArray(data) ? data : data?.clients || [];
+        const ids = raw
+          .map((x) => {
+            if (typeof x === "string") return x;
+            if (x && typeof x === "object") {
+              return x.client_id ?? x.clientId ?? x.id ?? "";
+            }
+            return "";
+          })
+          .filter(Boolean);
+
+        setClients(ids);
+      } catch (err) {
+        console.warn(err);
+        if (!cancelled) setClients([]);
+      } finally {
+        if (!cancelled) setClientsLoading(false);
+      }
+    };
+
+    fetchClients();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,12 +83,16 @@ function App() {
       }
       const profileJson = await profileRes.json();
 
+      // Log the profile response to check its structure
+      console.log("Profile Response:", profileJson); // <-- LOGGING ADDED HERE
+
+      setProfile(profileJson); // Set the profile data
+
       const sourcesRes = await fetch(
         `${BACKEND_BASE_URL}/clients/${encodedId}/sources`
       );
       const sourcesJson = sourcesRes.ok ? await sourcesRes.json() : [];
 
-      setProfile(profileJson);
       setSources(sourcesJson);
     } catch (err) {
       console.error(err);
@@ -142,7 +190,20 @@ function App() {
                     onChange={(e) => setClientId(e.target.value)}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
                     placeholder="e.g. client-001"
+                    list="clientIdOptions"
                   />
+                  {/* NEW: suggestions from /bff/clients (non-invasive) */}
+                  <datalist id="clientIdOptions">
+                    {clients.map((id) => (
+                      <option key={id} value={id} />
+                    ))}
+                  </datalist>
+
+                  {clientsLoading && (
+                    <p className="mt-2 text-xs font-body text-gray-500">
+                      Loading client IDs…
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-row gap-3">
@@ -192,28 +253,28 @@ function App() {
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Full name</dt>
                         <dd className="text-right">
-                          {profile.full_name || "—"}
+                          {profile?.name || "—"} {/* Changed full_name to name */}
                         </dd>
                       </div>
 
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Primary email</dt>
                         <dd className="text-right">
-                          {profile.primary_email || "—"}
+                          {profile?.email || "—"}
                         </dd>
                       </div>
 
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Primary phone</dt>
                         <dd className="text-right">
-                          {profile.primary_phone || "—"}
+                          {profile?.phone || "—"}
                         </dd>
                       </div>
                     </dl>
                   </div>
 
                   {/* Addresses */}
-                  {profile.addresses?.length > 0 && (
+                  {profile?.addresses?.length > 0 && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <h4 className="font-heading text-sm text-gray-700 mb-2">
                         Addresses
@@ -226,13 +287,7 @@ function App() {
                             className="border-b border-gray-200 pb-2 last:border-none"
                           >
                             <div className="text-gray-900">
-                              {[
-                                addr.line1,
-                                addr.line2,
-                                addr.city,
-                                addr.postcode,
-                                addr.country,
-                              ]
+                              {[addr.line1, addr.line2, addr.city, addr.postcode, addr.country]
                                 .filter(Boolean)
                                 .join(", ")}
                             </div>
@@ -309,6 +364,10 @@ function App() {
 }
 
 export default App;
+
+
+
+
 
 
 

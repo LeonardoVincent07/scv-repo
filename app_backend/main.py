@@ -1,5 +1,6 @@
 import os  # <-- Added the os import
 
+from app_backend.bff.router import router as bff_router
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -15,6 +16,8 @@ from src.services.client_profile.service import ClientProfileService
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Single Client View (SCV) Backend")
+app.include_router(bff_router)
+
 
 # CORS (for frontend dev server access)
 app.add_middleware(
