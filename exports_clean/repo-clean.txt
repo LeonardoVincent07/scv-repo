@@ -164,7 +164,7 @@ def get_client_sources(client_id: str, db: Session = Depends(get_db)):
 
 
 ===== FILE: app_frontend\src\App.jsx =====
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import MissionLogPanel from "./MissionLogPanel";
 import MissionAtlasPanel from "./MissionAtlasPanel";
 import logo from "./assets/m7_single_client_view.png";
@@ -178,52 +178,139 @@ function App() {
   const [sources, setSources] = useState([]);
   const [error, setError] = useState("");
 
-  // NEW: clients list from BFF
-  const [clients, setClients] = useState([]);
+  // Client index (landing screen list)
+  const [clientIndex, setClientIndex] = useState([]); // [{client_id,name,risk_rating,status,segment}]
+  const [clients, setClients] = useState([]); // datalist IDs
   const [clientsLoading, setClientsLoading] = useState(false);
+  const [clientIndexError, setClientIndexError] = useState("");
+
+  // Landing screen search & filters
+  const [clientSearch, setClientSearch] = useState("");
+  const [riskFilter, setRiskFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   // 'scv' | 'missionLog' | 'missionAtlas'
   const [activeView, setActiveView] = useState("scv");
 
-  // NEW: fetch clients from /bff/clients (used only for suggestions)
+  // Fetch client index (best-effort; UI degrades gracefully if endpoint not available)
   useEffect(() => {
     let cancelled = false;
 
-    const fetchClients = async () => {
-      setClientsLoading(true);
-      try {
-        const res = await fetch(`${BACKEND_BASE_URL}/bff/clients`);
-        if (!res.ok) throw new Error("Failed to fetch clients list.");
-        const data = await res.json();
+    const normaliseRow = (x) => {
+      if (typeof x === "string") {
+        return {
+          client_id: x,
+          name: "",
+          risk_rating: "",
+          status: "",
+          segment: "",
+        };
+      }
 
+      const client_id = x?.client_id ?? x?.clientId ?? x?.id ?? "";
+      const name =
+        x?.name ??
+        x?.full_name ??
+        x?.fullName ??
+        x?.client_name ??
+        x?.clientName ??
+        "";
+      const risk_rating = x?.risk_rating ?? x?.riskRating ?? x?.risk ?? "";
+      const status =
+        x?.status ?? x?.current_status ?? x?.currentStatus ?? x?.state ?? "";
+      const segment = x?.segment ?? x?.client_segment ?? x?.clientSegment ?? "";
+
+      return {
+        client_id: String(client_id || "").trim(),
+        name: String(name || "").trim(),
+        risk_rating: String(risk_rating || "").trim(),
+        status: String(status || "").trim(),
+        segment: String(segment || "").trim(),
+      };
+    };
+
+    const fetchClientIndex = async () => {
+      setClientsLoading(true);
+      setClientIndexError("");
+
+      try {
+        const res = await fetch(`${BACKEND_BASE_URL}/clients/`);
+        if (!res.ok) {
+          throw new Error(`Client list not available (${res.status}).`);
+        }
+
+        const data = await res.json();
         if (cancelled) return;
 
         const raw = Array.isArray(data) ? data : data?.clients || [];
-        const ids = raw
-          .map((x) => {
-            if (typeof x === "string") return x;
-            if (x && typeof x === "object") {
-              return x.client_id ?? x.clientId ?? x.id ?? "";
-            }
-            return "";
-          })
-          .filter(Boolean);
+        const rows = raw
+          .map(normaliseRow)
+          .filter((r) => r.client_id && r.client_id.length > 0);
 
+        const ids = rows.map((r) => r.client_id);
+
+        setClientIndex(rows);
         setClients(ids);
       } catch (err) {
         console.warn(err);
-        if (!cancelled) setClients([]);
+        if (!cancelled) {
+          setClientIndex([]);
+          setClients([]);
+          setClientIndexError(err?.message || "Client list not available.");
+        }
       } finally {
         if (!cancelled) setClientsLoading(false);
       }
     };
 
-    fetchClients();
+    fetchClientIndex();
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const filteredClientIndex = useMemo(() => {
+    const q = clientSearch.trim().toLowerCase();
+
+    return clientIndex.filter((c) => {
+      const matchesSearch =
+        !q ||
+        c.client_id.toLowerCase().includes(q) ||
+        (c.name || "").toLowerCase().includes(q) ||
+        (c.segment || "").toLowerCase().includes(q) ||
+        (c.status || "").toLowerCase().includes(q) ||
+        (c.risk_rating || "").toLowerCase().includes(q);
+
+      const matchesRisk =
+        riskFilter === "All" ||
+        (c.risk_rating || "").toLowerCase() === riskFilter.toLowerCase();
+
+      const matchesStatus =
+        statusFilter === "All" ||
+        (c.status || "").toLowerCase() === statusFilter.toLowerCase();
+
+      return matchesSearch && matchesRisk && matchesStatus;
+    });
+  }, [clientIndex, clientSearch, riskFilter, statusFilter]);
+
+  const distinctRiskRatings = useMemo(() => {
+    const set = new Set(
+      clientIndex
+        .map((c) => (c.risk_rating || "").trim())
+        .filter((v) => v.length > 0)
+    );
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [clientIndex]);
+
+  const distinctStatuses = useMemo(() => {
+    const set = new Set(
+      clientIndex
+        .map((c) => (c.status || "").trim())
+        .filter((v) => v.length > 0)
+    );
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [clientIndex]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -249,10 +336,10 @@ function App() {
       }
       const profileJson = await profileRes.json();
 
-      // Log the profile response to check its structure
-      console.log("Profile Response:", profileJson); // <-- LOGGING ADDED HERE
+      // Keep existing logging
+      console.log("Profile Response:", profileJson);
 
-      setProfile(profileJson); // Set the profile data
+      setProfile(profileJson);
 
       const sourcesRes = await fetch(
         `${BACKEND_BASE_URL}/clients/${encodedId}/sources`
@@ -271,6 +358,8 @@ function App() {
   const isMissionLog = activeView === "missionLog";
   const isMissionAtlas = activeView === "missionAtlas";
 
+  const viewDetailsDisabled = !profile;
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header with MissionHalo logo */}
@@ -286,7 +375,6 @@ function App() {
         {/* Mission buttons bar */}
         <div className="bg-gray-100 border-t border-gray-200">
           <div className="max-w-6xl mx-auto px-4 py-3 flex justify-end gap-4">
-            {/* MissionSmith: open static HTML from the SAME origin as the frontend */}
             <button
               type="button"
               style={{ fontFamily: "Fjalla One" }}
@@ -302,7 +390,6 @@ function App() {
               MissionSmith
             </button>
 
-            {/* MissionAtlas */}
             <button
               type="button"
               style={{ fontFamily: "Fjalla One" }}
@@ -312,7 +399,6 @@ function App() {
               MissionAtlas
             </button>
 
-            {/* MissionLog */}
             <button
               type="button"
               style={{ fontFamily: "Fjalla One" }}
@@ -332,6 +418,145 @@ function App() {
           <MissionAtlasPanel />
         ) : (
           <>
+            {/* 4.1 Landing screen: Client Overview */}
+            <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                  <h2 className="font-heading text-lg text-gray-800">
+                    Client overview
+                  </h2>
+                  <p className="mt-1 text-sm font-body text-gray-600">
+                    Search and filter clients, then navigate to the detailed profile.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                  <div className="flex-1 sm:w-64">
+                    <label className="block text-sm font-body text-gray-700 mb-1">
+                      Search
+                    </label>
+                    <input
+                      type="text"
+                      value={clientSearch}
+                      onChange={(e) => setClientSearch(e.target.value)}
+                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                      placeholder="Name, ID, segmentâ€¦"
+                    />
+                  </div>
+
+                  <div className="sm:w-44">
+                    <label className="block text-sm font-body text-gray-700 mb-1">
+                      Risk rating
+                    </label>
+                    <select
+                      value={riskFilter}
+                      onChange={(e) => setRiskFilter(e.target.value)}
+                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                    >
+                      <option value="All">All</option>
+                      {distinctRiskRatings.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:w-44">
+                    <label className="block text-sm font-body text-gray-700 mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                    >
+                      <option value="All">All</option>
+                      {distinctStatuses.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                {clientsLoading ? (
+                  <p className="text-sm font-body text-gray-500">
+                    Loading client listâ€¦
+                  </p>
+                ) : clientIndexError ? (
+                  <p className="text-sm font-body text-gray-500">
+                    {clientIndexError}
+                  </p>
+                ) : filteredClientIndex.length === 0 ? (
+                  <p className="text-sm font-body text-gray-500">
+                    No clients match your search/filters.
+                  </p>
+                ) : (
+                  <div className="overflow-auto border border-gray-200 rounded-md">
+                    <table className="min-w-full text-sm font-body">
+                      <thead className="bg-gray-50 text-gray-700">
+                        <tr>
+                          <th className="text-left px-4 py-3 font-medium">
+                            Client ID
+                          </th>
+                          <th className="text-left px-4 py-3 font-medium">
+                            Name
+                          </th>
+                          <th className="text-left px-4 py-3 font-medium">
+                            Risk
+                          </th>
+                          <th className="text-left px-4 py-3 font-medium">
+                            Status
+                          </th>
+                          <th className="text-left px-4 py-3 font-medium">
+                            Segment
+                          </th>
+                          <th className="text-left px-4 py-3 font-medium">
+                            Action
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {filteredClientIndex.map((c) => (
+                          <tr key={c.client_id} className="bg-white">
+                            <td className="px-4 py-3 font-mono text-gray-900">
+                              {c.client_id}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900">
+                              {c.name || "â€”"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900">
+                              {c.risk_rating || "â€”"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900">
+                              {c.status || "â€”"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900">
+                              {c.segment || "â€”"}
+                            </td>
+                            <td className="px-4 py-3">
+                              <button
+                                type="button"
+                                className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
+                                onClick={() => setClientId(c.client_id)}
+                                title="Populate Client ID"
+                              >
+                                Select
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </section>
+
             {/* Find client profile */}
             <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
               <h2 className="font-heading text-lg text-gray-800 mb-4">
@@ -358,7 +583,6 @@ function App() {
                     placeholder="e.g. client-001"
                     list="clientIdOptions"
                   />
-                  {/* NEW: suggestions from /bff/clients (non-invasive) */}
                   <datalist id="clientIdOptions">
                     {clients.map((id) => (
                       <option key={id} value={id} />
@@ -390,6 +614,34 @@ function App() {
                   >
                     {loading ? "Loading..." : "Get profile"}
                   </button>
+
+                  {/* NEW: Detailed Profile button (does nothing for now) */}
+                  <button
+                    type="button"
+                    disabled={viewDetailsDisabled}
+                    className={`
+                      inline-flex items-center justify-center
+                      px-4 py-2 rounded-md
+                      font-body text-sm font-medium
+                      shadow-sm
+                      transition-colors transition-transform duration-150
+                      ${
+                        viewDetailsDisabled
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-[rgb(176,192,159)] text-gray-900 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+                      }
+                    `}
+                    onClick={() => {
+                      // Intentionally no-op for now (Details panel comes later)
+                    }}
+                    title={
+                      viewDetailsDisabled
+                        ? "Load a profile first"
+                        : "View detailed profile (coming next)"
+                    }
+                  >
+                    View detailed profile
+                  </button>
                 </div>
               </form>
 
@@ -418,23 +670,17 @@ function App() {
 
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Full name</dt>
-                        <dd className="text-right">
-                          {profile?.name || "â€”"} {/* Changed full_name to name */}
-                        </dd>
+                        <dd className="text-right">{profile?.name || "â€”"}</dd>
                       </div>
 
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Primary email</dt>
-                        <dd className="text-right">
-                          {profile?.email || "â€”"}
-                        </dd>
+                        <dd className="text-right">{profile?.email || "â€”"}</dd>
                       </div>
 
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Primary phone</dt>
-                        <dd className="text-right">
-                          {profile?.phone || "â€”"}
-                        </dd>
+                        <dd className="text-right">{profile?.phone || "â€”"}</dd>
                       </div>
                     </dl>
                   </div>
@@ -453,7 +699,13 @@ function App() {
                             className="border-b border-gray-200 pb-2 last:border-none"
                           >
                             <div className="text-gray-900">
-                              {[addr.line1, addr.line2, addr.city, addr.postcode, addr.country]
+                              {[
+                                addr.line1,
+                                addr.line2,
+                                addr.city,
+                                addr.postcode,
+                                addr.country,
+                              ]
                                 .filter(Boolean)
                                 .join(", ")}
                             </div>
@@ -475,14 +727,7 @@ function App() {
                       Raw sources
                     </h3>
 
-                    {!profile && !loading && (
-                      <p className="text-sm font-body text-gray-500">
-                        Once a profile is loaded, youâ€™ll see the upstream
-                        records here.
-                      </p>
-                    )}
-
-                    {sources.length > 0 && (
+                    {sources.length > 0 ? (
                       <div className="space-y-3 text-xs font-mono bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-[400px] overflow-auto">
                         {sources.map((src) => (
                           <div
@@ -504,6 +749,10 @@ function App() {
                           </div>
                         ))}
                       </div>
+                    ) : (
+                      <p className="text-sm font-body text-gray-500">
+                        No raw sources available.
+                      </p>
                     )}
 
                     {profile?.lineage && (
@@ -530,6 +779,13 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
 
 
 

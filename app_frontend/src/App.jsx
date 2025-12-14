@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import MissionLogPanel from "./MissionLogPanel";
 import MissionAtlasPanel from "./MissionAtlasPanel";
+import DetailedClientProfilePanel from "./DetailedClientProfilePanel";
 import logo from "./assets/m7_single_client_view.png";
 
 const BACKEND_BASE_URL = "http://127.0.0.1:8000";
@@ -11,6 +12,9 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [sources, setSources] = useState([]);
   const [error, setError] = useState("");
+
+  // NEW: toggle detailed panel (no routing, no landing regression)
+  const [showDetailedProfile, setShowDetailedProfile] = useState(false);
 
   // Client index (landing screen list)
   const [clientIndex, setClientIndex] = useState([]); // [{client_id,name,risk_rating,status,segment}]
@@ -157,6 +161,7 @@ function App() {
     setLoading(true);
     setProfile(null);
     setSources([]);
+    setShowDetailedProfile(false); // NEW: reset panel on new fetch
 
     try {
       const encodedId = encodeURIComponent(clientId.trim());
@@ -449,7 +454,7 @@ function App() {
                     {loading ? "Loading..." : "Get profile"}
                   </button>
 
-                  {/* NEW: Detailed Profile button (does nothing for now) */}
+                  {/* NOW WIRED: Detailed Profile button */}
                   <button
                     type="button"
                     disabled={viewDetailsDisabled}
@@ -466,12 +471,16 @@ function App() {
                       }
                     `}
                     onClick={() => {
-                      // Intentionally no-op for now (Details panel comes later)
+                      if (!profile) return;
+                      setShowDetailedProfile(true);
+                      // small UX: nudge scroll to panel on click
+                      setTimeout(() => {
+                        const el = document.getElementById("scv-detailed-profile");
+                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }, 50);
                     }}
                     title={
-                      viewDetailsDisabled
-                        ? "Load a profile first"
-                        : "View detailed profile (coming next)"
+                      viewDetailsDisabled ? "Load a profile first" : "View detailed profile"
                     }
                   >
                     View detailed profile
@@ -605,6 +614,16 @@ function App() {
                 </div>
               </section>
             )}
+
+            {/* NEW: Detailed Profile panel (below existing SCV grid, no regression) */}
+            {profile && showDetailedProfile && (
+              <div id="scv-detailed-profile">
+                <DetailedClientProfilePanel
+                  profile={profile}
+                  onClose={() => setShowDetailedProfile(false)}
+                />
+              </div>
+            )}
           </>
         )}
       </main>
@@ -613,6 +632,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
