@@ -198,10 +198,6 @@ function App() {
 
         if (cancelled) return;
 
-        // Accept common shapes:
-        // - array of strings: ["client-001", ...]
-        // - array of objects: [{ client_id: "client-001", ... }, ...]
-        // - object wrapper: { clients: [...] }
         const raw = Array.isArray(data) ? data : data?.clients || [];
         const ids = raw
           .map((x) => {
@@ -215,8 +211,6 @@ function App() {
 
         setClients(ids);
       } catch (err) {
-        // Intentionally do NOT set the main error state for suggestions
-        // to avoid breaking the SCV flow if /bff/clients is temporarily unavailable.
         console.warn(err);
         if (!cancelled) setClients([]);
       } finally {
@@ -255,12 +249,16 @@ function App() {
       }
       const profileJson = await profileRes.json();
 
+      // Log the profile response to check its structure
+      console.log("Profile Response:", profileJson); // <-- LOGGING ADDED HERE
+
+      setProfile(profileJson); // Set the profile data
+
       const sourcesRes = await fetch(
         `${BACKEND_BASE_URL}/clients/${encodedId}/sources`
       );
       const sourcesJson = sourcesRes.ok ? await sourcesRes.json() : [];
 
-      setProfile(profileJson);
       setSources(sourcesJson);
     } catch (err) {
       console.error(err);
@@ -421,28 +419,28 @@ function App() {
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Full name</dt>
                         <dd className="text-right">
-                          {profile.full_name || "â€”"}
+                          {profile?.name || "â€”"} {/* Changed full_name to name */}
                         </dd>
                       </div>
 
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Primary email</dt>
                         <dd className="text-right">
-                          {profile.primary_email || "â€”"}
+                          {profile?.email || "â€”"}
                         </dd>
                       </div>
 
                       <div className="flex justify-between gap-4">
                         <dt className="text-gray-500">Primary phone</dt>
                         <dd className="text-right">
-                          {profile.primary_phone || "â€”"}
+                          {profile?.phone || "â€”"}
                         </dd>
                       </div>
                     </dl>
                   </div>
 
                   {/* Addresses */}
-                  {profile.addresses?.length > 0 && (
+                  {profile?.addresses?.length > 0 && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <h4 className="font-heading text-sm text-gray-700 mb-2">
                         Addresses
@@ -455,13 +453,7 @@ function App() {
                             className="border-b border-gray-200 pb-2 last:border-none"
                           >
                             <div className="text-gray-900">
-                              {[
-                                addr.line1,
-                                addr.line2,
-                                addr.city,
-                                addr.postcode,
-                                addr.country,
-                              ]
+                              {[addr.line1, addr.line2, addr.city, addr.postcode, addr.country]
                                 .filter(Boolean)
                                 .join(", ")}
                             </div>
@@ -538,6 +530,9 @@ function App() {
 }
 
 export default App;
+
+
+
 
 
 
