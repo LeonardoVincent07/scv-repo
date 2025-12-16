@@ -12,11 +12,25 @@ function formatTs(ts) {
   return d.toLocaleString();
 }
 
+function formatDateOnly(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return safeStr(ts);
+  return d.toLocaleDateString("en-GB");
+}
+
 function formatNum(v, digits = 2) {
   if (v === null || v === undefined || v === "") return "—";
   const n = typeof v === "number" ? v : Number(v);
   if (!Number.isFinite(n)) return safeStr(v);
   return n.toFixed(digits);
+}
+
+function formatQty(v) {
+  if (v === null || v === undefined || v === "") return "—";
+  const n = typeof v === "number" ? v : Number(v);
+  if (!Number.isFinite(n)) return safeStr(v);
+  return new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 }).format(n);
 }
 
 function StatusChip({ label }) {
@@ -25,17 +39,47 @@ function StatusChip({ label }) {
   let classes =
     "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-body border";
 
-  if (text.includes("active") || text.includes("complete") || text.includes("passed") || text.includes("match")) {
+  if (
+    text.includes("active") ||
+    text.includes("complete") ||
+    text.includes("passed") ||
+    text.includes("match")
+  ) {
     classes += " bg-emerald-50 text-emerald-700 border-emerald-200";
-  } else if (text.includes("review") || text.includes("progress") || text.includes("pending")) {
+  } else if (
+    text.includes("review") ||
+    text.includes("progress") ||
+    text.includes("pending")
+  ) {
     classes += " bg-amber-50 text-amber-700 border-amber-200";
-  } else if (text.includes("fail") || text.includes("reject") || text.includes("error")) {
+  } else if (
+    text.includes("fail") ||
+    text.includes("reject") ||
+    text.includes("error")
+  ) {
     classes += " bg-red-50 text-red-700 border-red-200";
   } else {
     classes += " bg-gray-50 text-gray-700 border-gray-200";
   }
 
   return <span className={classes}>{label || "—"}</span>;
+}
+
+function DirectionChip({ value }) {
+  const v = (value || "").toString().trim().toUpperCase();
+
+  let classes =
+    "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-body border";
+
+  if (v === "BUY") {
+    classes += " bg-emerald-50 text-emerald-700 border-emerald-200";
+  } else if (v === "SELL") {
+    classes += " bg-red-50 text-red-700 border-red-200";
+  } else {
+    classes += " bg-gray-50 text-gray-700 border-gray-200";
+  }
+
+  return <span className={classes}>{v || "—"}</span>;
 }
 
 function Metric({ label, value, mono = false }) {
@@ -82,7 +126,9 @@ export default function DetailedClientProfilePanel({
 
   const header = useMemo(() => {
     const clientId = safeStr(profile?.client_id || profile?.clientId || "");
-    const name = safeStr(profile?.name || profile?.full_name || profile?.fullName || "");
+    const name = safeStr(
+      profile?.name || profile?.full_name || profile?.fullName || ""
+    );
     const segment = safeStr(profile?.segment || "");
     const risk = safeStr(profile?.risk_rating || profile?.riskRating || "");
     const lastUpdated =
@@ -91,8 +137,12 @@ export default function DetailedClientProfilePanel({
       profile?.operational_state?.as_of ||
       "";
 
-    const status =
-      safeStr(profile?.operational_state?.status || profile?.status || profile?.current_status || "");
+    const status = safeStr(
+      profile?.operational_state?.status ||
+        profile?.status ||
+        profile?.current_status ||
+        ""
+    );
 
     return {
       clientId: clientId || "—",
@@ -115,9 +165,11 @@ export default function DetailedClientProfilePanel({
     ? profile.evidence_artefacts
     : [];
 
-  const auditTrail = Array.isArray(profile?.audit_trail) ? profile.audit_trail : [];
+  const auditTrail = Array.isArray(profile?.audit_trail)
+    ? profile.audit_trail
+    : [];
 
-  // NEW: Trade history (reads from real backend payload; no mocking)
+  // Trade history (reads from real backend payload; no mocking)
   const tradeHistory = useMemo(() => {
     const arr = Array.isArray(profile?.trade_history)
       ? profile.trade_history
@@ -140,11 +192,17 @@ export default function DetailedClientProfilePanel({
           <h2 className="font-heading text-lg text-gray-800">{title}</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="text-sm font-body text-gray-900">{header.name}</span>
-            <span className="text-xs font-mono text-gray-500">({header.clientId})</span>
+            <span className="text-xs font-mono text-gray-500">
+              ({header.clientId})
+            </span>
             <span className="text-xs font-body text-gray-400">•</span>
-            <span className="text-xs font-body text-gray-600">Segment: {header.segment}</span>
+            <span className="text-xs font-body text-gray-600">
+              Segment: {header.segment}
+            </span>
             <span className="text-xs font-body text-gray-400">•</span>
-            <span className="text-xs font-body text-gray-600">Risk: {header.risk}</span>
+            <span className="text-xs font-body text-gray-600">
+              Risk: {header.risk}
+            </span>
           </div>
         </div>
 
@@ -152,7 +210,8 @@ export default function DetailedClientProfilePanel({
           <div className="flex items-center gap-2">
             <StatusChip label={header.status} />
             <span className="text-xs font-body text-gray-500">
-              Last update: <span className="font-mono">{header.lastUpdated}</span>
+              Last update:{" "}
+              <span className="font-mono">{header.lastUpdated}</span>
             </span>
           </div>
 
@@ -172,7 +231,9 @@ export default function DetailedClientProfilePanel({
         <div className="space-y-6">
           {/* 1. Client Information */}
           <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
-            <h3 className="font-heading text-base text-gray-800 mb-4">Client information</h3>
+            <h3 className="font-heading text-base text-gray-800 mb-4">
+              Client information
+            </h3>
 
             <dl className="space-y-2 text-sm font-body text-gray-800">
               <Metric label="Client ID" value={safeStr(profile?.client_id)} mono />
@@ -180,20 +241,28 @@ export default function DetailedClientProfilePanel({
               <Metric label="Primary email" value={safeStr(profile?.email)} />
               <Metric label="Primary phone" value={safeStr(profile?.phone)} />
               <Metric label="Country" value={safeStr(profile?.country)} />
-              <Metric label="Primary address" value={safeStr(profile?.primary_address)} />
+              <Metric
+                label="Primary address"
+                value={safeStr(profile?.primary_address)}
+              />
               <Metric label="Segment" value={safeStr(profile?.segment)} />
               <Metric label="Risk rating" value={safeStr(profile?.risk_rating)} />
             </dl>
 
             {/* Key metrics */}
             <div className="mt-4 bg-gray-50 rounded-lg border border-gray-200 p-4">
-              <h4 className="font-heading text-sm text-gray-700 mb-2">Key metrics</h4>
+              <h4 className="font-heading text-sm text-gray-700 mb-2">
+                Key metrics
+              </h4>
               <dl className="space-y-2 text-sm font-body text-gray-800">
                 <Metric label="Current status" value={safeStr(header.status)} />
                 <Metric label="Last updated" value={header.lastUpdated} mono />
                 {operational && (
                   <>
-                    <Metric label="Processing stage" value={safeStr(operational.processing_stage)} />
+                    <Metric
+                      label="Processing stage"
+                      value={safeStr(operational.processing_stage)}
+                    />
                     <Metric label="Message" value={safeStr(operational.message)} />
                   </>
                 )}
@@ -203,7 +272,9 @@ export default function DetailedClientProfilePanel({
 
           {/* 3. Regulatory Enrichment */}
           <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
-            <h3 className="font-heading text-base text-gray-800 mb-4">Regulatory enrichment</h3>
+            <h3 className="font-heading text-base text-gray-800 mb-4">
+              Regulatory enrichment
+            </h3>
 
             {!reg ? (
               <p className="text-sm font-body text-gray-500">
@@ -212,9 +283,18 @@ export default function DetailedClientProfilePanel({
             ) : (
               <dl className="space-y-2 text-sm font-body text-gray-800">
                 <Metric label="FATCA status" value={safeStr(reg.fatca_status)} />
-                <Metric label="KYC status" value={safeStr(reg.kyc_overall_status || reg.kyc_status)} />
-                <Metric label="Risk assessment" value={safeStr(reg.risk_assessment)} />
-                <Metric label="Onboarding status" value={safeStr(reg.onboarding_status)} />
+                <Metric
+                  label="KYC status"
+                  value={safeStr(reg.kyc_overall_status || reg.kyc_status)}
+                />
+                <Metric
+                  label="Risk assessment"
+                  value={safeStr(reg.risk_assessment)}
+                />
+                <Metric
+                  label="Onboarding status"
+                  value={safeStr(reg.onboarding_status)}
+                />
                 <Metric label="CRS status" value={safeStr(reg.crs_status)} />
                 {reg.derived_risk_notes && (
                   <div className="mt-3 text-sm font-body text-gray-800">
@@ -230,7 +310,9 @@ export default function DetailedClientProfilePanel({
 
           {/* 4. Evidence Artefacts */}
           <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
-            <h3 className="font-heading text-base text-gray-800 mb-4">Evidence artefacts</h3>
+            <h3 className="font-heading text-base text-gray-800 mb-4">
+              Evidence artefacts
+            </h3>
 
             {evidenceArtefacts.length === 0 ? (
               <p className="text-sm font-body text-gray-500">
@@ -251,7 +333,8 @@ export default function DetailedClientProfilePanel({
                     {evidenceArtefacts.map((a, idx) => (
                       <tr key={a.artefact_id || a.id || idx}>
                         <td className="px-4 py-3 text-gray-900">
-                          {safeStr(a.artefact_type || a.document_type || a.type) || "—"}
+                          {safeStr(a.artefact_type || a.document_type || a.type) ||
+                            "—"}
                         </td>
                         <td className="px-4 py-3 text-gray-900 font-mono text-xs">
                           {formatTs(a.created_at || a.uploaded_at || a.upload_date)}
@@ -275,7 +358,9 @@ export default function DetailedClientProfilePanel({
         <div className="space-y-6">
           {/* 2. Match Decisions */}
           <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
-            <h3 className="font-heading text-base text-gray-800 mb-4">Match decisions</h3>
+            <h3 className="font-heading text-base text-gray-800 mb-4">
+              Match decisions
+            </h3>
 
             {matchDecisions.length === 0 ? (
               <p className="text-sm font-body text-gray-500">
@@ -290,7 +375,9 @@ export default function DetailedClientProfilePanel({
                       <th className="text-left px-4 py-3 font-medium">Decision</th>
                       <th className="text-left px-4 py-3 font-medium">Source</th>
                       <th className="text-left px-4 py-3 font-medium">IDs</th>
-                      <th className="text-left px-4 py-3 font-medium">Confidence</th>
+                      <th className="text-left px-4 py-3 font-medium">
+                        Confidence
+                      </th>
                       <th className="text-left px-4 py-3 font-medium">Action</th>
                     </tr>
                   </thead>
@@ -355,7 +442,11 @@ export default function DetailedClientProfilePanel({
                                       Conflict summary
                                     </div>
                                     <pre className="whitespace-pre-wrap text-[11px] font-mono text-gray-800">
-                                      {JSON.stringify(m.conflict_summary || {}, null, 2)}
+                                      {JSON.stringify(
+                                        m.conflict_summary || {},
+                                        null,
+                                        2
+                                      )}
                                     </pre>
                                   </div>
                                 </div>
@@ -371,9 +462,11 @@ export default function DetailedClientProfilePanel({
             )}
           </div>
 
-          {/* NEW: Trade History */}
+          {/* Trade History */}
           <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
-            <h3 className="font-heading text-base text-gray-800 mb-4">Trade history</h3>
+            <h3 className="font-heading text-base text-gray-800 mb-4">
+              Trade history
+            </h3>
 
             {tradeHistory.length === 0 ? (
               <p className="text-sm font-body text-gray-500">
@@ -383,9 +476,12 @@ export default function DetailedClientProfilePanel({
               <div className="overflow-auto border border-gray-200 rounded-md">
                 <table className="min-w-full text-sm font-body">
                   <thead className="bg-gray-50 text-gray-700">
+                    {/* LOCKED COLUMN ORDER */}
                     <tr>
                       <th className="text-left px-4 py-3 font-medium">Trade date</th>
-                      <th className="text-left px-4 py-3 font-medium">Asset class</th>
+                      <th className="text-left px-4 py-3 font-medium">
+                        Asset class
+                      </th>
                       <th className="text-left px-4 py-3 font-medium">Instrument</th>
                       <th className="text-left px-4 py-3 font-medium">Dir</th>
                       <th className="text-left px-4 py-3 font-medium">Qty</th>
@@ -399,9 +495,11 @@ export default function DetailedClientProfilePanel({
                       const key = t.trade_id || t.id || idx;
                       const isOpen = !!expandedTrade[key];
 
+                      // LOCKED FIELD RESOLUTION (stable mapping regardless of backend variation)
                       const tradeDate = t.trade_date || t.tradeDate;
                       const assetClass = t.asset_class || t.assetClass;
-                      const instrument = t.instrument || t.symbol || t.ccy_pair || t.ccyPair;
+                      const instrument =
+                        t.instrument || t.symbol || t.ccy_pair || t.ccyPair;
                       const direction = t.direction || t.side;
                       const qty = t.quantity ?? t.qty ?? t.notional;
                       const price = t.price ?? t.rate;
@@ -411,7 +509,7 @@ export default function DetailedClientProfilePanel({
                         <React.Fragment key={key}>
                           <tr>
                             <td className="px-4 py-3 font-mono text-xs text-gray-900">
-                              {formatTs(tradeDate)}
+                              {formatDateOnly(tradeDate)}
                             </td>
                             <td className="px-4 py-3 text-gray-900">
                               {safeStr(assetClass) || "—"}
@@ -420,10 +518,10 @@ export default function DetailedClientProfilePanel({
                               {safeStr(instrument) || "—"}
                             </td>
                             <td className="px-4 py-3 text-gray-900">
-                              {safeStr(direction) || "—"}
+                              <DirectionChip value={direction} />
                             </td>
                             <td className="px-4 py-3 font-mono text-xs text-gray-900">
-                              {qty === null || qty === undefined ? "—" : safeStr(qty)}
+                              {formatQty(qty)}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs text-gray-900">
                               {price === null || price === undefined ? "—" : safeStr(price)}
@@ -472,7 +570,9 @@ export default function DetailedClientProfilePanel({
 
           {/* 5. Audit Trail */}
           <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
-            <h3 className="font-heading text-base text-gray-800 mb-4">Audit trail</h3>
+            <h3 className="font-heading text-base text-gray-800 mb-4">
+              Audit trail
+            </h3>
 
             {auditTrail.length === 0 ? (
               <p className="text-sm font-body text-gray-500">
@@ -484,7 +584,9 @@ export default function DetailedClientProfilePanel({
                   <thead className="bg-gray-50 text-gray-700">
                     <tr>
                       <th className="text-left px-4 py-3 font-medium">When</th>
-                      <th className="text-left px-4 py-3 font-medium">Event type</th>
+                      <th className="text-left px-4 py-3 font-medium">
+                        Event type
+                      </th>
                       <th className="text-left px-4 py-3 font-medium">Actor</th>
                       <th className="text-left px-4 py-3 font-medium">Details</th>
                       <th className="text-left px-4 py-3 font-medium">Action</th>
@@ -520,7 +622,9 @@ export default function DetailedClientProfilePanel({
                                   {safeStr(summary)}
                                 </span>
                               ) : (
-                                <span className="text-sm font-body text-gray-500">—</span>
+                                <span className="text-sm font-body text-gray-500">
+                                  —
+                                </span>
                               )}
                             </td>
                             <td className="px-4 py-3">
@@ -561,10 +665,10 @@ export default function DetailedClientProfilePanel({
               </div>
             )}
           </div>
-
         </div>
       </div>
     </section>
   );
 }
+
 
