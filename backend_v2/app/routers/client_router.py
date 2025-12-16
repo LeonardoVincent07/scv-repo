@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -8,7 +9,7 @@ from app.schemas.kyc_flag import KycFlagRead
 from app.services.client_service import ClientService
 from app.services.account_service import AccountService
 from app.services.kyc_flag_service import KycFlagService
-
+from app.services.transaction_service import TransactionService
 
 router = APIRouter(prefix="/clients", tags=["clients"])
 
@@ -49,18 +50,70 @@ def get_client_kyc_flags(client_id: int, db: Session = Depends(get_db)):
 #   GET /clients/{client_id}/sources
 # We implement lightweight versions of those
 # backed by the new Postgres models.
+#
+# Canonical contract requirement (SCV_CANONICAL_STATE.md):
+# Must return keys (present even if empty):
+#   client, accounts, match_decisions, trade_history, audit_trail,
+#   regulatory_enrichment, evidence_artefacts
 
 
 @router.get("/{client_id}/profile")
 def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
     """
-    Return a simple profile object shaped like the existing frontend expects.
+    Canonical SCV profile endpoint.
+
+    Non-negotiables:
+    - backend_v2 is canonical runtime
+    - ONE canonical endpoint: GET /clients/{id}/profile
+    - Must return keys (present even if empty):
+        client, accounts, match_decisions, trade_history, audit_trail,
+        regulatory_enrichment, evidence_artefacts
+
+    Story 1 focus:
+    - trade_history must show REAL data (sourced from transactions table)
     """
     client = ClientService.get(db, client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
 
+    accounts = AccountService.list_by_client(db, client_id)
+    account_ids = [a.id for a in accounts]
+
+    # Pull real transactions and flatten into trade_history
+    trade_history: list[dict] = []
+    for acc_id in account_ids:
+        txns = TransactionService.list_by_account(db, acc_id)
+        for t in txns:
+            td = t.trade_date
+            amt = t.amount
+            # Map "transaction" -> UI "trade-like" row (minimal, but real)
+            trade_history.append(
+                {
+                    "trade_id": t.id,
+                    "account_id": t.account_id,
+                    "trade_date": td,
+                    "value_date": t.value_date,
+                    "asset_class": "CASH",
+                    "instrument": t.currency,  # UI reads instrument/symbol/ccy_pair
+                    "direction": "BUY" if (amt is not None and amt >= 0) else "SELL",
+                    "quantity": abs(amt) if amt is not None else None,  # UI reads quantity/qty/notional
+                    "price": None,
+                    "pnl": None,
+                    # Keep raw fields for the expandable JSON view
+                    "amount": t.amount,
+                    "currency": t.currency,
+                    "txn_type": t.txn_type,
+                    "description": t.description,
+                }
+            )
+
+    # Canonical keys (always present)
+    client_payload = jsonable_encoder(client)
+    accounts_payload = jsonable_encoder(accounts)
+
+    # Also keep legacy top-level fields that the existing UI header reads
     profile = {
+        # ---- legacy/top-level (do not remove) ----
         "client_id": str(client.id),
         "name": client.full_name,
         "email": client.email,
@@ -68,8 +121,22 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
         "country": client.country,
         "segment": client.segment,
         "risk_rating": client.risk_rating,
-        # the UI is tolerant of missing fields; we only populate what we have
         "addresses": [],
+        "operational_state": {
+            "status": "ACTIVE",
+            "as_of": None,
+            "processing_stage": "PROFILE_COMPOSED",
+            "message": "Composed via backend_v2 /clients/{id}/profile",
+            "details": {},
+        },
+        # ---- canonical contract keys (must exist) ----
+        "client": client_payload,
+        "accounts": accounts_payload,
+        "match_decisions": [],
+        "trade_history": trade_history,
+        "audit_trail": [],
+        "regulatory_enrichment": {},
+        "evidence_artefacts": [],
     }
 
     # Map the primary_address into a single address entry if present
@@ -100,7 +167,7 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
           "id": "SCV-<client_id>",
           "system": "SCV_DB",
           "client_id": "<client_id>",
-          "payload": { ... }
+          "payload": { . }
         }
       ]
     """
@@ -155,4 +222,5 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
             "payload": payload,
         }
     ]
+
 
