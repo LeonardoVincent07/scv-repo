@@ -6,6 +6,7 @@ from app.db import get_db
 from app.schemas.client import ClientCreate, ClientRead
 from app.schemas.account import AccountRead
 from app.schemas.kyc_flag import KycFlagRead
+from app.schemas.scv_profile import SCVClientProfileResponse  # <-- ADDED (only import)
 from app.services.client_service import ClientService
 from app.services.account_service import AccountService
 from app.services.kyc_flag_service import KycFlagService
@@ -57,7 +58,10 @@ def get_client_kyc_flags(client_id: int, db: Session = Depends(get_db)):
 #   regulatory_enrichment, evidence_artefacts
 
 
-@router.get("/{client_id}/profile")
+@router.get(
+    "/{client_id}/profile",
+    response_model=SCVClientProfileResponse  # <-- ADDED (only decorator change)
+)
 def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
     """
     Canonical SCV profile endpoint.
@@ -94,12 +98,11 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
                     "trade_date": td,
                     "value_date": t.value_date,
                     "asset_class": "CASH",
-                    "instrument": t.currency,  # UI reads instrument/symbol/ccy_pair
+                    "instrument": t.currency,
                     "direction": "BUY" if (amt is not None and amt >= 0) else "SELL",
-                    "quantity": abs(amt) if amt is not None else None,  # UI reads quantity/qty/notional
+                    "quantity": abs(amt) if amt is not None else None,
                     "price": None,
                     "pnl": None,
-                    # Keep raw fields for the expandable JSON view
                     "amount": t.amount,
                     "currency": t.currency,
                     "txn_type": t.txn_type,
@@ -113,7 +116,6 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
 
     # Also keep legacy top-level fields that the existing UI header reads
     profile = {
-        # ---- legacy/top-level (do not remove) ----
         "client_id": str(client.id),
         "name": client.full_name,
         "email": client.email,
@@ -129,7 +131,6 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
             "message": "Composed via backend_v2 /clients/{id}/profile",
             "details": {},
         },
-        # ---- canonical contract keys (must exist) ----
         "client": client_payload,
         "accounts": accounts_payload,
         "match_decisions": [],
@@ -160,16 +161,6 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
     """
     Return a synthetic 'raw sources' array so the existing UI can render
     something in the Raw sources panel.
-
-    Shape:
-      [
-        {
-          "id": "SCV-<client_id>",
-          "system": "SCV_DB",
-          "client_id": "<client_id>",
-          "payload": { . }
-        }
-      ]
     """
     client = ClientService.get(db, client_id)
     if not client:
@@ -222,5 +213,6 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
             "payload": payload,
         }
     ]
+
 
 
