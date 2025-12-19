@@ -15,6 +15,8 @@ from app.services.transaction_service import TransactionService
 from app.services.match_decision_service import MatchDecisionService
 from app.services.regulatory_enrichment_service import RegulatoryEnrichmentService
 from app.services.evidence_artefact_service import EvidenceArtefactService
+from app.services.audit_trail_service import AuditTrailService
+
 
 
 
@@ -137,6 +139,8 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
 
     evidence_artefacts = EvidenceArtefactService.list_by_client(db, client_id)
 
+    audit_trail = AuditTrailService.list_by_client(db, client_id)
+
     # Canonical keys (always present)
     client_payload = jsonable_encoder(client)
     accounts_payload = jsonable_encoder(accounts)
@@ -162,7 +166,7 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
         "accounts": accounts_payload,
         "match_decisions": match_decisions,
         "trade_history": trade_history,
-        "audit_trail": [],
+        "audit_trail": audit_trail,
         "regulatory_enrichment": jsonable_encoder(regulatory_enrichment),
         "evidence_artefacts": evidence_artefacts,
     }
