@@ -1,50 +1,45 @@
-# run-dev.ps1 - Start backend_v2 (Postgres) + frontend + open browser
+# run-dev.ps1 — simple, reliable dev launcher
 
-$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ErrorActionPreference = "Stop"
 
-$backendPath   = Join-Path $root "backend_v2"
-$venvActivate  = Join-Path $root "app_backend\venv\Scripts\Activate.ps1"
-$frontendPath  = Join-Path $root "app_frontend"
+$ROOT = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-Write-Host "=== Starting Full SCV Dev Environment ===" -ForegroundColor Cyan
+$BACKEND_VENV = "$ROOT\app_backend\venv\Scripts\Activate.ps1"
+$BACKEND_DIR  = "$ROOT\backend_v2"
+$FRONTEND_DIR = "$ROOT\app_frontend"
 
-# -------------------------------
-# Start backend_v2 (Postgres API)
-# -------------------------------
-Write-Host "`nStarting backend_v2..." -ForegroundColor Yellow
+Write-Host "Starting backend..." -ForegroundColor Cyan
 
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
     @"
-cd `"$backendPath`"
-& `"$venvActivate`"
+cd '$BACKEND_DIR'
+& '$BACKEND_VENV'
 python -m uvicorn app.main:app --reload --port 8000
 "@
 )
 
-# -------------------------------
-# Start frontend
-# -------------------------------
-Write-Host "`nStarting frontend..." -ForegroundColor Yellow
+Start-Sleep -Seconds 2
+
+Write-Host "Starting frontend..." -ForegroundColor Cyan
 
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
     @"
-cd `"$frontendPath`"
+cd '$FRONTEND_DIR'
 npm run dev
 "@
 )
 
-# -------------------------------
-# Open browser automatically
-# -------------------------------
-Start-Sleep -Seconds 2  # small delay so Vite starts
-Write-Host "`nOpening browser to http://localhost:5173 ..." -ForegroundColor Cyan
+Start-Sleep -Seconds 2
+
+Write-Host "Opening browser..." -ForegroundColor Cyan
 Start-Process "http://localhost:5173"
 
-Write-Host "`n=== Dev Environment Launched ===" -ForegroundColor Green
+
+
 
 
 

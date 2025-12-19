@@ -101,8 +101,11 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
                     "instrument": t.currency,
                     "direction": "BUY" if (amt is not None and amt >= 0) else "SELL",
                     "quantity": abs(amt) if amt is not None else None,
-                    "price": None,
-                    "pnl": None,
+
+                    # ONLY CHANGE (pass through real values from transactions table)
+                    "price": t.price,
+                    "pnl": t.pnl,
+
                     "amount": t.amount,
                     "currency": t.currency,
                     "txn_type": t.txn_type,
@@ -213,6 +216,8 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
             "payload": payload,
         }
     ]
+
+
 
 
 

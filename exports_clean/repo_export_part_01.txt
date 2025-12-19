@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-18 18:09:00Z
+Generated: 2025-12-19 14:50:45Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -12799,24 +12799,29 @@ class KycFlag(Base):
 
 
 ===== FILE: backend_v2\app\models\transaction.py =====
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
-from sqlalchemy.orm import relationship
-from app.db import Base
+from sqlalchemy import Column, Integer, String, Date, Float
+from app.database import Base
 
 
 class Transaction(Base):
     __tablename__ = "transactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    account_id = Column(Integer, ForeignKey("accounts.id"), index=True, nullable=False)
-    trade_date = Column(String, nullable=True)
-    value_date = Column(String, nullable=True)
-    amount = Column(Float, nullable=False)
-    currency = Column(String, nullable=False, default="GBP")
-    txn_type = Column(String, nullable=False)  # CREDIT, DEBIT, TRADE, FEE
+
+    account_id = Column(Integer, nullable=False)
+
+    trade_date = Column(Date, nullable=True)
+    value_date = Column(Date, nullable=True)
+
+    amount = Column(Float, nullable=True)
+    currency = Column(String, nullable=True)
+
+    txn_type = Column(String, nullable=True)
     description = Column(String, nullable=True)
 
-    account = relationship("Account", backref="transactions")
+    # --- Added to match DB schema ---
+    price = Column(Float, nullable=True)
+    pnl = Column(Float, nullable=True)
 
 
 ===== FILE: backend_v2\app\repositories\__init__.py =====
@@ -12957,6 +12962,7 @@ from app.db import get_db
 from app.schemas.client import ClientCreate, ClientRead
 from app.schemas.account import AccountRead
 from app.schemas.kyc_flag import KycFlagRead
+from app.schemas.scv_profile import SCVClientProfileResponse  # <-- ADDED (only import)
 from app.services.client_service import ClientService
 from app.services.account_service import AccountService
 from app.services.kyc_flag_service import KycFlagService
@@ -13008,7 +13014,10 @@ def get_client_kyc_flags(client_id: int, db: Session = Depends(get_db)):
 #   regulatory_enrichment, evidence_artefacts
 
 
-@router.get("/{client_id}/profile")
+@router.get(
+    "/{client_id}/profile",
+    response_model=SCVClientProfileResponse  # <-- ADDED (only decorator change)
+)
 def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
     """
     Canonical SCV profile endpoint.
@@ -13045,12 +13054,14 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
                     "trade_date": td,
                     "value_date": t.value_date,
                     "asset_class": "CASH",
-                    "instrument": t.currency,  # UI reads instrument/symbol/ccy_pair
+                    "instrument": t.currency,
                     "direction": "BUY" if (amt is not None and amt >= 0) else "SELL",
-                    "quantity": abs(amt) if amt is not None else None,  # UI reads quantity/qty/notional
-                    "price": None,
-                    "pnl": None,
-                    # Keep raw fields for the expandable JSON view
+                    "quantity": abs(amt) if amt is not None else None,
+
+                    # ONLY CHANGE (pass through real values from transactions table)
+                    "price": t.price,
+                    "pnl": t.pnl,
+
                     "amount": t.amount,
                     "currency": t.currency,
                     "txn_type": t.txn_type,
@@ -13064,7 +13075,6 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
 
     # Also keep legacy top-level fields that the existing UI header reads
     profile = {
-        # ---- legacy/top-level (do not remove) ----
         "client_id": str(client.id),
         "name": client.full_name,
         "email": client.email,
@@ -13080,7 +13090,6 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
             "message": "Composed via backend_v2 /clients/{id}/profile",
             "details": {},
         },
-        # ---- canonical contract keys (must exist) ----
         "client": client_payload,
         "accounts": accounts_payload,
         "match_decisions": [],
@@ -13111,16 +13120,6 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
     """
     Return a synthetic 'raw sources' array so the existing UI can render
     something in the Raw sources panel.
-
-    Shape:
-      [
-        {
-          "id": "SCV-<client_id>",
-          "system": "SCV_DB",
-          "client_id": "<client_id>",
-          "payload": { . }
-        }
-      ]
     """
     client = ClientService.get(db, client_id)
     if not client:
@@ -13173,6 +13172,9 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
             "payload": payload,
         }
     ]
+
+
+
 
 
 
@@ -13334,6 +13336,105 @@ class KycFlagRead(KycFlagBase):
 
     class Config:
         from_attributes = True
+
+
+===== FILE: backend_v2\app\schemas\scv_profile.py =====
+# backend_v2/app/schemas/scv_profile.py
+"""
+SCV Profile Contract (Baseline)
+
+This file defines the *baseline* response contract for:
+  GET /clients/{client_id}/profile
+
+Principles:
+- This is a contract boundary for the frontend.
+- Top-level legacy fields MUST remain present (even if null).
+- Canonical SCV keys MUST exist even when empty.
+
+Note:
+- We intentionally keep `client` and `accounts` as loosely-typed objects for now
+  because the endpoint currently uses `jsonable_encoder(...)` on SQLAlchemy models.
+  We can tighten types later without changing the UI contract.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field, ConfigDict
+
+
+class Address(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    line1: Optional[str] = None
+    line2: Optional[str] = None
+    city: Optional[str] = None
+    postcode: Optional[str] = None
+    country: Optional[str] = None
+    source: Optional[str] = None
+
+
+class OperationalState(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    status: Optional[str] = None
+    as_of: Optional[str] = None
+    processing_stage: Optional[str] = None
+    message: Optional[str] = None
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class TradeHistoryRow(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    trade_id: Optional[int] = None
+    account_id: Optional[int] = None
+    trade_date: Optional[str] = None
+    value_date: Optional[str] = None
+    asset_class: Optional[str] = None
+    instrument: Optional[str] = None
+    direction: Optional[str] = None
+    quantity: Optional[float] = None
+    price: Optional[float] = None
+    pnl: Optional[float] = None
+
+    # Raw/source fields (kept for expandable JSON / debugging)
+    amount: Optional[float] = None
+    currency: Optional[str] = None
+    txn_type: Optional[str] = None
+    description: Optional[str] = None
+
+
+class SCVClientProfileResponse(BaseModel):
+    """
+    Baseline contract for the SCV profile endpoint.
+
+    Contains:
+    - Legacy/top-level fields used by the existing UI header
+    - Canonical SCV keys required by SCV_CANONICAL_STATE.md
+    """
+    model_config = ConfigDict(extra="allow")
+
+    # ---- legacy/top-level (do not remove) ----
+    client_id: str
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    country: Optional[str] = None
+    segment: Optional[str] = None
+    risk_rating: Optional[str] = None
+    addresses: List[Address] = Field(default_factory=list)
+    operational_state: OperationalState = Field(default_factory=OperationalState)
+
+    # ---- canonical SCV keys (must exist even if empty) ----
+    client: Dict[str, Any] = Field(default_factory=dict)
+    accounts: List[Dict[str, Any]] = Field(default_factory=list)
+    match_decisions: List[Dict[str, Any]] = Field(default_factory=list)
+    trade_history: List[TradeHistoryRow] = Field(default_factory=list)
+    audit_trail: List[Dict[str, Any]] = Field(default_factory=list)
+    regulatory_enrichment: Dict[str, Any] = Field(default_factory=dict)
+    evidence_artefacts: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 ===== FILE: backend_v2\app\schemas\transaction.py =====
@@ -17660,53 +17761,48 @@ psycopg[binary]
 
 
 ===== FILE: run-dev.ps1 =====
-# run-dev.ps1 - Start backend_v2 (Postgres) + frontend + open browser
+# run-dev.ps1 â€” simple, reliable dev launcher
 
-$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ErrorActionPreference = "Stop"
 
-$backendPath   = Join-Path $root "backend_v2"
-$venvActivate  = Join-Path $root "app_backend\venv\Scripts\Activate.ps1"
-$frontendPath  = Join-Path $root "app_frontend"
+$ROOT = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-Write-Host "=== Starting Full SCV Dev Environment ===" -ForegroundColor Cyan
+$BACKEND_VENV = "$ROOT\app_backend\venv\Scripts\Activate.ps1"
+$BACKEND_DIR  = "$ROOT\backend_v2"
+$FRONTEND_DIR = "$ROOT\app_frontend"
 
-# -------------------------------
-# Start backend_v2 (Postgres API)
-# -------------------------------
-Write-Host "`nStarting backend_v2..." -ForegroundColor Yellow
+Write-Host "Starting backend..." -ForegroundColor Cyan
 
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
     @"
-cd `"$backendPath`"
-& `"$venvActivate`"
+cd '$BACKEND_DIR'
+& '$BACKEND_VENV'
 python -m uvicorn app.main:app --reload --port 8000
 "@
 )
 
-# -------------------------------
-# Start frontend
-# -------------------------------
-Write-Host "`nStarting frontend..." -ForegroundColor Yellow
+Start-Sleep -Seconds 2
+
+Write-Host "Starting frontend..." -ForegroundColor Cyan
 
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
     @"
-cd `"$frontendPath`"
+cd '$FRONTEND_DIR'
 npm run dev
 "@
 )
 
-# -------------------------------
-# Open browser automatically
-# -------------------------------
-Start-Sleep -Seconds 2  # small delay so Vite starts
-Write-Host "`nOpening browser to http://localhost:5173 ..." -ForegroundColor Cyan
+Start-Sleep -Seconds 2
+
+Write-Host "Opening browser..." -ForegroundColor Cyan
 Start-Process "http://localhost:5173"
 
-Write-Host "`n=== Dev Environment Launched ===" -ForegroundColor Green
+
+
 
 
 
