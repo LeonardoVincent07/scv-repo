@@ -14,6 +14,8 @@ from app.services.kyc_flag_service import KycFlagService
 from app.services.transaction_service import TransactionService
 from app.services.match_decision_service import MatchDecisionService
 from app.services.regulatory_enrichment_service import RegulatoryEnrichmentService
+from app.services.evidence_artefact_service import EvidenceArtefactService
+
 
 
 router = APIRouter(prefix="/clients", tags=["clients"])
@@ -133,6 +135,8 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
 
     regulatory_enrichment = RegulatoryEnrichmentService.get_latest_by_client(db, client_id)
 
+    evidence_artefacts = EvidenceArtefactService.list_by_client(db, client_id)
+
     # Canonical keys (always present)
     client_payload = jsonable_encoder(client)
     accounts_payload = jsonable_encoder(accounts)
@@ -160,7 +164,7 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
         "trade_history": trade_history,
         "audit_trail": [],
         "regulatory_enrichment": jsonable_encoder(regulatory_enrichment),
-        "evidence_artefacts": [],
+        "evidence_artefacts": evidence_artefacts,
     }
 
     # Map the primary_address into a single address entry if present

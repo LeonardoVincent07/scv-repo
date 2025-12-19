@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-19 19:23:07Z
+Generated: 2025-12-19 20:07:36Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -12957,6 +12957,7 @@ def get_account_transactions(account_id: int, db: Session = Depends(get_db)):
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
+from datetime import date  # <-- ADDED (minimal)
 
 from app.db import get_db
 from app.schemas.client import ClientCreate, ClientRead
@@ -12972,6 +12973,19 @@ from app.services.regulatory_enrichment_service import RegulatoryEnrichmentServi
 
 
 router = APIRouter(prefix="/clients", tags=["clients"])
+
+
+def _date_to_iso(value):  # <-- ADDED (minimal helper)
+    if value is None:
+        return None
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, str):
+        try:
+            return date.fromisoformat(value).isoformat()
+        except ValueError:
+            return value
+    return str(value)
 
 
 # -----------------------------
@@ -13055,9 +13069,9 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
                 {
                     "trade_id": str(t.id),
                     "account_id": str(t.account_id),
-                    "trade_date": td.isoformat() if td else None,
-                    "instrument": t.instrument,
-                    "side": t.side,
+                    "trade_date": _date_to_iso(td),  # <-- CHANGED (only functional change)
+                    "instrument": None,
+                    "direction": t.txn_type,
                     "quantity": abs(t.amount) if t.amount is not None else None,
 
                     # ONLY CHANGE (pass through real values from transactions table)
@@ -13151,7 +13165,17 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
         }
     ]
 
-    return {"client_id": client_id, "sources": sources}
+    return [
+    {
+        "id": s["source_record_id"],
+        "system": s["source_system"],
+        "client_id": str(client.id),
+        "payload": s["fields"],
+    }
+    for s in sources
+]
+
+
 
 
 
