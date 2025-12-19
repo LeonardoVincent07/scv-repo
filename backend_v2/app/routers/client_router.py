@@ -11,6 +11,8 @@ from app.services.client_service import ClientService
 from app.services.account_service import AccountService
 from app.services.kyc_flag_service import KycFlagService
 from app.services.transaction_service import TransactionService
+from app.services.match_decision_service import MatchDecisionService
+
 
 router = APIRouter(prefix="/clients", tags=["clients"])
 
@@ -113,6 +115,8 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
                 }
             )
 
+    match_decisions = MatchDecisionService.list_by_client(db, client_id)
+
     # Canonical keys (always present)
     client_payload = jsonable_encoder(client)
     accounts_payload = jsonable_encoder(accounts)
@@ -136,7 +140,7 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
         },
         "client": client_payload,
         "accounts": accounts_payload,
-        "match_decisions": [],
+        "match_decisions": match_decisions,
         "trade_history": trade_history,
         "audit_trail": [],
         "regulatory_enrichment": {},
@@ -216,6 +220,7 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
             "payload": payload,
         }
     ]
+
 
 
 

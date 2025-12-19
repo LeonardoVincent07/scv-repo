@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-19 14:50:45Z
+Generated: 2025-12-19 15:02:04Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -12800,7 +12800,7 @@ class KycFlag(Base):
 
 ===== FILE: backend_v2\app\models\transaction.py =====
 from sqlalchemy import Column, Integer, String, Date, Float
-from app.database import Base
+from app.db import Base
 
 
 class Transaction(Base):
