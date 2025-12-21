@@ -1,0 +1,12 @@
+{
+  "client_id": "123",
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "country": "GB",
+  "identifiers": [],
+  "addresses": [],
+  "lineage": {},
+  "quality": {},
+  "metadata": {},
+  "raw_sources": []
+}

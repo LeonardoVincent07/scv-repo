@@ -147,13 +147,13 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
 
     # Also keep legacy top-level fields that the existing UI header reads
     profile = {
-        "client_id": str(client.id),
-        "name": client.full_name,
-        "email": client.email,
-        "phone": client.phone,
-        "country": client.country,
-        "segment": client.segment,
-        "risk_rating": client.risk_rating,
+        "client_id": str(client["client_id"]),
+        "name": client.get("name"),
+        "email": client.get("email"),
+        "phone": None,
+        "country": client.get("country"),
+        "segment": None,
+        "risk_rating": None,
         "addresses": [],
         "operational_state": {
             "status": "ACTIVE",
@@ -172,14 +172,14 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
     }
 
     # Map the primary_address into a single address entry if present
-    if client.primary_address:
+    if client.get("primary_address"):
         profile["addresses"].append(
             {
-                "line1": client.primary_address,
+                "line1": client.get("primary_address"),
                 "line2": None,
                 "city": None,
                 "postcode": None,
-                "country": client.country,
+                "country": client.get("country"),
                 "source": "SCV_DB",
             }
         )
@@ -204,15 +204,15 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
     sources = [
         {
             "source_system": "SCV_DB",
-            "source_record_id": f"client:{client.id}",
+            "source_record_id": f"client:{client.get('client_id')}",
             "fields": {
-                "full_name": client.full_name,
-                "email": client.email,
-                "phone": client.phone,
-                "country": client.country,
-                "segment": client.segment,
-                "risk_rating": client.risk_rating,
-                "primary_address": client.primary_address,
+                "name": client.get("name"),
+                "email": client.get("email"),
+                "phone": None,
+                "country": client.get("country"),
+                "segment": None,
+                "risk_rating": None,
+                "primary_address": None,
             },
         }
     ]
@@ -221,11 +221,14 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
     {
         "id": s["source_record_id"],
         "system": s["source_system"],
-        "client_id": str(client.id),
+        "client_id": str(client.get("client_id")),
         "payload": s["fields"],
     }
     for s in sources
 ]
+
+
+
 
 
 

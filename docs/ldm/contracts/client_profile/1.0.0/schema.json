@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ldm://client_profile/1.0.0",
+  "title": "ClientProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "client_id",
+    "name",
+    "identifiers",
+    "addresses",
+    "lineage",
+    "quality",
+    "metadata",
+    "raw_sources"
+  ],
+  "properties": {
+    "client_id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "email": { "type": ["string", "null"], "format": "email" },
+    "country": { "type": ["string", "null"] },
+
+    "identifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["system", "value"],
+        "properties": {
+          "system": { "type": "string" },
+          "value": { "type": "string" }
+        }
+      }
+    },
+
+    "addresses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "line1": { "type": ["string", "null"] },
+          "line2": { "type": ["string", "null"] },
+          "city": { "type": ["string", "null"] },
+          "postcode": { "type": ["string", "null"] },
+          "country": { "type": ["string", "null"] },
+          "source": { "type": ["string", "null"] }
+        }
+      }
+    },
+
+    "lineage": { "type": "object" },
+    "quality": { "type": "object" },
+    "metadata": { "type": "object" },
+    "raw_sources": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}

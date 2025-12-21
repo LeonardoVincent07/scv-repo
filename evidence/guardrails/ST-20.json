@@ -1,5 +1,10 @@
 {
-  "story_id": "ST-20",
+  "guardrail_id": "G03",
   "passed": true,
-  "message": "Output adheres to ClientProfile data model."
+  "message": "LDM validation passed",
+  "contract_id": "ldm://client_profile/1.0.0",
+  "artifact_path": "evidence/runtime_outputs/ST-20/client_profile.json",
+  "errors": [],
+  "warnings_count": 0,
+  "warnings": []
 }

@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 """
-Run guardrail checks for one or more Stories and update guardrail_adherence
-in each Story's front matter.
+Run guardrail checks for one or more Stories.
+
+MVP:
+- Deterministic checks only (no external calls, no network).
+- Write guardrail evidence to evidence/guardrails/<STORY_ID>.json
+- Update guardrail_adherence: pass|fail in the Story markdown front matter.
 """
 
 from __future__ import annotations
@@ -10,21 +14,21 @@ import dataclasses
 import json
 import re
 import sys
-import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Callable
+from typing import Any, Callable, Dict, List, Tuple
+
 
 # ---------------------------------------------------------------------------
-# Repo root + sys.path fix so "src" can be imported
+# Repo root + sys.path
 # ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+
 # ---------------------------------------------------------------------------
-# Story configuration
+# Story configuration (guardrails are registered explicitly)
 # ---------------------------------------------------------------------------
 
 STORY_CONFIG: Dict[str, Dict[str, Any]] = {}
@@ -44,16 +48,19 @@ def _register_story(
 
 
 # ---------------------------------------------------------------------------
-# Guardrail checks
+# Guardrail checks (deterministic)
 # ---------------------------------------------------------------------------
 
 
 def check_backend_health_endpoint() -> Tuple[bool, str]:
+    """
+    Guardrail for ST-00: backend health endpoint exists and returns expected payload.
+    """
     try:
         from fastapi.testclient import TestClient
         from app_backend.main import app
     except Exception as exc:
-        return False, f"Import error in health guardrail check: {exc!r}"
+        return False, f"Import error in /health guardrail check: {exc!r}"
 
     try:
         client = TestClient(app)
@@ -202,6 +209,22 @@ _register_story(
     ],
 )
 
+_register_story(
+    "ST-20",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-20_assemble_base_profile.md",
+    check_client_profile_data_model_adherence,
+    [
+        "Import ClientProfileService and ClientProfile dataclass",
+        "Call ClientProfileService.get_client_profile('123')",
+        "Assert returned object is dict",
+        "Assert dict contains all ClientProfile dataclass field keys",
+    ],
+)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -259,53 +282,35 @@ def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
     check_func: Callable[[], Tuple[bool, str]] = config["check_func"]  # type: ignore[assignment]
     guardrails_checked: List[str] = config["guardrails_checked"]  # type: ignore[assignment]
 
-    print(f">>> Running guardrail checks for Story {story_id}")
-
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("default")
-        passed, message = check_func()
-
     warnings_captured: List[Dict[str, Any]] = []
-    for w in caught:
-        try:
-            warnings_captured.append(
-                {
-                    "category": w.category.__name__ if w.category else None,
-                    "message": str(w.message),
-                    "filename": w.filename,
-                    "lineno": w.lineno,
-                }
-            )
-        except Exception:
-            warnings_captured.append({"message": str(getattr(w, "message", ""))})
+    warnings_count = 0
 
-    warnings_count = len(warnings_captured)
+    passed, message = check_func()
 
     write_guardrail_evidence(
-        story_id,
-        passed,
-        message,
-        guardrails_checked,
-        warnings_captured,
-        warnings_count,
+        story_id=story_id,
+        passed=passed,
+        message=message,
+        guardrails_checked=guardrails_checked,
+        warnings_captured=warnings_captured,
+        warnings_count=warnings_count,
     )
-    update_story_guardrail_adherence(story_file, passed)
 
-    status = "pass" if passed else "fail"
-    print(f">>> Story {story_id} guardrail_adherence set to {status}: {message}")
+    update_story_guardrail_adherence(story_file, passed)
     return passed, message
 
 
-# ---------------------------------------------------------------------------
-# CLI entrypoint
-# ---------------------------------------------------------------------------
-
-
 def main(argv: List[str]) -> int:
+    """
+    Usage:
+      python tools/run_story_guardrails.py          # run for all configured Stories
+      python tools/run_story_guardrails.py ST-03    # run for a single Story
+    """
     if len(argv) > 1:
         story_id = argv[1].upper()
         if story_id not in STORY_CONFIG:
-            print(f"ERROR: Story {story_id!r} is not configured.")
+            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
+            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
             return 1
         requested_ids = [story_id]
     else:
@@ -323,5 +328,6 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
 
 

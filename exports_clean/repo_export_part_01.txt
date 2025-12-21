@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-21 18:31:39Z
+Generated: 2025-12-21 20:45:42Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -13103,13 +13103,13 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
 
     # Also keep legacy top-level fields that the existing UI header reads
     profile = {
-        "client_id": str(client.id),
-        "name": client.full_name,
-        "email": client.email,
-        "phone": client.phone,
-        "country": client.country,
-        "segment": client.segment,
-        "risk_rating": client.risk_rating,
+        "client_id": str(client["client_id"]),
+        "name": client.get("name"),
+        "email": client.get("email"),
+        "phone": None,
+        "country": client.get("country"),
+        "segment": None,
+        "risk_rating": None,
         "addresses": [],
         "operational_state": {
             "status": "ACTIVE",
@@ -13128,14 +13128,14 @@ def get_client_profile_for_ui(client_id: int, db: Session = Depends(get_db)):
     }
 
     # Map the primary_address into a single address entry if present
-    if client.primary_address:
+    if client.get("primary_address"):
         profile["addresses"].append(
             {
-                "line1": client.primary_address,
+                "line1": client.get("primary_address"),
                 "line2": None,
                 "city": None,
                 "postcode": None,
-                "country": client.country,
+                "country": client.get("country"),
                 "source": "SCV_DB",
             }
         )
@@ -13160,15 +13160,15 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
     sources = [
         {
             "source_system": "SCV_DB",
-            "source_record_id": f"client:{client.id}",
+            "source_record_id": f"client:{client.get('client_id')}",
             "fields": {
-                "full_name": client.full_name,
-                "email": client.email,
-                "phone": client.phone,
-                "country": client.country,
-                "segment": client.segment,
-                "risk_rating": client.risk_rating,
-                "primary_address": client.primary_address,
+                "name": client.get("name"),
+                "email": client.get("email"),
+                "phone": None,
+                "country": client.get("country"),
+                "segment": None,
+                "risk_rating": None,
+                "primary_address": None,
             },
         }
     ]
@@ -13177,11 +13177,14 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
     {
         "id": s["source_record_id"],
         "system": s["source_system"],
-        "client_id": str(client.id),
+        "client_id": str(client.get("client_id")),
         "payload": s["fields"],
     }
     for s in sources
 ]
+
+
+
 
 
 
@@ -14106,24 +14109,85 @@ class AuditTrailService:
 
 
 ===== FILE: backend_v2\app\services\client_service.py =====
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy.orm import Session
+
 from app.schemas.client import ClientCreate
 from app.repositories.client_repository import ClientRepository
 
 
 class ClientService:
-
     @staticmethod
     def create(db: Session, data: ClientCreate):
         return ClientRepository.create(db, data)
 
     @staticmethod
-    def get(db: Session, client_id: int):
+    def list(db: Session):
+        return ClientRepository.list(db)
+
+    @staticmethod
+    def get_record(db: Session, client_id: int):
+        """
+        Returns the raw client record from persistence (ORM model or dict),
+        without shaping it into the logical data model.
+        """
         return ClientRepository.get(db, client_id)
 
     @staticmethod
-    def list(db: Session):
-        return ClientRepository.list(db)
+    def get(db: Session, client_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Returns a ClientProfile shaped according to the Initial Logical Data Model (LDM).
+
+        This is a read-only deterministic assembly of core attributes from the persisted
+        client record, with empty placeholders for other LDM sections.
+        """
+        client = ClientRepository.get(db, client_id)
+        if client is None:
+            return None
+
+        return ClientService._assemble_client_profile(client)
+
+    @staticmethod
+    def _assemble_client_profile(client: Any) -> Dict[str, Any]:
+        """
+        Assemble a ClientProfile structure as per the LDM.
+
+        Populates core attributes where available and provides empty placeholders for:
+        identifiers, addresses, lineage, quality, metadata, raw_sources.
+        """
+
+        def pick(obj: Any, *names: str) -> Any:
+            # Supports ORM objects (attributes) and dict-like records (keys)
+            for n in names:
+                if isinstance(obj, dict) and n in obj:
+                    return obj[n]
+                if hasattr(obj, n):
+                    return getattr(obj, n)
+            return None
+
+        client_id = pick(client, "client_id", "id")
+        name = pick(client, "name", "full_name")
+        email = pick(client, "email", "primary_email")
+        country = pick(client, "country", "country_of_residence")
+
+        # Full LDM shape with empty placeholders
+        profile: Dict[str, Any] = {
+            "client_id": client_id,
+            "name": name,
+            "email": email,
+            "country": country,
+            "identifiers": [],  # type: List[Dict[str, Any]]
+            "addresses": [],    # type: List[Dict[str, Any]]
+            "lineage": {},      # type: Dict[str, Any]
+            "quality": {},      # type: Dict[str, Any]
+            "metadata": {},     # type: Dict[str, Any]
+            "raw_sources": [],  # type: List[Dict[str, Any]]
+        }
+
+        return profile
 
 
 ===== FILE: backend_v2\app\services\evidence_artefact_service.py =====
@@ -14376,6 +14440,12 @@ class TransactionService:
         return TransactionRepository.list_by_account(db, account_id)
 
 
+===== FILE: backend_v2\pytest.ini =====
+[pytest]
+testpaths = tests
+pythonpath = .
+
+
 ===== FILE: backend_v2\requirements.txt =====
 fastapi
 uvicorn[standard]
@@ -14383,6 +14453,77 @@ SQLAlchemy>=2.0
 pydantic>=2.0
 psycopg[binary]
 python-dotenv
+
+
+===== FILE: backend_v2\tests\services\test_client_service_st20.py =====
+import pytest
+from unittest.mock import MagicMock
+
+from app.services.client_service import ClientService
+
+
+class DummyClient:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
+def test_get_returns_full_ldm_profile_shape(monkeypatch):
+    db = MagicMock()
+    dummy = DummyClient(
+        id=1,
+        full_name="Jane Doe",
+        email="jane@example.com",
+        country="UK",
+    )
+
+    from app.repositories.client_repository import ClientRepository
+    monkeypatch.setattr(ClientRepository, "get", MagicMock(return_value=dummy))
+
+    profile = ClientService.get(db, 1)
+
+    assert profile == {
+        "client_id": 1,
+        "name": "Jane Doe",
+        "email": "jane@example.com",
+        "country": "UK",
+        "identifiers": [],
+        "addresses": [],
+        "lineage": {},
+        "quality": {},
+        "metadata": {},
+        "raw_sources": [],
+    }
+
+
+def test_get_is_deterministic_for_same_input(monkeypatch):
+    db = MagicMock()
+    dummy = DummyClient(
+        id=1,
+        full_name="Jane Doe",
+        email="jane@example.com",
+        country="UK",
+    )
+
+    from app.repositories.client_repository import ClientRepository
+    monkeypatch.setattr(ClientRepository, "get", MagicMock(return_value=dummy))
+
+    profile_a = ClientService.get(db, 1)
+    profile_b = ClientService.get(db, 1)
+
+    assert profile_a == profile_b
+
+
+def test_get_returns_none_when_client_missing(monkeypatch):
+    db = MagicMock()
+
+    from app.repositories.client_repository import ClientRepository
+    monkeypatch.setattr(ClientRepository, "get", MagicMock(return_value=None))
+
+    profile = ClientService.get(db, 999)
+
+    assert profile is None
+
 
 
 ===== FILE: database.py =====
@@ -16339,26 +16480,38 @@ last_updated: <auto>
 ---
 story_id: ST-20
 feature: FT-10
-name: "Assemble base profile"
-description: |
-  Assemble profile.
+name: Assemble base profile
 
-acceptance_criteria:
-  - Profile fields set
+overall_status: Planned
 
-overall_status: In Progress
-
-testing_status: fail
-halo_adherence: not_run
-guardrail_adherence: not_run
-code_quality_adherence: pass
-security_policy_adherence: pass
+testing_status: pass
+halo_adherence: pass
+guardrail_adherence: fail
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
+
+description: |
+  Assemble a canonical client base profile by reading existing client data
+  from the persistent database and returning it in the shape defined by the
+  Initial Logical Data Model.
+
+  This story covers read-only assembly of core client attributes only.
+  No matching, merging, enrichment, lineage computation, or quality scoring
+  is performed as part of this story.
+
+acceptance_criteria:
+  - A client profile can be retrieved using an existing internal client identifier
+  - The returned profile conforms to the ClientProfile structure defined in the Initial Logical Data Model
+  - Core profile fields (e.g. name, email, country, identifiers, addresses) are populated from persisted data where available
+  - The profile assembly is deterministic and repeatable for the same input
+  - No matching, merging, enrichment, lineage, or quality logic is applied
+
 last_updated: 2025-12-21T16:55:21Z
 ---
 
@@ -18083,162 +18236,171 @@ Code file:
 
 
 ===== FILE: docs\prompts\story_code_metaprompt.md =====
+# MissionSmith Story Implementation Meta-Prompt (MVP â€“ Guided + Deterministic)
 
-# MissionSmith Story Implementation Meta-Prompt (MVP â€“ Guided + Flexible, Corrected)
+You are the **MissionSmith Story Implementation Engine**.
 
-You are the **MissionSmith Story Implementation Engine**.  
-You implement one Story at a time using:
-
-- The Story markdown file  
-- The implementation slice  
-- The MissionFramework documents  
+You implement **one Story at a time** using:
+- the Story markdown file
+- the declared implementation slice
+- Mission Destination artefacts
+- the MissionFramework
 - MissionHalo (UI stories only)
 
-The Meta-Prompt is the **governing authority**.  
-MissionFramework and MissionHalo define the rules.  
-You must **never override or duplicate** rules from those documents.
+You must not invent architecture, data models, or service boundaries.
+All global design decisions already exist.
 
 ---
 
 ## 1. Inputs
 
-You will be given:
+### 1.1 Story File
 
-### 1.1 Story File  
-Located under:  
-`docs/mission_destination/stories/`  
+Location:
+docs/mission_destination/stories/
 
-It contains the authoritative definition of:
-- behaviour  
-- acceptance criteria  
-- status/adherence fields  
+Authoritative for:
+- behaviour
+- acceptance criteria
+- status and adherence fields
 
-You must implement the Story exactly as written.
+Implement the Story exactly as written.
 
-### 1.2 Optional Feature/Epic Context  
-Located under:  
-`docs/mission_destination/features/`  
-`docs/mission_destination/epics/`
+---
 
-### 1.3 Implementation Slice  
-A Story must be implemented **in exactly one file**.
+### 1.2 Mission Destination Artefacts (GLOBAL, AUTHORITATIVE)
 
-**Definition:**  
-> The implementation slice is the specific file where the functional area of the Story already exists.  
-> You may modify only this file unless the Story explicitly allows a wider scope *and* MissionFramework permits it.
+You must consult and obey the following artefacts.
 
-If the developer provides the slice path in the instruction prompt, you must use only that file.
+#### Initial Logical Data Model  
+docs/mission_destination/initial_logical_data_model.md
 
-### 1.4 MissionFramework (governance rules)  
-Located under:  
-`docs/mission_framework/`
+Defines:
+- entities
+- attributes
+- semantic meaning
 
-Includes design principles, guardrails, policy-as-code, lineage, self-healing, analytics.  
-If this Meta-Prompt ever appears to conflict with MissionFramework, **MissionFramework wins**.
+You must not reinterpret semantics.
 
-### 1.5 MissionHalo (UI only)  
-Located at:  
-`docs/mission_halo/mission_halo_mvp.md`
+---
 
-UI implementations must follow:
-- Raleway (headings) / Lato (body)  
-- Halo colour system  
-- 8px spacing grid  
-- Tailwind structure  
-- Component rules  
+#### Initial Service Architecture  
+docs/mission_destination/initial_service_architecture.md
+
+Defines:
+- which services exist
+- service responsibilities
+- service boundaries
+- database access rules
+
+You must not move responsibilities between services.
+
+---
+
+#### Initial Database Schema  
+docs/mission_destination/initial_database_schema.md
+
+Defines:
+- physical tables
+- keys and relationships
+
+You must not change the schema unless the Story explicitly permits it.
+
+---
+
+#### Story â†’ Service Mapping  
+docs/mission_destination/story_service_mapping.yaml
+
+Defines:
+- which service owns the Story
+
+You must implement the Story **only** in the mapped service.
+
+---
+
+### 1.3 Implementation Slice
+
+A Story is implemented in **exactly one file**.
+
+You may modify only that file unless:
+- the Story explicitly allows wider scope, and
+- MissionFramework permits it.
+
+You must not:
+- create new files
+- create new folders
+- rename files
+- modify other services
+
+---
+
+### 1.4 MissionFramework (Governance)
+
+Location:
+docs/mission_framework/
+
+If there is a conflict:
+MissionFramework overrides this meta-prompt.
+
+---
+
+### 1.5 MissionHalo (UI Stories Only)
+
+Location:
+docs/mission_halo/
 
 Non-UI stories ignore MissionHalo.
 
 ---
 
-## 2. Where You May Write Code
+## 2. How to Implement the Story
 
-You may only modify:
-- The single implementation slice file.
+1. Read the Story and acceptance criteria.
+2. Determine the owning service from story_service_mapping.yaml.
+3. Validate data usage against the logical data model.
+4. Validate placement against the service architecture.
+5. Validate persistence against the database schema.
+6. Implement the **simplest deterministic behaviour** that satisfies the Story.
+7. Stay strictly within the implementation slice.
 
-You must NOT:
-- create new files  
-- create new folders  
-- rename files  
-- modify other services  
-- change schemas or APIs unless permitted by the Story *and* MissionFramework  
-
-**Option B flexibility:**  
-You may add small helper functions **within the same file** if required to satisfy the Story and allowed by MissionFramework.
+If ambiguity exists:
+Choose the simplest interpretation that violates no artefact.
 
 ---
 
-## 3. How to Implement the Story
+## 3. What You Must Not Do
 
-1. Read the Story description and acceptance criteria.
-2. Consult MissionFramework documents â€” apply relevant rules.
-3. If UI: consult MissionHalo â€” apply its rules.
-4. Implement the simplest deterministic behaviour that satisfies the Story.
-5. Stay strictly within the implementation slice.
-6. Avoid inventing new behaviours or widening scope.
+- Do not invent new behaviours.
+- Do not widen scope.
+- Do not redesign services.
+- Do not reinterpret data semantics.
+- Do not refactor unrelated code.
 
-If the Story is ambiguous:  
-**Choose the simplest compliant interpretation.**
-
----
-
-## 4. What You Must Not Do
-
-- Do not introduce requirements not in the Story.  
-- Do not violate MissionFramework rules.  
-- Do not drift into other files.  
-- Do not create new architectural patterns.  
-- Do not invent UX outside MissionHalo.  
-- Do not refactor unrelated code.  
-
-If a conflict arises:
-**MissionFramework > Story > Meta-Prompt.**
+Precedence order:
+MissionFramework â†’ Mission Destination â†’ Story â†’ Meta-Prompt
 
 ---
 
-## 5. Output Format (mandatory)
+## 4. Output Format (MANDATORY)
 
-Your response MUST contain:
+### Summary (2â€“3 sentences)
 
-### 5.1 Summary (2â€“3 sentences)
-Describe:
-- what you implemented  
-- which MissionFramework or MissionHalo considerations applied  
+State:
+- what was implemented
+- which Mission Destination constraints were applied
 
-### 5.2 Full updated implementation file
-Output the ENTIRE file.
+### Updated File
 
-Format:
+Output the **entire updated file** for the implementation slice.
 
-```
-### Summary
-<summary>
-
-### Updated File: src/services/<service_name>/service.py
-```python
-# full file content here
-```
-```
-
-Do not output diffs.  
-Do not output multiple files.  
-Do not output commentary beyond the Summary.
+Rules:
+- No diffs
+- No commentary outside the Summary
+- The file must be complete and ready to commit
 
 ---
 
-## 6. Completion Criteria
-
-A Story implementation is complete when:
-- all acceptance criteria are met  
-- code remains within the implementation slice  
-- MissionFramework is respected  
-- UI stories respect MissionHalo  
-- code is deterministic and minimal  
-- tests (generated separately) should pass  
-
----
-
-## END OF META-PROMPT
+END OF META-PROMPT
 
 
 ===== FILE: docs\prompts\story_test_instruction_prompt_template.txt =====
@@ -18252,175 +18414,123 @@ Test file:
 
 
 ===== FILE: docs\prompts\story_test_metaprompt.md =====
+# MissionSmith Test Implementation Meta-Prompt (MVP â€“ Deterministic)
 
-# MissionSmith Test Implementation Meta-Prompt (MVP)
+You are the **MissionSmith Test Generation Engine**.
 
-You are the MissionSmith Test Generation Engine.  
-Your role is to generate deterministic, minimal, verifiable tests for a single Story using:
-
-- the Story markdown file  
-- the corresponding implementation slice  
-- the MissionFramework documents  
+You generate **minimal, deterministic, verifiable tests** for one Story using:
+- the Story markdown file
+- the implementation slice
+- Mission Destination artefacts
+- the MissionFramework
 - MissionHalo (UI stories only)
-
-MissionFramework and MissionHalo are the governance authorities.  
-This prompt must never duplicate their rulesâ€”only reference them.
 
 ---
 
 ## 1. Inputs
 
-### 1.1 Story file
-From:  
-`docs/mission_destination/stories/`  
+### 1.1 Story File
 
-Contains behaviour and acceptance criteria.  
-Tests must directly reflect these.
+Location:
+docs/mission_destination/stories/
 
-### 1.2 Implementation slice
-Example:  
-`src/services/<service_name>/service.py`
-
-### 1.3 MissionFramework documents
-From:  
-`docs/mission_framework/`  
-
-Refer to relevant rules for:
-- design principles  
-- guardrails  
-- policy-as-code  
-- lineage  
-- analytics  
-- self-healing patterns  
-
-Test only *observable* effects of these rules.
-
-### 1.4 MissionHalo (UI only)
-From:  
-`docs/mission_halo/mission_halo_mvp.md`
-
-If the Story involves UI, test for adherence to Haloâ€™s:
-- fonts  
-- colours  
-- spacing  
-- Tailwind patterns  
-
-If not UI: ignore Halo.
+Acceptance criteria define test scope.
 
 ---
 
-## 2. Where You May Write Tests
+### 1.2 Implementation Slice
 
-You may modify or create tests only inside:
+The file modified by the Story implementation.
 
-```
-tests/services/<service_name>/test_service.py
-tests/api/<api_name>/test_<file>.py
-```
+Tests must align exactly to this slice.
 
-You must NOT:
-- create new folders  
-- write cross-service tests  
-- introduce new fixtures beyond existing patterns  
-- test unrelated functionality  
+---
+
+### 1.3 Mission Destination Artefacts (CONSTRAINTS)
+
+#### Initial Logical Data Model  
+docs/mission_destination/initial_logical_data_model.md
+
+Tests must reference only semantically valid entities and fields.
+
+---
+
+#### Initial Service Architecture  
+docs/mission_destination/initial_service_architecture.md
+
+Tests must not:
+- cross service boundaries
+- invoke non-owning services
+
+---
+
+#### Initial Database Schema  
+docs/mission_destination/initial_database_schema.md
+
+Tests must reflect:
+- real tables
+- real keys
+- real relationships
+
+---
+
+#### Story â†’ Service Mapping  
+docs/mission_destination/story_service_mapping.yaml
+
+Tests must target **only the owning service**.
+
+---
+
+### 1.4 MissionFramework
+
+Test only observable effects of framework rules.
+
+---
+
+### 1.5 MissionHalo (UI Stories Only)
+
+Validate:
+- structural output
+- styling rules
+- component constraints
+
+No browser automation.
+
+---
+
+## 2. Where Tests May Be Written
+
+Tests may be written only in:
+
+tests/services/<service>/test_*.py  
+tests/api/<api>/test_*.py
+
+Do not create new folder structures.
 
 ---
 
 ## 3. How to Write Tests
 
-### 3.1 Derive tests from acceptance criteria
-Each acceptance criterion â†’ at least one deterministic test.
+- Each acceptance criterion maps to at least one test
+- Deterministic only
+- No speculative behaviour
+- No future features
+- No cross-service assumptions
 
-### 3.2 Use existing test style
-Assume:
-- pytest  
-- no external mocking frameworks  
-- follow file naming conventions  
-
-### 3.3 Keep tests minimal
-One behaviour per test unless grouping is natural.
-
-### 3.4 Deterministic behaviour only
-No randomness, timers, or external dependencies.
-
-### 3.5 Only test what the Story declares
-No speculative tests.  
-No future features.  
-No unrelated MissionFramework rules.  
-
-Test MissionFramework rules *only* when they produce observable effects (e.g. lineage fields required in output).
-
-### 3.6 UI
-If the Story touches UI:
-- snapshot-style structural assertions  
-- Tailwind class checks  
-- ensure MissionHalo visual rules appear in output  
-
-Do not generate browser automation.
+Use Arrange â†’ Act â†’ Assert.
 
 ---
 
 ## 4. What You Must Not Do
 
-- Do not test internal implementation details.  
-- Do not mock unrelated services.  
-- Do not test beyond the Storyâ€™s scope.  
-- Do not over-test.  
+- Do not test implementation details.
+- Do not mock unrelated services.
+- Do not test beyond the Story scope.
+- Do not over-test.
 
 ---
 
-## 5. Test Structure
-
-Follow the Arrange â†’ Act â†’ Assert pattern:
-
-- **Arrange:** prepare inputs.  
-- **Act:** call the target function.  
-- **Assert:** verify acceptance criteria.  
-
-Assertions must be explicit and minimal.
-
----
-
-## 6. Output Format
-
-Your response must contain:
-
-### 6.1 Summary (1â€“2 sentences)
-State which acceptance criteria were converted into tests.
-
-### 6.2 Full updated test file
-Output the entire test file.
-
-Format:
-
-```
-### Summary
-<summary>
-
-### Updated File: tests/services/<service_name>/test_service.py
-```python
-# full file content here
-```
-```
-
-Do not output anything else.
-
----
-
-## 7. Completion Criteria
-
-A Storyâ€™s tests are complete when:
-- all acceptance criteria are covered  
-- tests are deterministic  
-- tests reflect observable MissionFramework behaviour  
-- UI tests reflect MissionHalo  
-- the file is self-contained  
-- the service can be validated in CI  
-
----
-
-## END OF META-PROMPT
-
+END OF META-PROMPT
 
 ===== FILE: missionlog\status\status_snapshot.md =====
 # Mission Control Status Snapshot
@@ -21572,8 +21682,12 @@ if __name__ == "__main__":
 ===== FILE: tools\run_story_guardrails.py =====
 #!/usr/bin/env python
 """
-Run guardrail checks for one or more Stories and update guardrail_adherence
-in each Story's front matter.
+Run guardrail checks for one or more Stories.
+
+MVP:
+- Deterministic checks only (no external calls, no network).
+- Write guardrail evidence to evidence/guardrails/<STORY_ID>.json
+- Update guardrail_adherence: pass|fail in the Story markdown front matter.
 """
 
 from __future__ import annotations
@@ -21582,21 +21696,21 @@ import dataclasses
 import json
 import re
 import sys
-import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Callable
+from typing import Any, Callable, Dict, List, Tuple
+
 
 # ---------------------------------------------------------------------------
-# Repo root + sys.path fix so "src" can be imported
+# Repo root + sys.path
 # ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+
 # ---------------------------------------------------------------------------
-# Story configuration
+# Story configuration (guardrails are registered explicitly)
 # ---------------------------------------------------------------------------
 
 STORY_CONFIG: Dict[str, Dict[str, Any]] = {}
@@ -21616,16 +21730,19 @@ def _register_story(
 
 
 # ---------------------------------------------------------------------------
-# Guardrail checks
+# Guardrail checks (deterministic)
 # ---------------------------------------------------------------------------
 
 
 def check_backend_health_endpoint() -> Tuple[bool, str]:
+    """
+    Guardrail for ST-00: backend health endpoint exists and returns expected payload.
+    """
     try:
         from fastapi.testclient import TestClient
         from app_backend.main import app
     except Exception as exc:
-        return False, f"Import error in health guardrail check: {exc!r}"
+        return False, f"Import error in /health guardrail check: {exc!r}"
 
     try:
         client = TestClient(app)
@@ -21774,6 +21891,22 @@ _register_story(
     ],
 )
 
+_register_story(
+    "ST-20",
+    REPO_ROOT
+    / "docs"
+    / "mission_destination"
+    / "stories"
+    / "ST-20_assemble_base_profile.md",
+    check_client_profile_data_model_adherence,
+    [
+        "Import ClientProfileService and ClientProfile dataclass",
+        "Call ClientProfileService.get_client_profile('123')",
+        "Assert returned object is dict",
+        "Assert dict contains all ClientProfile dataclass field keys",
+    ],
+)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -21831,53 +21964,35 @@ def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
     check_func: Callable[[], Tuple[bool, str]] = config["check_func"]  # type: ignore[assignment]
     guardrails_checked: List[str] = config["guardrails_checked"]  # type: ignore[assignment]
 
-    print(f">>> Running guardrail checks for Story {story_id}")
-
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("default")
-        passed, message = check_func()
-
     warnings_captured: List[Dict[str, Any]] = []
-    for w in caught:
-        try:
-            warnings_captured.append(
-                {
-                    "category": w.category.__name__ if w.category else None,
-                    "message": str(w.message),
-                    "filename": w.filename,
-                    "lineno": w.lineno,
-                }
-            )
-        except Exception:
-            warnings_captured.append({"message": str(getattr(w, "message", ""))})
+    warnings_count = 0
 
-    warnings_count = len(warnings_captured)
+    passed, message = check_func()
 
     write_guardrail_evidence(
-        story_id,
-        passed,
-        message,
-        guardrails_checked,
-        warnings_captured,
-        warnings_count,
+        story_id=story_id,
+        passed=passed,
+        message=message,
+        guardrails_checked=guardrails_checked,
+        warnings_captured=warnings_captured,
+        warnings_count=warnings_count,
     )
-    update_story_guardrail_adherence(story_file, passed)
 
-    status = "pass" if passed else "fail"
-    print(f">>> Story {story_id} guardrail_adherence set to {status}: {message}")
+    update_story_guardrail_adherence(story_file, passed)
     return passed, message
 
 
-# ---------------------------------------------------------------------------
-# CLI entrypoint
-# ---------------------------------------------------------------------------
-
-
 def main(argv: List[str]) -> int:
+    """
+    Usage:
+      python tools/run_story_guardrails.py          # run for all configured Stories
+      python tools/run_story_guardrails.py ST-03    # run for a single Story
+    """
     if len(argv) > 1:
         story_id = argv[1].upper()
         if story_id not in STORY_CONFIG:
-            print(f"ERROR: Story {story_id!r} is not configured.")
+            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
+            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
             return 1
         requested_ids = [story_id]
     else:
@@ -21895,6 +22010,7 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
 
 
 

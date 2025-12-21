@@ -5,9 +5,9 @@ name: Assemble base profile
 
 overall_status: Planned
 
-testing_status: not_run
-halo_adherence: not_run
-guardrail_adherence: not_run
+testing_status: pass
+halo_adherence: pass
+guardrail_adherence: fail
 code_quality_adherence: not_run
 security_policy_adherence: not_run
 
@@ -32,6 +32,14 @@ acceptance_criteria:
   - Core profile fields (e.g. name, email, country, identifiers, addresses) are populated from persisted data where available
   - The profile assembly is deterministic and repeatable for the same input
   - No matching, merging, enrichment, lineage, or quality logic is applied
+
+guardrails:
+  G03:
+    ldm_contract: "ldm://client_profile/1.0.0"
+    artifact: "client_profile"
+    mode: "strict"
+
+
 
 last_updated: 2025-12-21T16:55:21Z
 ---
