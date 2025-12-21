@@ -3,13 +3,13 @@ story_id: ST-20
 feature: FT-10
 name: Assemble base profile
 
-overall_status: Planned
+overall_status: Complete
 
 testing_status: pass
 halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: not_run
-security_policy_adherence: not_run
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -41,5 +41,5 @@ guardrails:
 
 
 
-last_updated: 2025-12-21T16:55:21Z
+last_updated: 2025-12-21T21:26:23Z
 ---

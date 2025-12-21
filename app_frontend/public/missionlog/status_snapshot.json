@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-21T16:55:38Z",
+  "generated_at": "2025-12-21T21:27:04Z",
   "epics": [
     {
       "epic_id": "E00",
@@ -370,10 +370,10 @@
               "story_id": "ST-20",
               "name": "Assemble base profile",
               "feature_id": "FT-10",
-              "overall_status": "In Progress",
-              "testing_status": "fail",
-              "halo_adherence": "not_run",
-              "guardrail_adherence": "not_run",
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
               "code_quality_adherence": "pass",
               "security_policy_adherence": "pass"
             },

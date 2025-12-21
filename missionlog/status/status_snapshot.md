@@ -64,7 +64,7 @@
 | ST-17 | FT-08 | Normalise search fields | Planned |
 | ST-18 | FT-09 | Fuzzy search queries | Planned |
 | ST-19 | FT-09 | Search ranking | Planned |
-| ST-20 | FT-10 | Assemble base profile | In Progress |
+| ST-20 | FT-10 | Assemble base profile | Complete |
 | ST-21 | FT-10 | Assemble metadata | Planned |
 | ST-22 | FT-11 | Expose lineage | Planned |
 | ST-23 | FT-11 | Drill-down lineage | Planned |
