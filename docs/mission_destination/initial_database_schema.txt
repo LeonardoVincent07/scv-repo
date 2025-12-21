@@ -1,0 +1,128 @@
+# Initial Database Schema (SCV)
+
+**MissionDestination**  
+**Single Client View (SCV)**
+
+---
+
+## 1. Purpose
+
+This document describes the **initial physical database schema** used by the SCV application.
+
+It defines:
+- the core tables present in the MVP database
+- their primary keys and relationships
+- how logical entities are realised physically
+
+This artefact is:
+- storage-specific (PostgreSQL)
+- descriptive of the current MVP state
+- authoritative for SQL generation
+
+It does **not** define business semantics.  
+The **Initial Logical Data Model** remains the semantic authority.
+
+---
+
+## 2. Relationship to the Logical Data Model
+
+- Logical entities may be realised across multiple tables
+- Physical structure may evolve independently of semantics
+- All schema usage must conform to the logical data model
+
+---
+
+## 3. Core Tables
+
+### 3.1 `clients`
+
+Represents the core client record and anchors the internal SCV identifier.
+
+**Primary key**
+- `client_id`
+
+**Key columns**
+- `client_id`
+- `name`
+- `email`
+- `country`
+- `created_at`
+- `updated_at`
+
+**Logical alignment**
+- Canonical client identity attributes
+
+---
+
+### 3.2 `client_identifiers`
+
+Stores identifiers associated with a client from upstream systems.
+
+**Primary key**
+- `id`
+
+**Foreign keys**
+- `client_id` → `clients.client_id`
+
+**Key columns**
+- `client_id`
+- `system`
+- `value`
+
+**Logical alignment**
+- External identifiers associated with a client
+
+---
+
+### 3.3 `client_addresses`
+
+Stores address records associated with a client.
+
+**Primary key**
+- `id`
+
+**Foreign keys**
+- `client_id` → `clients.client_id`
+
+**Key columns**
+- `client_id`
+- `line1`
+- `line2`
+- `city`
+- `postcode`
+- `country`
+- `source`
+
+**Logical alignment**
+- Normalised address objects
+
+---
+
+## 4. Supporting Tables
+
+The following tables exist in the MVP database and support additional capabilities:
+
+### 4.1 `match_decisions`
+- Stores matching outcomes and confidence scores
+
+### 4.2 `evidence_artefacts`
+- Stores evidence payloads for auditability and traceability
+
+### 4.3 Audit tables
+- Record operational and data-change events
+
+These tables are described at a high level only; detailed usage is defined by stories.
+
+---
+
+## 5. Change Control
+
+- This document reflects the current MVP schema
+- Schema changes must be:
+  - explicitly documented
+  - reviewed for logical model alignment
+- Existing behaviours must not be silently broken
+
+---
+
+**End of document**

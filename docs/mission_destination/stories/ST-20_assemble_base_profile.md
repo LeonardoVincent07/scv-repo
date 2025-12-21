@@ -1,25 +1,37 @@
 ---
 story_id: ST-20
 feature: FT-10
-name: "Assemble base profile"
-description: |
-  Assemble profile.
+name: Assemble base profile
 
-acceptance_criteria:
-  - Profile fields set
+overall_status: Planned
 
-overall_status: In Progress
-
-testing_status: fail
+testing_status: not_run
 halo_adherence: not_run
 guardrail_adherence: not_run
-code_quality_adherence: pass
-security_policy_adherence: pass
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
+
+description: |
+  Assemble a canonical client base profile by reading existing client data
+  from the persistent database and returning it in the shape defined by the
+  Initial Logical Data Model.
+
+  This story covers read-only assembly of core client attributes only.
+  No matching, merging, enrichment, lineage computation, or quality scoring
+  is performed as part of this story.
+
+acceptance_criteria:
+  - A client profile can be retrieved using an existing internal client identifier
+  - The returned profile conforms to the ClientProfile structure defined in the Initial Logical Data Model
+  - Core profile fields (e.g. name, email, country, identifiers, addresses) are populated from persisted data where available
+  - The profile assembly is deterministic and repeatable for the same input
+  - No matching, merging, enrichment, lineage, or quality logic is applied
+
 last_updated: 2025-12-21T16:55:21Z
 ---

@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-21 15:05:33Z
+Generated: 2025-12-21 18:31:39Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -6681,28 +6681,28 @@ export default {
 
 ===== FILE: app_frontend\public\missionlog\status_snapshot.json =====
 {
-  "generated_at": "2025-12-07T07:48:56Z",
+  "generated_at": "2025-12-21T16:55:38Z",
   "epics": [
     {
       "epic_id": "E00",
       "name": "Application Bootstrapping",
-      "overall_status": "Complete",
+      "overall_status": "In Progress",
       "features": [
         {
           "feature_id": "FT-00-BE",
           "name": "Backend Fundamentals",
           "epic_id": "E00",
-          "overall_status": "Complete",
+          "overall_status": "In Progress",
           "stories": [
             {
               "story_id": "ST-00",
               "name": "Provide Basic Backend API Availability",
               "feature_id": "FT-00-BE",
-              "overall_status": "Complete",
+              "overall_status": "In Progress",
               "testing_status": "pass",
               "halo_adherence": "pass",
               "guardrail_adherence": "pass",
-              "code_quality_adherence": "pass",
+              "code_quality_adherence": "fail",
               "security_policy_adherence": "pass"
             }
           ]
@@ -6726,10 +6726,10 @@ export default {
               "feature_id": "FT-00-UI",
               "overall_status": "In Progress",
               "testing_status": "pass",
-              "halo_adherence": "pass",
+              "halo_adherence": "not_run",
               "guardrail_adherence": "not_run",
-              "code_quality_adherence": "pass",
-              "security_policy_adherence": "pass"
+              "code_quality_adherence": "fail",
+              "security_policy_adherence": "not_run"
             }
           ]
         }
@@ -6744,29 +6744,29 @@ export default {
           "feature_id": "FT-01",
           "name": "Source System Configuration",
           "epic_id": "EP-01",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-01",
               "name": "Register CRM source",
               "feature_id": "FT-01",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-02",
               "name": "Register KYC source",
               "feature_id": "FT-01",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -6774,29 +6774,29 @@ export default {
           "feature_id": "FT-02",
           "name": "Schema Mapping to Canonical Model",
           "epic_id": "EP-01",
-          "overall_status": "Complete",
+          "overall_status": "In Progress",
           "stories": [
             {
               "story_id": "ST-03",
               "name": "Map identity fields",
               "feature_id": "FT-02",
-              "overall_status": "Complete",
-              "testing_status": "pass",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "pass",
-              "code_quality_adherence": "pass",
-              "security_policy_adherence": "pass"
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-04",
               "name": "Map identifiers",
               "feature_id": "FT-02",
-              "overall_status": "Complete",
-              "testing_status": "pass",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "pass",
-              "code_quality_adherence": "pass",
-              "security_policy_adherence": "pass"
+              "overall_status": "In Progress",
+              "testing_status": "not_run",
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "fail",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -6804,29 +6804,29 @@ export default {
           "feature_id": "FT-03",
           "name": "Initial Bulk Ingestion",
           "epic_id": "EP-01",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-05",
               "name": "Bulk load CRM",
               "feature_id": "FT-03",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-06",
               "name": "Bulk load KYC",
               "feature_id": "FT-03",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -6834,29 +6834,29 @@ export default {
           "feature_id": "FT-04",
           "name": "Incremental Ingestion & Change Detection",
           "epic_id": "EP-01",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-07",
               "name": "Detect upstream deltas",
               "feature_id": "FT-04",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-08",
               "name": "Apply deltas",
               "feature_id": "FT-04",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         }
@@ -6865,35 +6865,35 @@ export default {
     {
       "epic_id": "EP-02",
       "name": "Client Matching & Golden Record",
-      "overall_status": "In Progress",
+      "overall_status": "Planned",
       "features": [
         {
           "feature_id": "FT-05",
           "name": "Exact Match Rules",
           "epic_id": "EP-02",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-09",
               "name": "Match by tax ID",
               "feature_id": "FT-05",
-              "overall_status": "Complete",
-              "testing_status": "pass",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "pass",
-              "code_quality_adherence": "pass",
-              "security_policy_adherence": "pass"
+              "overall_status": "Planned",
+              "testing_status": "not_run",
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-10",
               "name": "Match by registration number",
               "feature_id": "FT-05",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -6901,29 +6901,29 @@ export default {
           "feature_id": "FT-06",
           "name": "Fuzzy & Probabilistic Matching",
           "epic_id": "EP-02",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-11",
               "name": "Fuzzy name match",
               "feature_id": "FT-06",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-12",
               "name": "Attribute confidence",
               "feature_id": "FT-06",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -6931,40 +6931,40 @@ export default {
           "feature_id": "FT-07",
           "name": "Golden Record Construction",
           "epic_id": "EP-02",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-13",
               "name": "Merge identity",
               "feature_id": "FT-07",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-14",
               "name": "Merge addresses",
               "feature_id": "FT-07",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-15",
               "name": "Record lineage",
               "feature_id": "FT-07",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         }
@@ -6973,35 +6973,35 @@ export default {
     {
       "epic_id": "EP-03",
       "name": "Client Search",
-      "overall_status": "In Progress",
+      "overall_status": "Planned",
       "features": [
         {
           "feature_id": "FT-08",
           "name": "Search Index & Normalisation",
           "epic_id": "EP-03",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-16",
               "name": "Build index",
               "feature_id": "FT-08",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-17",
               "name": "Normalise search fields",
               "feature_id": "FT-08",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -7009,29 +7009,29 @@ export default {
           "feature_id": "FT-09",
           "name": "Fuzzy Search & Ranking",
           "epic_id": "EP-03",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-18",
               "name": "Fuzzy search queries",
               "feature_id": "FT-09",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-19",
               "name": "Search ranking",
               "feature_id": "FT-09",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         }
@@ -7052,10 +7052,10 @@ export default {
               "story_id": "ST-20",
               "name": "Assemble base profile",
               "feature_id": "FT-10",
-              "overall_status": "Complete",
-              "testing_status": "pass",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "pass",
+              "overall_status": "In Progress",
+              "testing_status": "fail",
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
               "code_quality_adherence": "pass",
               "security_policy_adherence": "pass"
             },
@@ -7063,12 +7063,12 @@ export default {
               "story_id": "ST-21",
               "name": "Assemble metadata",
               "feature_id": "FT-10",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -7076,29 +7076,29 @@ export default {
           "feature_id": "FT-11",
           "name": "Lineage Exposure",
           "epic_id": "EP-04",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-22",
               "name": "Expose lineage",
               "feature_id": "FT-11",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-23",
               "name": "Drill-down lineage",
               "feature_id": "FT-11",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -7106,29 +7106,29 @@ export default {
           "feature_id": "FT-12",
           "name": "Conflict Presentation",
           "epic_id": "EP-04",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-24",
               "name": "Flag conflicts",
               "feature_id": "FT-12",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-25",
               "name": "Show merge logic",
               "feature_id": "FT-12",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         }
@@ -7137,35 +7137,35 @@ export default {
     {
       "epic_id": "EP-05",
       "name": "Data Quality & Lineage",
-      "overall_status": "In Progress",
+      "overall_status": "Planned",
       "features": [
         {
           "feature_id": "FT-13",
           "name": "Lineage Tracking",
           "epic_id": "EP-05",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-26",
               "name": "Store lineage history",
               "feature_id": "FT-13",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-27",
               "name": "Timestamp lineage",
               "feature_id": "FT-13",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -7173,29 +7173,29 @@ export default {
           "feature_id": "FT-14",
           "name": "Data Quality Scoring",
           "epic_id": "EP-05",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-28",
               "name": "Compute freshness",
               "feature_id": "FT-14",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-29",
               "name": "Compute completeness",
               "feature_id": "FT-14",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -7203,29 +7203,29 @@ export default {
           "feature_id": "FT-15",
           "name": "Auditability & Evidence",
           "epic_id": "EP-05",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-30",
               "name": "Audit ingestion",
               "feature_id": "FT-15",
-              "overall_status": "In Progress",
-              "testing_status": "pass",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "pass",
-              "security_policy_adherence": "pass"
+              "overall_status": "Planned",
+              "testing_status": "not_run",
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-31",
               "name": "Audit merge",
               "feature_id": "FT-15",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         }
@@ -7234,35 +7234,35 @@ export default {
     {
       "epic_id": "EP-06",
       "name": "Integration & API Exposure",
-      "overall_status": "In Progress",
+      "overall_status": "Planned",
       "features": [
         {
           "feature_id": "FT-16",
           "name": "Search API",
           "epic_id": "EP-06",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-32",
               "name": "Search API basic",
               "feature_id": "FT-16",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-33",
               "name": "Search API ranking",
               "feature_id": "FT-16",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         },
@@ -7270,29 +7270,29 @@ export default {
           "feature_id": "FT-17",
           "name": "Client Profile API",
           "epic_id": "EP-06",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-34",
               "name": "Profile API basic",
               "feature_id": "FT-17",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-35",
               "name": "Profile API lineage",
               "feature_id": "FT-17",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "fail",
-              "code_quality_adherence": "fail",
-              "security_policy_adherence": "fail"
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             }
           ]
         }
@@ -14406,9 +14406,10 @@ features:
   - FT-00-BE
 
 
-overall_status: Complete
 
-last_updated: <auto>
+overall_status: In Progress
+
+last_updated: 2025-12-21T16:19:34Z
 
 ---
 
@@ -14441,9 +14442,10 @@ features:
   - FT-00-UI
 
 
+
 overall_status: In Progress
 
-last_updated: <auto>
+last_updated: 2025-12-21T16:51:47Z
 ---
 
 
@@ -14501,10 +14503,11 @@ features:
   - FT-04
 
 
+
 overall_status: In Progress
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T16:19:34Z
 ---
 
 
@@ -14524,10 +14527,11 @@ features:
   - FT-07
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -14546,10 +14550,11 @@ features:
   - FT-09
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -14569,10 +14574,11 @@ features:
   - FT-12
 
 
+
 overall_status: In Progress
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T16:55:21Z
 ---
 
 
@@ -14592,10 +14598,11 @@ features:
   - FT-15
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -14614,10 +14621,11 @@ features:
   - FT-17
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -14636,9 +14644,10 @@ stories:
   - ST-00
 
 
-overall_status: Complete
 
-last_updated: <auto>
+overall_status: In Progress
+
+last_updated: 2025-12-21T16:19:34Z
 ---
 
 
@@ -14656,9 +14665,10 @@ stories:
   - ST-00-FRONTEND-UI-SHELL
 
 
+
 overall_status: In Progress
 
-last_updated: <auto>
+last_updated: 2025-12-21T16:51:47Z
 
 
 ---
@@ -14704,10 +14714,11 @@ stories:
   - ST-02
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:45Z
 ---
 
 
@@ -14725,10 +14736,11 @@ stories:
   - ST-04
 
 
-overall_status: Complete
+
+overall_status: In Progress
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T16:19:34Z
 ---
 
 
@@ -14746,10 +14758,11 @@ stories:
   - ST-06
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:45Z
 ---
 
 
@@ -14767,10 +14780,11 @@ stories:
   - ST-08
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:45Z
 ---
 
 
@@ -14788,10 +14802,11 @@ stories:
   - ST-10
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:45Z
 ---
 
 
@@ -14809,10 +14824,11 @@ stories:
   - ST-12
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:45Z
 ---
 
 
@@ -14831,10 +14847,11 @@ stories:
   - ST-15
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:45Z
 ---
 
 
@@ -14851,10 +14868,11 @@ stories:
   - ST-17
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:45Z
 ---
 
 
@@ -14871,10 +14889,11 @@ stories:
   - ST-19
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:45Z
 ---
 
 
@@ -14892,10 +14911,11 @@ stories:
   - ST-21
 
 
+
 overall_status: In Progress
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T16:55:21Z
 ---
 
 
@@ -14913,10 +14933,11 @@ stories:
   - ST-23
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -14934,10 +14955,11 @@ stories:
   - ST-25
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -14954,10 +14976,11 @@ stories:
   - ST-27
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -14975,10 +14998,11 @@ stories:
   - ST-29
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -14996,10 +15020,11 @@ stories:
   - ST-31
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -15017,10 +15042,11 @@ stories:
   - ST-33
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
 
 
@@ -15038,11 +15064,143 @@ stories:
   - ST-35
 
 
-overall_status: In Progress
+
+overall_status: Planned
 
 
-last_updated: <auto>
+last_updated: 2025-12-21T15:22:46Z
 ---
+
+
+===== FILE: docs\mission_destination\initial_database_schema.txt =====
+# Initial Database Schema (SCV)
+
+**MissionDestination**  
+**Single Client View (SCV)**
+
+---
+
+## 1. Purpose
+
+This document describes the **initial physical database schema** used by the SCV application.
+
+It defines:
+- the core tables present in the MVP database
+- their primary keys and relationships
+- how logical entities are realised physically
+
+This artefact is:
+- storage-specific (PostgreSQL)
+- descriptive of the current MVP state
+- authoritative for SQL generation
+
+It does **not** define business semantics.  
+The **Initial Logical Data Model** remains the semantic authority.
+
+---
+
+## 2. Relationship to the Logical Data Model
+
+- Logical entities may be realised across multiple tables
+- Physical structure may evolve independently of semantics
+- All schema usage must conform to the logical data model
+
+---
+
+## 3. Core Tables
+
+### 3.1 `clients`
+
+Represents the core client record and anchors the internal SCV identifier.
+
+**Primary key**
+- `client_id`
+
+**Key columns**
+- `client_id`
+- `name`
+- `email`
+- `country`
+- `created_at`
+- `updated_at`
+
+**Logical alignment**
+- Canonical client identity attributes
+
+---
+
+### 3.2 `client_identifiers`
+
+Stores identifiers associated with a client from upstream systems.
+
+**Primary key**
+- `id`
+
+**Foreign keys**
+- `client_id` â†’ `clients.client_id`
+
+**Key columns**
+- `client_id`
+- `system`
+- `value`
+
+**Logical alignment**
+- External identifiers associated with a client
+
+---
+
+### 3.3 `client_addresses`
+
+Stores address records associated with a client.
+
+**Primary key**
+- `id`
+
+**Foreign keys**
+- `client_id` â†’ `clients.client_id`
+
+**Key columns**
+- `client_id`
+- `line1`
+- `line2`
+- `city`
+- `postcode`
+- `country`
+- `source`
+
+**Logical alignment**
+- Normalised address objects
+
+---
+
+## 4. Supporting Tables
+
+The following tables exist in the MVP database and support additional capabilities:
+
+### 4.1 `match_decisions`
+- Stores matching outcomes and confidence scores
+
+### 4.2 `evidence_artefacts`
+- Stores evidence payloads for auditability and traceability
+
+### 4.3 Audit tables
+- Record operational and data-change events
+
+These tables are described at a high level only; detailed usage is defined by stories.
+
+---
+
+## 5. Change Control
+
+- This document reflects the current MVP schema
+- Schema changes must be:
+  - explicitly documented
+  - reviewed for logical model alignment
+- Existing behaviours must not be silently broken
+
+---
+
+**End of document**
 
 
 ===== FILE: docs\mission_destination\initial_logical_data_model.md =====
@@ -15141,6 +15299,157 @@ class ClientProfile:
 - Add this model to `src/domain/models/client_profile.py`
 - Keep structure stable through MVP
 - Extend only if new Stories introduce semantic requirements
+
+
+===== FILE: docs\mission_destination\initial_service_architecture.md =====
+# Initial Service Architecture (SCV)
+
+**MissionDestination**  
+**Single Client View (SCV)**
+
+---
+
+## 1. Purpose
+
+This document defines the **initial service architecture** for the Single Client View (SCV) application.
+
+It establishes:
+- the set of services that exist within the SCV domain
+- the responsibilities and boundaries of each service
+- rules governing data access and service interaction
+
+This artefact represents **global design intent** and is:
+- story-agnostic
+- stable across the MVP
+- authoritative for code placement and responsibility boundaries
+
+It is consumed by:
+- story meta-prompts
+- test meta-prompts
+- human and agent developers
+
+---
+
+## 2. Architectural Principles
+
+1. **Single ownership of responsibility**  
+   Each domain responsibility belongs to exactly one service.
+
+2. **Explicit service boundaries**  
+   Services interact only through defined APIs.
+
+3. **Controlled database access**  
+   Only services explicitly designated may access the database directly.
+
+4. **No architectural redefinition at story level**  
+   Stories are implemented within this architecture; they do not redefine it.
+
+---
+
+## 3. Services
+
+### 3.1 Profile Service
+
+**Responsibilities**
+- Assemble and expose the canonical client profile
+- Apply deterministic profile assembly logic
+- Serve profile-related APIs
+
+**Data access**
+- Direct read access to client-related tables
+
+**Does not perform**
+- Matching
+- Merging
+- Search indexing
+- Ingestion
+
+---
+
+### 3.2 Matching Service
+
+**Responsibilities**
+- Determine equivalence between client records
+- Produce match decisions and confidence signals
+
+**Data access**
+- Direct read access to relevant tables
+
+---
+
+### 3.3 Ingestion Service
+
+**Responsibilities**
+- Ingest data from upstream source systems
+- Persist raw payloads
+- Maintain source system boundaries
+
+**Data access**
+- Direct write and read access to ingestion tables
+
+---
+
+### 3.4 Search Service
+
+**Responsibilities**
+- Build and maintain search indices
+- Execute search queries and ranking logic
+
+**Data access**
+- Direct read access to indexed data
+
+---
+
+### 3.5 Lineage and Quality Service
+
+**Responsibilities**
+- Track data provenance
+- Compute and persist data quality metrics
+
+**Data access**
+- Direct read and write access to lineage and quality tables
+
+---
+
+### 3.6 Backend for Frontend (BFF)
+
+**Responsibilities**
+- Aggregate backend service responses for frontend consumption
+- Adapt backend APIs to frontend needs
+
+**Constraints**
+- Performs no business logic
+- Performs no data assembly
+
+**Data access**
+- No direct database access
+
+---
+
+## 4. Service Interaction Rules
+
+- Services communicate exclusively via APIs
+- Services must not access tables owned by other services
+- The BFF must not:
+  - perform joins
+  - apply business rules
+  - compute quality or lineage
+
+---
+
+## 5. Change Control
+
+- This document is expected to remain stable through the MVP
+- Changes require explicit architectural justification
+- All downstream artefacts must be validated against updates
+
+---
+
+**End of document**
+
+
+
+
 
 
 ===== FILE: docs\mission_destination\initial_story_sequence.md =====
@@ -15400,15 +15709,15 @@ feature: FT-00-BE
 testing_status: pass
 halo_adherence: pass
 guardrail_adherence: pass
-code_quality_adherence: pass
+code_quality_adherence: fail
 security_policy_adherence: pass
-overall_status: Complete
+overall_status: In Progress
 policy_adherence: not_run
 technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: 2025-12-04
+last_updated: 2025-12-21T16:19:34Z
 ---
 
 ## Description
@@ -15448,17 +15757,17 @@ feature: FT-00-UI
 
 # MissionSmith Status Fields (used by CI + tools/*.py)
 testing_status: pass
-halo_adherence: pass
+halo_adherence: not_run
 guardrail_adherence: not_run
-code_quality_adherence: pass
-security_policy_adherence: pass
+code_quality_adherence: fail
+security_policy_adherence: not_run
 overall_status: In Progress
 policy_adherence: not_run
 technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: 2025-12-04
+last_updated: 2025-12-21T16:51:47Z
 ---
 
 ## Description
@@ -15503,13 +15812,13 @@ acceptance_criteria:
   - Connection succeeds
   - Schema retrieved
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15532,13 +15841,13 @@ acceptance_criteria:
   - Connection ok
   - Schema ok
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15561,20 +15870,20 @@ acceptance_criteria:
   - Fields mapped
   - Types correct
 
-overall_status: Complete
+overall_status: In Progress
 
-testing_status: pass
-halo_adherence: pass
-guardrail_adherence: pass
-code_quality_adherence: pass
-security_policy_adherence: pass
+testing_status: not_run
+halo_adherence: not_run
+guardrail_adherence: fail
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: <auto>
+last_updated: 2025-12-21T16:19:34Z
 ---
 
 
@@ -15589,20 +15898,20 @@ description: |
 acceptance_criteria:
   - ID mapping valid
 
-overall_status: Complete
+overall_status: In Progress
 
-testing_status: pass
-halo_adherence: pass
-guardrail_adherence: pass
-code_quality_adherence: pass
-security_policy_adherence: pass
+testing_status: not_run
+halo_adherence: not_run
+guardrail_adherence: fail
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: <auto>
+last_updated: 2025-12-21T16:19:34Z
 ---
 
 
@@ -15617,13 +15926,13 @@ description: |
 acceptance_criteria:
   - Records loaded
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15645,13 +15954,13 @@ description: |
 acceptance_criteria:
   - Records loaded
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15673,13 +15982,13 @@ description: |
 acceptance_criteria:
   - Changes detected
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15701,13 +16010,13 @@ description: |
 acceptance_criteria:
   - Deltas applied
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15729,13 +16038,13 @@ description: |
 acceptance_criteria:
   - Matches correct
 
-overall_status: Complete
+overall_status: Planned
 
-testing_status: pass
-halo_adherence: pass
-guardrail_adherence: pass
-code_quality_adherence: pass
-security_policy_adherence: pass
+testing_status: not_run
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15757,13 +16066,13 @@ description: |
 acceptance_criteria:
   - Matches correct
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15785,13 +16094,13 @@ description: |
 acceptance_criteria:
   - Similarity score valid
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15813,13 +16122,13 @@ description: |
 acceptance_criteria:
   - Confidence computed
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15841,13 +16150,13 @@ description: |
 acceptance_criteria:
   - Conflicts resolved
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15869,13 +16178,13 @@ description: |
 acceptance_criteria:
   - Address selected
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15897,13 +16206,13 @@ description: |
 acceptance_criteria:
   - Lineage stored
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15925,13 +16234,13 @@ description: |
 acceptance_criteria:
   - Index built
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15953,13 +16262,13 @@ description: |
 acceptance_criteria:
   - Fields normalised
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -15981,13 +16290,13 @@ description: |
 acceptance_criteria:
   - Ranked results
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16009,13 +16318,13 @@ description: |
 acceptance_criteria:
   - Correct ordering
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16037,11 +16346,11 @@ description: |
 acceptance_criteria:
   - Profile fields set
 
-overall_status: Complete
+overall_status: In Progress
 
-testing_status: pass
-halo_adherence: pass
-guardrail_adherence: pass
+testing_status: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
 code_quality_adherence: pass
 security_policy_adherence: pass
 
@@ -16050,7 +16359,7 @@ technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: <auto>
+last_updated: 2025-12-21T16:55:21Z
 ---
 
 
@@ -16065,13 +16374,13 @@ description: |
 acceptance_criteria:
   - Metadata added
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16093,13 +16402,13 @@ description: |
 acceptance_criteria:
   - Lineage visible
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16121,13 +16430,13 @@ description: |
 acceptance_criteria:
   - Source-level detail
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16149,13 +16458,13 @@ description: |
 acceptance_criteria:
   - Flags correct
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16177,13 +16486,13 @@ description: |
 acceptance_criteria:
   - Logic displayed
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16205,13 +16514,13 @@ description: |
 acceptance_criteria:
   - History stored
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16233,13 +16542,13 @@ description: |
 acceptance_criteria:
   - Timestamps correct
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16261,13 +16570,13 @@ description: |
 acceptance_criteria:
   - Score correct
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16289,13 +16598,13 @@ description: |
 acceptance_criteria:
   - Completeness correct
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16317,13 +16626,13 @@ description: |
 acceptance_criteria:
   - Audit entries
 
-overall_status: In Progress
+overall_status: Planned
 
-testing_status: pass
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: pass
-security_policy_adherence: pass
+testing_status: not_run
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16345,13 +16654,13 @@ description: |
 acceptance_criteria:
   - Audit recorded
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16373,13 +16682,13 @@ description: |
 acceptance_criteria:
   - JSON response
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16401,13 +16710,13 @@ description: |
 acceptance_criteria:
   - Ranked results
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16429,13 +16738,13 @@ description: |
 acceptance_criteria:
   - Profile returned
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -16457,13 +16766,13 @@ description: |
 acceptance_criteria:
   - Lineage included
 
-overall_status: In Progress
+overall_status: Planned
 
 testing_status: not_run
-halo_adherence: pass
-guardrail_adherence: fail
-code_quality_adherence: fail
-security_policy_adherence: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
@@ -18120,82 +18429,82 @@ A Storyâ€™s tests are complete when:
 
 | Epic | Name | Overall |
 |------|------|---------|
-| E00 | Application Bootstrapping | Complete |
+| E00 | Application Bootstrapping | In Progress |
 | E00-UI | User Interface Bootstrapping | In Progress |
 | EP-01 | Client Ingestion & Normalisation | In Progress |
-| EP-02 | Client Matching & Golden Record | In Progress |
-| EP-03 | Client Search | In Progress |
+| EP-02 | Client Matching & Golden Record | Planned |
+| EP-03 | Client Search | Planned |
 | EP-04 | Client Profile Assembly | In Progress |
-| EP-05 | Data Quality & Lineage | In Progress |
-| EP-06 | Integration & API Exposure | In Progress |
+| EP-05 | Data Quality & Lineage | Planned |
+| EP-06 | Integration & API Exposure | Planned |
 
 
 ## Features
 
 | Feature | Epic | Name | Overall | Stories |
 |---------|------|------|---------|---------|
-| FT-00-BE | E00 | Backend Fundamentals | Complete | ST-00 |
+| FT-00-BE | E00 | Backend Fundamentals | In Progress | ST-00 |
 | FT-00-UI | E00-UI | Frontend Fundamentals | In Progress | ST-00-FRONTEND-UI-SHELL |
-| FT-01 | EP-01 | Source System Configuration | In Progress | ST-01, ST-02 |
-| FT-02 | EP-01 | Schema Mapping to Canonical Model | Complete | ST-03, ST-04 |
-| FT-03 | EP-01 | Initial Bulk Ingestion | In Progress | ST-05, ST-06 |
-| FT-04 | EP-01 | Incremental Ingestion & Change Detection | In Progress | ST-07, ST-08 |
-| FT-05 | EP-02 | Exact Match Rules | In Progress | ST-09, ST-10 |
-| FT-06 | EP-02 | Fuzzy & Probabilistic Matching | In Progress | ST-11, ST-12 |
-| FT-07 | EP-02 | Golden Record Construction | In Progress | ST-13, ST-14, ST-15 |
-| FT-08 | EP-03 | Search Index & Normalisation | In Progress | ST-16, ST-17 |
-| FT-09 | EP-03 | Fuzzy Search & Ranking | In Progress | ST-18, ST-19 |
+| FT-01 | EP-01 | Source System Configuration | Planned | ST-01, ST-02 |
+| FT-02 | EP-01 | Schema Mapping to Canonical Model | In Progress | ST-03, ST-04 |
+| FT-03 | EP-01 | Initial Bulk Ingestion | Planned | ST-05, ST-06 |
+| FT-04 | EP-01 | Incremental Ingestion & Change Detection | Planned | ST-07, ST-08 |
+| FT-05 | EP-02 | Exact Match Rules | Planned | ST-09, ST-10 |
+| FT-06 | EP-02 | Fuzzy & Probabilistic Matching | Planned | ST-11, ST-12 |
+| FT-07 | EP-02 | Golden Record Construction | Planned | ST-13, ST-14, ST-15 |
+| FT-08 | EP-03 | Search Index & Normalisation | Planned | ST-16, ST-17 |
+| FT-09 | EP-03 | Fuzzy Search & Ranking | Planned | ST-18, ST-19 |
 | FT-10 | EP-04 | Assemble Canonical Profile | In Progress | ST-20, ST-21 |
-| FT-11 | EP-04 | Lineage Exposure | In Progress | ST-22, ST-23 |
-| FT-12 | EP-04 | Conflict Presentation | In Progress | ST-24, ST-25 |
-| FT-13 | EP-05 | Lineage Tracking | In Progress | ST-26, ST-27 |
-| FT-14 | EP-05 | Data Quality Scoring | In Progress | ST-28, ST-29 |
-| FT-15 | EP-05 | Auditability & Evidence | In Progress | ST-30, ST-31 |
-| FT-16 | EP-06 | Search API | In Progress | ST-32, ST-33 |
-| FT-17 | EP-06 | Client Profile API | In Progress | ST-34, ST-35 |
+| FT-11 | EP-04 | Lineage Exposure | Planned | ST-22, ST-23 |
+| FT-12 | EP-04 | Conflict Presentation | Planned | ST-24, ST-25 |
+| FT-13 | EP-05 | Lineage Tracking | Planned | ST-26, ST-27 |
+| FT-14 | EP-05 | Data Quality Scoring | Planned | ST-28, ST-29 |
+| FT-15 | EP-05 | Auditability & Evidence | Planned | ST-30, ST-31 |
+| FT-16 | EP-06 | Search API | Planned | ST-32, ST-33 |
+| FT-17 | EP-06 | Client Profile API | Planned | ST-34, ST-35 |
 
 
 ## Stories
 
 | Story | Feature | Name | Overall |
 |-------|---------|------|---------|
-| ST-00 | FT-00-BE | Provide Basic Backend API Availability | Complete |
+| ST-00 | FT-00-BE | Provide Basic Backend API Availability | In Progress |
 | ST-00-FRONTEND-UI-SHELL | FT-00-UI | Provide Frontend UI Shell Availability | In Progress |
-| ST-01 | FT-01 | Register CRM source | In Progress |
-| ST-02 | FT-01 | Register KYC source | In Progress |
-| ST-03 | FT-02 | Map identity fields | Complete |
-| ST-04 | FT-02 | Map identifiers | Complete |
-| ST-05 | FT-03 | Bulk load CRM | In Progress |
-| ST-06 | FT-03 | Bulk load KYC | In Progress |
-| ST-07 | FT-04 | Detect upstream deltas | In Progress |
-| ST-08 | FT-04 | Apply deltas | In Progress |
-| ST-09 | FT-05 | Match by tax ID | Complete |
-| ST-10 | FT-05 | Match by registration number | In Progress |
-| ST-11 | FT-06 | Fuzzy name match | In Progress |
-| ST-12 | FT-06 | Attribute confidence | In Progress |
-| ST-13 | FT-07 | Merge identity | In Progress |
-| ST-14 | FT-07 | Merge addresses | In Progress |
-| ST-15 | FT-07 | Record lineage | In Progress |
-| ST-16 | FT-08 | Build index | In Progress |
-| ST-17 | FT-08 | Normalise search fields | In Progress |
-| ST-18 | FT-09 | Fuzzy search queries | In Progress |
-| ST-19 | FT-09 | Search ranking | In Progress |
-| ST-20 | FT-10 | Assemble base profile | Complete |
-| ST-21 | FT-10 | Assemble metadata | In Progress |
-| ST-22 | FT-11 | Expose lineage | In Progress |
-| ST-23 | FT-11 | Drill-down lineage | In Progress |
-| ST-24 | FT-12 | Flag conflicts | In Progress |
-| ST-25 | FT-12 | Show merge logic | In Progress |
-| ST-26 | FT-13 | Store lineage history | In Progress |
-| ST-27 | FT-13 | Timestamp lineage | In Progress |
-| ST-28 | FT-14 | Compute freshness | In Progress |
-| ST-29 | FT-14 | Compute completeness | In Progress |
-| ST-30 | FT-15 | Audit ingestion | In Progress |
-| ST-31 | FT-15 | Audit merge | In Progress |
-| ST-32 | FT-16 | Search API basic | In Progress |
-| ST-33 | FT-16 | Search API ranking | In Progress |
-| ST-34 | FT-17 | Profile API basic | In Progress |
-| ST-35 | FT-17 | Profile API lineage | In Progress |
+| ST-01 | FT-01 | Register CRM source | Planned |
+| ST-02 | FT-01 | Register KYC source | Planned |
+| ST-03 | FT-02 | Map identity fields | In Progress |
+| ST-04 | FT-02 | Map identifiers | In Progress |
+| ST-05 | FT-03 | Bulk load CRM | Planned |
+| ST-06 | FT-03 | Bulk load KYC | Planned |
+| ST-07 | FT-04 | Detect upstream deltas | Planned |
+| ST-08 | FT-04 | Apply deltas | Planned |
+| ST-09 | FT-05 | Match by tax ID | Planned |
+| ST-10 | FT-05 | Match by registration number | Planned |
+| ST-11 | FT-06 | Fuzzy name match | Planned |
+| ST-12 | FT-06 | Attribute confidence | Planned |
+| ST-13 | FT-07 | Merge identity | Planned |
+| ST-14 | FT-07 | Merge addresses | Planned |
+| ST-15 | FT-07 | Record lineage | Planned |
+| ST-16 | FT-08 | Build index | Planned |
+| ST-17 | FT-08 | Normalise search fields | Planned |
+| ST-18 | FT-09 | Fuzzy search queries | Planned |
+| ST-19 | FT-09 | Search ranking | Planned |
+| ST-20 | FT-10 | Assemble base profile | In Progress |
+| ST-21 | FT-10 | Assemble metadata | Planned |
+| ST-22 | FT-11 | Expose lineage | Planned |
+| ST-23 | FT-11 | Drill-down lineage | Planned |
+| ST-24 | FT-12 | Flag conflicts | Planned |
+| ST-25 | FT-12 | Show merge logic | Planned |
+| ST-26 | FT-13 | Store lineage history | Planned |
+| ST-27 | FT-13 | Timestamp lineage | Planned |
+| ST-28 | FT-14 | Compute freshness | Planned |
+| ST-29 | FT-14 | Compute completeness | Planned |
+| ST-30 | FT-15 | Audit ingestion | Planned |
+| ST-31 | FT-15 | Audit merge | Planned |
+| ST-32 | FT-16 | Search API basic | Planned |
+| ST-33 | FT-16 | Search API ranking | Planned |
+| ST-34 | FT-17 | Profile API basic | Planned |
+| ST-35 | FT-17 | Profile API lineage | Planned |
 
 
 ===== FILE: README.md =====
@@ -20373,8 +20682,8 @@ STORY_STATUS_DEFAULTS: Dict[str, str] = {
 
     # MVP status dimensions
     "testing_status": "not_run",
-    # For MVP, halo is effectively defaulted to pass
-    "halo_adherence": "pass",
+    # For MVP, halo is effectively defaulted to not_run
+    "halo_adherence": "not_run",
     "guardrail_adherence": "not_run",
     "code_quality_adherence": "not_run",
     "security_policy_adherence": "not_run",
@@ -20689,6 +20998,148 @@ def main() -> int:
     print("=== Done ===")
     return 0
 
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+===== FILE: tools\reset_story_statuses_not_run.py =====
+#!/usr/bin/env python
+"""
+Reset ALL Story status/adherence dimensions to 'not_run' across MissionDestination.
+
+Scope: docs/mission_destination/stories/*.md only
+Edits: YAML front matter only (between first two '---' lines)
+
+Fields reset:
+- testing_status
+- halo_adherence
+- guardrail_adherence
+- code_quality_adherence
+- security_policy_adherence
+- policy_adherence
+- technology_lineage_adherence
+- business_data_lineage_adherence
+- self_healing_adherence
+- analytics_adherence
+
+Also sets overall_status to Planned (consistent with roll-up normalisation rules).
+We do NOT touch Features/Epics here; rollup_statuses.py will handle those.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+from typing import Dict, Tuple
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+STORIES_DIR = REPO_ROOT / "docs" / "mission_destination" / "stories"
+
+RESET_KEYS: Dict[str, str] = {
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+}
+
+def split_front_matter(text: str) -> Tuple[str, str, str]:
+    """
+    Returns (fm, body_prefix, body) where:
+      fm = front matter including the wrapping --- lines
+      body_prefix = "" (kept for clarity)
+      body = rest of doc
+    If no front matter found, returns ("", "", original_text).
+    """
+    # front matter must start at beginning
+    if not text.startswith("---"):
+        return "", "", text
+
+    # find second --- on its own line
+    m = re.search(r"^---\s*$", text, flags=re.MULTILINE)
+    if not m:
+        return "", "", text
+
+    # first delimiter is at pos 0; find the next delimiter after first line
+    m2 = re.search(r"^---\s*$", text[m.end():], flags=re.MULTILINE)
+    if not m2:
+        return "", "", text
+
+    end = m.end() + m2.end()
+    fm = text[:end]
+    body = text[end:]
+    return fm, "", body
+
+def replace_or_insert_scalar(fm: str, key: str, value: str) -> str:
+    """
+    Replace first occurrence of '^key: ...' in front matter.
+    If missing, insert before 'last_updated:' if present, else append before closing '---'.
+    """
+    pattern = rf"^(?P<k>{re.escape(key)}:\s*).*$"
+    if re.search(pattern, fm, flags=re.MULTILINE):
+        return re.sub(pattern, rf"\g<k>{value}", fm, count=1, flags=re.MULTILINE)
+
+    # insert before last_updated if present
+    lu = re.search(r"^last_updated:\s*.*$", fm, flags=re.MULTILINE)
+    insertion = f"{key}: {value}\n"
+    if lu:
+        return fm[: lu.start()] + insertion + fm[lu.start():]
+
+    # otherwise insert just before the closing '---' (the second delimiter)
+    parts = fm.splitlines(True)
+    # find last line that is '---'
+    for i in range(len(parts) - 1, -1, -1):
+        if parts[i].strip() == "---":
+            parts.insert(i, insertion)
+            return "".join(parts)
+
+    # fallback: append
+    if not fm.endswith("\n"):
+        fm += "\n"
+    return fm + insertion
+
+def main() -> int:
+    if not STORIES_DIR.exists():
+        print(f"ERROR: Stories dir not found: {STORIES_DIR}")
+        return 1
+
+    updated = 0
+    scanned = 0
+
+    for path in sorted(STORIES_DIR.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        fm, _, body = split_front_matter(text)
+        if not fm:
+            continue
+
+        # only touch real stories
+        if not re.search(r"^story_id:\s*.+$", fm, flags=re.MULTILINE):
+            continue
+
+        scanned += 1
+        new_fm = fm
+
+        # Force baseline overall_status (roll-up maps not_run dims -> Planned anyway)
+        new_fm = replace_or_insert_scalar(new_fm, "overall_status", "Planned")
+
+        for k, v in RESET_KEYS.items():
+            new_fm = replace_or_insert_scalar(new_fm, k, v)
+
+        new_text = new_fm + body
+        if new_text != text:
+            path.write_text(new_text, encoding="utf-8")
+            updated += 1
+            rel = path.relative_to(REPO_ROOT)
+            print(f"updated {rel}")
+
+    print(f"\nDone. Scanned stories: {scanned}, Updated: {updated}")
+    return 0
 
 if __name__ == "__main__":
     raise SystemExit(main())
@@ -21123,19 +21574,6 @@ if __name__ == "__main__":
 """
 Run guardrail checks for one or more Stories and update guardrail_adherence
 in each Story's front matter.
-
-For the MVP, the guardrails we enforce are:
-
-- For ST-00 (backend API availability):
-  /health must return HTTP 200 with JSON {"status": "ok"}.
-
-- For ST-03 / ST-04 (Client Profile stories):
-  ClientProfileService.get_client_profile(...) must return a structure
-  that matches the ClientProfile dataclass fields and types.
-
-- For ST-09 (Match by tax ID):
-  ClientProfileService.match_by_tax_id(...) must return only profiles
-  whose raw_sources contain the requested tax_id.
 """
 
 from __future__ import annotations
@@ -21144,6 +21582,7 @@ import dataclasses
 import json
 import re
 import sys
+import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Callable
 
@@ -21153,8 +21592,6 @@ from typing import Any, Dict, List, Tuple, Callable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# Ensure the repo root is on sys.path so that imports work when this
-# script is run as `python tools/run_story_guardrails.py`.
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -21162,9 +21599,6 @@ if str(REPO_ROOT) not in sys.path:
 # Story configuration
 # ---------------------------------------------------------------------------
 
-# Each entry defines:
-# - story_file: the markdown Story file
-# - check_func: a callable that performs guardrail checks and returns (passed, message)
 STORY_CONFIG: Dict[str, Dict[str, Any]] = {}
 
 
@@ -21172,10 +21606,12 @@ def _register_story(
     story_id: str,
     story_file: Path,
     check_func: Callable[[], Tuple[bool, str]],
+    guardrails_checked: List[str],
 ) -> None:
     STORY_CONFIG[story_id] = {
         "story_file": story_file,
         "check_func": check_func,
+        "guardrails_checked": guardrails_checked,
     }
 
 
@@ -21185,25 +21621,16 @@ def _register_story(
 
 
 def check_backend_health_endpoint() -> Tuple[bool, str]:
-    """
-    Guardrail for ST-00-backend-api-availability.
-
-    Rules:
-    - Import the FastAPI app from app_backend.main
-    - Call /health via TestClient
-    - Must return HTTP 200
-    - JSON body must contain {"status": "ok"}
-    """
     try:
         from fastapi.testclient import TestClient
         from app_backend.main import app
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         return False, f"Import error in health guardrail check: {exc!r}"
 
     try:
         client = TestClient(app)
         response = client.get("/health")
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         return False, f"Error calling /health in guardrail check: {exc!r}"
 
     if response.status_code != 200:
@@ -21211,123 +21638,56 @@ def check_backend_health_endpoint() -> Tuple[bool, str]:
 
     try:
         data = response.json()
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         return False, f"/health did not return valid JSON: {exc!r}"
 
     if not isinstance(data, dict):
         return False, f"/health JSON payload must be an object; got {type(data).__name__}."
 
-    status_value = data.get("status")
-    if status_value != "ok":
-        return False, f"/health JSON status must be 'ok'; got {status_value!r}."
+    if data.get("status") != "ok":
+        return False, f"/health JSON must include status='ok'; got {data!r}"
 
     return True, "/health returns 200 with JSON {'status': 'ok'}."
 
 
 def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
-    """
-    Guardrail for ClientProfile-producing Stories (ST-03, ST-04).
-
-    Rules:
-    - get_client_profile(.) must return a dict
-    - Keys of that dict must be a subset of ClientProfile fields
-    - Required fields (client_id, name) must be present
-    - identifiers must be a List[ClientIdentifier]
-    - addresses must be a List[ClientAddress]
-    - lineage, quality, metadata, raw_sources must be dicts
-    """
     try:
         from src.services.client_profile.service import ClientProfileService
-        from src.domain.models.client_profile import (
-            ClientProfile,
-            ClientIdentifier,
-            ClientAddress,
-        )
-    except Exception as exc:  # pragma: no cover
-        return False, f"Import error in guardrail check: {exc!r}"
+        from src.domain.models.client_profile import ClientProfile
+    except Exception as exc:
+        return False, f"Import error in profile data-model guardrail check: {exc!r}"
 
-    service = ClientProfileService()
-
-    # Use the same client_id as the tests; this exercises the normal path
-    profile = service.get_client_profile("123")
+    try:
+        service = ClientProfileService()
+        profile = service.get_client_profile("123")
+    except Exception as exc:
+        return False, f"Error calling get_client_profile in guardrail check: {exc!r}"
 
     if not isinstance(profile, dict):
-        return False, "get_client_profile must return a dict derived from ClientProfile."
+        return False, f"get_client_profile must return dict; got {type(profile).__name__}."
 
-    # 1) Keys must match the ClientProfile dataclass (no unexpected fields)
-    allowed_fields = {f.name for f in dataclasses.fields(ClientProfile)}
-    keys = set(profile.keys())
-    extra_fields = keys - allowed_fields
-    if extra_fields:
-        return False, f"Output contains fields not in ClientProfile: {sorted(extra_fields)}"
-
-    required_fields = {"client_id", "name"}
-    missing = required_fields - keys
+    field_names = {f.name for f in dataclasses.fields(ClientProfile)}
+    missing = sorted([name for name in field_names if name not in profile])
     if missing:
-        return False, f"Output is missing required fields: {sorted(missing)}"
+        return False, f"Profile missing required field(s): {missing!r}"
 
-    # 2) identifiers must be a list of ClientIdentifier instances
-    identifiers = profile.get("identifiers")
-    if not isinstance(identifiers, list):
-        return False, "identifiers must be a list of ClientIdentifier."
-    for idx, item in enumerate(identifiers):
-        if not isinstance(item, ClientIdentifier):
-            return False, f"identifiers[{idx}] is not a ClientIdentifier instance."
-
-    # 3) addresses must be a list of ClientAddress instances
-    addresses = profile.get("addresses")
-    if not isinstance(addresses, list):
-        return False, "addresses must be a list of ClientAddress."
-    for idx, addr in enumerate(addresses):
-        if not isinstance(addr, ClientAddress):
-            return False, f"addresses[{idx}] is not a ClientAddress instance."
-
-    # 4) lineage, quality, metadata, raw_sources should be dicts
-    for field_name in ["lineage", "quality", "metadata", "raw_sources"]:
-        value = profile.get(field_name)
-        if not isinstance(value, dict):
-            return False, f"{field_name} must be a dict; got {type(value).__name__}"
-
-    return True, "Output adheres to ClientProfile data model."
+    return True, "ClientProfileService.get_client_profile returns a dict matching ClientProfile fields."
 
 
 def check_st_09_match_by_tax_id() -> Tuple[bool, str]:
-    """
-    Guardrail for ST-09 (Match by tax ID).
-
-    Rules:
-    - match_by_tax_id returns a list.
-    - It returns only profiles whose raw sources contain the given tax_id.
-    """
     try:
         from src.services.client_profile.service import ClientProfileService
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         return False, f"Import error in ST-09 guardrail check: {exc!r}"
 
     service = ClientProfileService()
-
-    # Patch CRM source first
-    service._mock_crm_source = lambda client_id: {
-        "_source": "CRM",
-        "identifier": "crm-123",
-        "name": "Alice Example",
-        "email": "alice@example.com",
-        "country": "UK",
-        "tax_id": "TAX-001",
-    } if client_id == "123" else {"_source": "CRM"}
-
-    # ðŸ”¥ IMPORTANT:
-    # After patching, rebuild the sources list so we use the patched function.
     service.sources = [service._mock_crm_source, service._mock_kyc_source]
 
-    # Now generate a profile containing that tax_id
     profile = service.get_client_profile("123")
     profiles = [profile]
 
-    # Act
     matches = service.match_by_tax_id(profiles, "TAX-001")
 
-    # Checks
     if not isinstance(matches, list):
         return False, "ST-09: match_by_tax_id must return a list."
 
@@ -21344,9 +21704,8 @@ def check_st_09_match_by_tax_id() -> Tuple[bool, str]:
     return True, "ST-09: match_by_tax_id returns only profiles with the requested tax_id."
 
 
-
 # ---------------------------------------------------------------------------
-# Register stories and their guardrails
+# Register stories
 # ---------------------------------------------------------------------------
 
 _register_story(
@@ -21357,6 +21716,12 @@ _register_story(
     / "stories"
     / "ST-00-backend-api-availability.md",
     check_backend_health_endpoint,
+    [
+        "Import FastAPI app from app_backend.main",
+        "GET /health via TestClient",
+        "Assert HTTP 200",
+        "Assert JSON body contains {'status': 'ok'}",
+    ],
 )
 
 _register_story(
@@ -21367,6 +21732,12 @@ _register_story(
     / "stories"
     / "ST-03_map_identity_fields.md",
     check_client_profile_data_model_adherence,
+    [
+        "Import ClientProfileService and ClientProfile dataclass",
+        "Call ClientProfileService.get_client_profile('123')",
+        "Assert returned object is dict",
+        "Assert dict contains all ClientProfile dataclass field keys",
+    ],
 )
 
 _register_story(
@@ -21377,6 +21748,12 @@ _register_story(
     / "stories"
     / "ST-04_map_identifiers.md",
     check_client_profile_data_model_adherence,
+    [
+        "Import ClientProfileService and ClientProfile dataclass",
+        "Call ClientProfileService.get_client_profile('123')",
+        "Assert returned object is dict",
+        "Assert dict contains all ClientProfile dataclass field keys",
+    ],
 )
 
 _register_story(
@@ -21387,11 +21764,19 @@ _register_story(
     / "stories"
     / "ST-09_match_by_tax_id.md",
     check_st_09_match_by_tax_id,
+    [
+        "Import ClientProfileService",
+        "Set deterministic mock sources (CRM, KYC)",
+        "Call match_by_tax_id(profiles, 'TAX-001')",
+        "Assert list return type",
+        "Assert exactly one match",
+        "Assert matched profile raw_sources.CRM.tax_id == 'TAX-001'",
+    ],
 )
 
 
 # ---------------------------------------------------------------------------
-# Helpers: evidence + front-matter update
+# Helpers
 # ---------------------------------------------------------------------------
 
 
@@ -21399,10 +21784,10 @@ def write_guardrail_evidence(
     story_id: str,
     passed: bool,
     message: str,
+    guardrails_checked: List[str],
+    warnings_captured: List[Dict[str, Any]],
+    warnings_count: int,
 ) -> Path:
-    """
-    Write a JSON evidence file for guardrail adherence for this Story.
-    """
     results_dir = REPO_ROOT / "evidence" / "guardrails"
     results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -21411,53 +21796,71 @@ def write_guardrail_evidence(
         "story_id": story_id,
         "passed": passed,
         "message": message,
+        "guardrails_checked": guardrails_checked,
+        "warnings_count": warnings_count,
+        "warnings": warnings_captured,
     }
     evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f">>> Wrote guardrail evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}")
+    print(
+        f">>> Wrote guardrail evidence for {story_id} to "
+        f"{evidence_path.relative_to(REPO_ROOT)}"
+    )
     return evidence_path
 
 
 def update_story_guardrail_adherence(story_file: Path, passed: bool) -> None:
-    """
-    Replace the first 'guardrail_adherence: ...' line in the Story's front matter.
-    """
-    if not story_file.exists():
-        raise FileNotFoundError(f"Story file not found: {story_file}")
-
     status = "pass" if passed else "fail"
 
     text = story_file.read_text(encoding="utf-8")
-
     pattern = r"(^guardrail_adherence:\s*).*$"
     replacement = rf"\1{status}"
     new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
 
     if count == 0:
         raise RuntimeError(
-            f"Story file {story_file} does not contain a guardrail_adherence line to update."
+            f"Story file {story_file} does not contain a guardrail_adherence line."
         )
 
     story_file.write_text(new_text, encoding="utf-8")
-    rel = story_file.relative_to(REPO_ROOT)
-    print(f">>> Updated {rel} -> guardrail_adherence: {status}")
+    print(f">>> Updated {story_file.relative_to(REPO_ROOT)} -> guardrail_adherence: {status}")
 
 
 def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
-    """
-    Run the guardrail check for a single Story:
-    - execute the check function
-    - write evidence
-    - update front matter
-    Returns (passed, message).
-    """
     config = STORY_CONFIG[story_id]
     story_file: Path = config["story_file"]  # type: ignore[assignment]
     check_func: Callable[[], Tuple[bool, str]] = config["check_func"]  # type: ignore[assignment]
+    guardrails_checked: List[str] = config["guardrails_checked"]  # type: ignore[assignment]
 
     print(f">>> Running guardrail checks for Story {story_id}")
-    passed, message = check_func()
 
-    write_guardrail_evidence(story_id, passed, message)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("default")
+        passed, message = check_func()
+
+    warnings_captured: List[Dict[str, Any]] = []
+    for w in caught:
+        try:
+            warnings_captured.append(
+                {
+                    "category": w.category.__name__ if w.category else None,
+                    "message": str(w.message),
+                    "filename": w.filename,
+                    "lineno": w.lineno,
+                }
+            )
+        except Exception:
+            warnings_captured.append({"message": str(getattr(w, "message", ""))})
+
+    warnings_count = len(warnings_captured)
+
+    write_guardrail_evidence(
+        story_id,
+        passed,
+        message,
+        guardrails_checked,
+        warnings_captured,
+        warnings_count,
+    )
     update_story_guardrail_adherence(story_file, passed)
 
     status = "pass" if passed else "fail"
@@ -21471,16 +21874,10 @@ def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
 
 
 def main(argv: List[str]) -> int:
-    """
-    Usage:
-      python tools/run_story_guardrails.py           # run for all configured Stories
-      python tools/run_story_guardrails.py ST-03     # run for a single Story
-    """
     if len(argv) > 1:
         story_id = argv[1].upper()
         if story_id not in STORY_CONFIG:
-            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
-            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
+            print(f"ERROR: Story {story_id!r} is not configured.")
             return 1
         requested_ids = [story_id]
     else:
@@ -21498,6 +21895,8 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
+
 
 
 ===== FILE: tools\run_story_lint.py =====
@@ -22161,7 +22560,6 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         / "mission_destination"
         / "stories"
         / "ST-03_map_identity_fields.md",
-        # Pytest targets for this Story (should only contain tests for ST-03)
         "pytest_targets": [
             "tests/services/client_profile/test_client_profile_service.py",
         ],
@@ -22172,23 +22570,20 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         / "mission_destination"
         / "stories"
         / "ST-04_map_identifiers.md",
-        # Separate test file focused on identifier behaviour for ST-04
         "pytest_targets": [
             "tests/services/client_profile/test_st_04_map_identifiers.py",
         ],
     },
     "ST-09": {
-    "story_file": REPO_ROOT
+        "story_file": REPO_ROOT
         / "docs"
         / "mission_destination"
         / "stories"
         / "ST-09_match_by_tax_id.md",
-    "pytest_targets": [
-        "tests/services/client_profile/test_st_09_match_by_tax_id.py",
-    ],
-},
-
-
+        "pytest_targets": [
+            "tests/services/client_profile/test_st_09_match_by_tax_id.py",
+        ],
+    },
     "ST-20": {
         "story_file": REPO_ROOT
         / "docs"
@@ -22218,7 +22613,6 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         "pytest_targets": [
             "tests/api/http/test_st_00_backend_api_availability.py",
         ],
-         
     },
     "ST-00-FRONTEND-UI-SHELL": {
         "story_file": REPO_ROOT
@@ -22230,12 +22624,6 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
             "tests/api/http/test_st_00_frontend_ui_shell.py",
         ],
     },
-
-
-
-
-
-
 }
 
 
@@ -22243,17 +22631,64 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
 # Core helpers
 # ---------------------------------------------------------------------------
 
-def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> int:
+def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> Tuple[int, str]:
     """
-    Run pytest for the given Story and return its exit code.
+    Run pytest for the given Story and return (exit_code, combined_output).
 
     Uses `sys.executable -m pytest` so it works reliably on Windows, Mac, Linux.
     """
-    cmd = [sys.executable, "-m", "pytest", "-q", *pytest_targets]
+    cmd = [sys.executable, "-m", "pytest", "-q", "-r", "w", *pytest_targets]
     print(f">>> Running tests for {story_id}: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=REPO_ROOT, check=False)
+    result = subprocess.run(
+        cmd,
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    combined_output = (result.stdout or "") + (
+        "\n" + result.stderr if result.stderr else ""
+    )
+
+    if result.stdout:
+        print(result.stdout, end="" if result.stdout.endswith("\n") else "\n")
+    if result.stderr:
+        print(result.stderr, end="" if result.stderr.endswith("\n") else "\n")
+
     print(f">>> {story_id} pytest exit code: {result.returncode}")
-    return result.returncode
+    return result.returncode, combined_output
+
+
+def parse_warnings_count(pytest_output: str) -> int:
+    m = re.search(r"\b(\d+)\s+warnings?\b", pytest_output)
+    return int(m.group(1)) if m else 0
+
+
+def extract_pytest_summary(pytest_output: str) -> str:
+    for line in pytest_output.splitlines():
+        if "passed" in line and (
+            "warning in" in line or "warnings in" in line
+        ):
+            return line.strip()
+        if "passed" in line and " in " in line:
+            return line.strip()
+    for line in reversed(pytest_output.splitlines()):
+        if line.strip():
+            return line.strip()
+    return ""
+
+
+def extract_warnings_block(pytest_output: str) -> str:
+    """
+    Extract the pytest 'warnings summary' block, if present.
+    """
+    m = re.search(
+        r"(=+\s*warnings summary\s*=+.*?)(?:\n=+\s*|$)",
+        pytest_output,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    return m.group(1).strip() if m else ""
 
 
 def write_test_result_evidence(
@@ -22261,6 +22696,9 @@ def write_test_result_evidence(
     pytest_targets: List[str],
     exit_code: int,
     status: str,
+    warnings_count: int,
+    pytest_summary: str,
+    warnings: str,
 ) -> Path:
     """
     Write a small JSON evidence file with the Story's test result.
@@ -22274,6 +22712,9 @@ def write_test_result_evidence(
         "pytest_targets": pytest_targets,
         "exit_code": exit_code,
         "status": status,
+        "warnings_count": warnings_count,
+        "pytest_summary": pytest_summary,
+        "warnings": warnings,
     }
     evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(
@@ -22323,10 +22764,22 @@ def run_for_story(story_id: str) -> Tuple[int, str]:
     story_file: Path = config["story_file"]  # type: ignore[assignment]
     pytest_targets: List[str] = config["pytest_targets"]  # type: ignore[assignment]
 
-    exit_code = run_pytest_for_story(story_id, pytest_targets)
+    exit_code, output = run_pytest_for_story(story_id, pytest_targets)
     status = "pass" if exit_code == 0 else "fail"
 
-    write_test_result_evidence(story_id, pytest_targets, exit_code, status)
+    warnings_count = parse_warnings_count(output)
+    pytest_summary = extract_pytest_summary(output)
+    warnings_block = extract_warnings_block(output)
+
+    write_test_result_evidence(
+        story_id,
+        pytest_targets,
+        exit_code,
+        status,
+        warnings_count,
+        pytest_summary,
+        warnings_block,
+    )
     update_story_testing_status(story_file, status)
 
     print(f">>> Story {story_id} testing_status set to {status}")
@@ -22364,6 +22817,8 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
+
 
 
 ===== FILE: tools\seed_demo_data.py =====
