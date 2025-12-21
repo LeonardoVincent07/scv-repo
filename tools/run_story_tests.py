@@ -34,7 +34,6 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         / "mission_destination"
         / "stories"
         / "ST-03_map_identity_fields.md",
-        # Pytest targets for this Story (should only contain tests for ST-03)
         "pytest_targets": [
             "tests/services/client_profile/test_client_profile_service.py",
         ],
@@ -45,23 +44,20 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         / "mission_destination"
         / "stories"
         / "ST-04_map_identifiers.md",
-        # Separate test file focused on identifier behaviour for ST-04
         "pytest_targets": [
             "tests/services/client_profile/test_st_04_map_identifiers.py",
         ],
     },
     "ST-09": {
-    "story_file": REPO_ROOT
+        "story_file": REPO_ROOT
         / "docs"
         / "mission_destination"
         / "stories"
         / "ST-09_match_by_tax_id.md",
-    "pytest_targets": [
-        "tests/services/client_profile/test_st_09_match_by_tax_id.py",
-    ],
-},
-
-
+        "pytest_targets": [
+            "tests/services/client_profile/test_st_09_match_by_tax_id.py",
+        ],
+    },
     "ST-20": {
         "story_file": REPO_ROOT
         / "docs"
@@ -91,7 +87,6 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         "pytest_targets": [
             "tests/api/http/test_st_00_backend_api_availability.py",
         ],
-         
     },
     "ST-00-FRONTEND-UI-SHELL": {
         "story_file": REPO_ROOT
@@ -103,12 +98,6 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
             "tests/api/http/test_st_00_frontend_ui_shell.py",
         ],
     },
-
-
-
-
-
-
 }
 
 
@@ -116,17 +105,64 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
 # Core helpers
 # ---------------------------------------------------------------------------
 
-def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> int:
+def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> Tuple[int, str]:
     """
-    Run pytest for the given Story and return its exit code.
+    Run pytest for the given Story and return (exit_code, combined_output).
 
     Uses `sys.executable -m pytest` so it works reliably on Windows, Mac, Linux.
     """
-    cmd = [sys.executable, "-m", "pytest", "-q", *pytest_targets]
+    cmd = [sys.executable, "-m", "pytest", "-q", "-r", "w", *pytest_targets]
     print(f">>> Running tests for {story_id}: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=REPO_ROOT, check=False)
+    result = subprocess.run(
+        cmd,
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    combined_output = (result.stdout or "") + (
+        "\n" + result.stderr if result.stderr else ""
+    )
+
+    if result.stdout:
+        print(result.stdout, end="" if result.stdout.endswith("\n") else "\n")
+    if result.stderr:
+        print(result.stderr, end="" if result.stderr.endswith("\n") else "\n")
+
     print(f">>> {story_id} pytest exit code: {result.returncode}")
-    return result.returncode
+    return result.returncode, combined_output
+
+
+def parse_warnings_count(pytest_output: str) -> int:
+    m = re.search(r"\b(\d+)\s+warnings?\b", pytest_output)
+    return int(m.group(1)) if m else 0
+
+
+def extract_pytest_summary(pytest_output: str) -> str:
+    for line in pytest_output.splitlines():
+        if "passed" in line and (
+            "warning in" in line or "warnings in" in line
+        ):
+            return line.strip()
+        if "passed" in line and " in " in line:
+            return line.strip()
+    for line in reversed(pytest_output.splitlines()):
+        if line.strip():
+            return line.strip()
+    return ""
+
+
+def extract_warnings_block(pytest_output: str) -> str:
+    """
+    Extract the pytest 'warnings summary' block, if present.
+    """
+    m = re.search(
+        r"(=+\s*warnings summary\s*=+.*?)(?:\n=+\s*|$)",
+        pytest_output,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    return m.group(1).strip() if m else ""
 
 
 def write_test_result_evidence(
@@ -134,6 +170,9 @@ def write_test_result_evidence(
     pytest_targets: List[str],
     exit_code: int,
     status: str,
+    warnings_count: int,
+    pytest_summary: str,
+    warnings: str,
 ) -> Path:
     """
     Write a small JSON evidence file with the Story's test result.
@@ -147,6 +186,9 @@ def write_test_result_evidence(
         "pytest_targets": pytest_targets,
         "exit_code": exit_code,
         "status": status,
+        "warnings_count": warnings_count,
+        "pytest_summary": pytest_summary,
+        "warnings": warnings,
     }
     evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(
@@ -196,10 +238,22 @@ def run_for_story(story_id: str) -> Tuple[int, str]:
     story_file: Path = config["story_file"]  # type: ignore[assignment]
     pytest_targets: List[str] = config["pytest_targets"]  # type: ignore[assignment]
 
-    exit_code = run_pytest_for_story(story_id, pytest_targets)
+    exit_code, output = run_pytest_for_story(story_id, pytest_targets)
     status = "pass" if exit_code == 0 else "fail"
 
-    write_test_result_evidence(story_id, pytest_targets, exit_code, status)
+    warnings_count = parse_warnings_count(output)
+    pytest_summary = extract_pytest_summary(output)
+    warnings_block = extract_warnings_block(output)
+
+    write_test_result_evidence(
+        story_id,
+        pytest_targets,
+        exit_code,
+        status,
+        warnings_count,
+        pytest_summary,
+        warnings_block,
+    )
     update_story_testing_status(story_file, status)
 
     print(f">>> Story {story_id} testing_status set to {status}")
@@ -237,3 +291,5 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
+

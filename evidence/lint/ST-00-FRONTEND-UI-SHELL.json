@@ -3,7 +3,17 @@
   "targets": [
     "app_backend/main.py"
   ],
-  "passed": true,
-  "message": "No code-quality issues reported by Ruff.",
-  "issues": []
+  "passed": false,
+  "message": "Ruff reported 1 code-quality issue(s).",
+  "issues": [
+    {
+      "filename": "C:\\Dev\\scv-repo\\app_backend\\main.py",
+      "code": "F401",
+      "message": "`.schemas` imported but unused",
+      "location": {
+        "column": 23,
+        "row": 12
+      }
+    }
+  ]
 }

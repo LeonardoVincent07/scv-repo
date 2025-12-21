@@ -8,11 +8,11 @@ description: |
 acceptance_criteria:
   - Profile fields set
 
-overall_status: Complete
+overall_status: In Progress
 
-testing_status: pass
-halo_adherence: pass
-guardrail_adherence: pass
+testing_status: fail
+halo_adherence: not_run
+guardrail_adherence: not_run
 code_quality_adherence: pass
 security_policy_adherence: pass
 
@@ -21,5 +21,5 @@ technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: <auto>
+last_updated: 2025-12-21T16:55:21Z
 ---

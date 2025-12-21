@@ -8,13 +8,13 @@ description: |
 acceptance_criteria:
   - Matches correct
 
-overall_status: Complete
+overall_status: Planned
 
-testing_status: pass
-halo_adherence: pass
-guardrail_adherence: pass
-code_quality_adherence: pass
-security_policy_adherence: pass
+testing_status: not_run
+halo_adherence: not_run
+guardrail_adherence: not_run
+code_quality_adherence: not_run
+security_policy_adherence: not_run
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run

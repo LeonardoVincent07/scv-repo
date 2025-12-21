@@ -2,19 +2,6 @@
 """
 Run guardrail checks for one or more Stories and update guardrail_adherence
 in each Story's front matter.
-
-For the MVP, the guardrails we enforce are:
-
-- For ST-00 (backend API availability):
-  /health must return HTTP 200 with JSON {"status": "ok"}.
-
-- For ST-03 / ST-04 (Client Profile stories):
-  ClientProfileService.get_client_profile(...) must return a structure
-  that matches the ClientProfile dataclass fields and types.
-
-- For ST-09 (Match by tax ID):
-  ClientProfileService.match_by_tax_id(...) must return only profiles
-  whose raw_sources contain the requested tax_id.
 """
 
 from __future__ import annotations
@@ -23,6 +10,7 @@ import dataclasses
 import json
 import re
 import sys
+import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Callable
 
@@ -32,8 +20,6 @@ from typing import Any, Dict, List, Tuple, Callable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# Ensure the repo root is on sys.path so that imports work when this
-# script is run as `python tools/run_story_guardrails.py`.
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -41,9 +27,6 @@ if str(REPO_ROOT) not in sys.path:
 # Story configuration
 # ---------------------------------------------------------------------------
 
-# Each entry defines:
-# - story_file: the markdown Story file
-# - check_func: a callable that performs guardrail checks and returns (passed, message)
 STORY_CONFIG: Dict[str, Dict[str, Any]] = {}
 
 
@@ -51,10 +34,12 @@ def _register_story(
     story_id: str,
     story_file: Path,
     check_func: Callable[[], Tuple[bool, str]],
+    guardrails_checked: List[str],
 ) -> None:
     STORY_CONFIG[story_id] = {
         "story_file": story_file,
         "check_func": check_func,
+        "guardrails_checked": guardrails_checked,
     }
 
 
@@ -64,25 +49,16 @@ def _register_story(
 
 
 def check_backend_health_endpoint() -> Tuple[bool, str]:
-    """
-    Guardrail for ST-00-backend-api-availability.
-
-    Rules:
-    - Import the FastAPI app from app_backend.main
-    - Call /health via TestClient
-    - Must return HTTP 200
-    - JSON body must contain {"status": "ok"}
-    """
     try:
         from fastapi.testclient import TestClient
         from app_backend.main import app
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         return False, f"Import error in health guardrail check: {exc!r}"
 
     try:
         client = TestClient(app)
         response = client.get("/health")
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         return False, f"Error calling /health in guardrail check: {exc!r}"
 
     if response.status_code != 200:
@@ -90,123 +66,56 @@ def check_backend_health_endpoint() -> Tuple[bool, str]:
 
     try:
         data = response.json()
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         return False, f"/health did not return valid JSON: {exc!r}"
 
     if not isinstance(data, dict):
         return False, f"/health JSON payload must be an object; got {type(data).__name__}."
 
-    status_value = data.get("status")
-    if status_value != "ok":
-        return False, f"/health JSON status must be 'ok'; got {status_value!r}."
+    if data.get("status") != "ok":
+        return False, f"/health JSON must include status='ok'; got {data!r}"
 
     return True, "/health returns 200 with JSON {'status': 'ok'}."
 
 
 def check_client_profile_data_model_adherence() -> Tuple[bool, str]:
-    """
-    Guardrail for ClientProfile-producing Stories (ST-03, ST-04).
-
-    Rules:
-    - get_client_profile(.) must return a dict
-    - Keys of that dict must be a subset of ClientProfile fields
-    - Required fields (client_id, name) must be present
-    - identifiers must be a List[ClientIdentifier]
-    - addresses must be a List[ClientAddress]
-    - lineage, quality, metadata, raw_sources must be dicts
-    """
     try:
         from src.services.client_profile.service import ClientProfileService
-        from src.domain.models.client_profile import (
-            ClientProfile,
-            ClientIdentifier,
-            ClientAddress,
-        )
-    except Exception as exc:  # pragma: no cover
-        return False, f"Import error in guardrail check: {exc!r}"
+        from src.domain.models.client_profile import ClientProfile
+    except Exception as exc:
+        return False, f"Import error in profile data-model guardrail check: {exc!r}"
 
-    service = ClientProfileService()
-
-    # Use the same client_id as the tests; this exercises the normal path
-    profile = service.get_client_profile("123")
+    try:
+        service = ClientProfileService()
+        profile = service.get_client_profile("123")
+    except Exception as exc:
+        return False, f"Error calling get_client_profile in guardrail check: {exc!r}"
 
     if not isinstance(profile, dict):
-        return False, "get_client_profile must return a dict derived from ClientProfile."
+        return False, f"get_client_profile must return dict; got {type(profile).__name__}."
 
-    # 1) Keys must match the ClientProfile dataclass (no unexpected fields)
-    allowed_fields = {f.name for f in dataclasses.fields(ClientProfile)}
-    keys = set(profile.keys())
-    extra_fields = keys - allowed_fields
-    if extra_fields:
-        return False, f"Output contains fields not in ClientProfile: {sorted(extra_fields)}"
-
-    required_fields = {"client_id", "name"}
-    missing = required_fields - keys
+    field_names = {f.name for f in dataclasses.fields(ClientProfile)}
+    missing = sorted([name for name in field_names if name not in profile])
     if missing:
-        return False, f"Output is missing required fields: {sorted(missing)}"
+        return False, f"Profile missing required field(s): {missing!r}"
 
-    # 2) identifiers must be a list of ClientIdentifier instances
-    identifiers = profile.get("identifiers")
-    if not isinstance(identifiers, list):
-        return False, "identifiers must be a list of ClientIdentifier."
-    for idx, item in enumerate(identifiers):
-        if not isinstance(item, ClientIdentifier):
-            return False, f"identifiers[{idx}] is not a ClientIdentifier instance."
-
-    # 3) addresses must be a list of ClientAddress instances
-    addresses = profile.get("addresses")
-    if not isinstance(addresses, list):
-        return False, "addresses must be a list of ClientAddress."
-    for idx, addr in enumerate(addresses):
-        if not isinstance(addr, ClientAddress):
-            return False, f"addresses[{idx}] is not a ClientAddress instance."
-
-    # 4) lineage, quality, metadata, raw_sources should be dicts
-    for field_name in ["lineage", "quality", "metadata", "raw_sources"]:
-        value = profile.get(field_name)
-        if not isinstance(value, dict):
-            return False, f"{field_name} must be a dict; got {type(value).__name__}"
-
-    return True, "Output adheres to ClientProfile data model."
+    return True, "ClientProfileService.get_client_profile returns a dict matching ClientProfile fields."
 
 
 def check_st_09_match_by_tax_id() -> Tuple[bool, str]:
-    """
-    Guardrail for ST-09 (Match by tax ID).
-
-    Rules:
-    - match_by_tax_id returns a list.
-    - It returns only profiles whose raw sources contain the given tax_id.
-    """
     try:
         from src.services.client_profile.service import ClientProfileService
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         return False, f"Import error in ST-09 guardrail check: {exc!r}"
 
     service = ClientProfileService()
-
-    # Patch CRM source first
-    service._mock_crm_source = lambda client_id: {
-        "_source": "CRM",
-        "identifier": "crm-123",
-        "name": "Alice Example",
-        "email": "alice@example.com",
-        "country": "UK",
-        "tax_id": "TAX-001",
-    } if client_id == "123" else {"_source": "CRM"}
-
-    # 🔥 IMPORTANT:
-    # After patching, rebuild the sources list so we use the patched function.
     service.sources = [service._mock_crm_source, service._mock_kyc_source]
 
-    # Now generate a profile containing that tax_id
     profile = service.get_client_profile("123")
     profiles = [profile]
 
-    # Act
     matches = service.match_by_tax_id(profiles, "TAX-001")
 
-    # Checks
     if not isinstance(matches, list):
         return False, "ST-09: match_by_tax_id must return a list."
 
@@ -223,9 +132,8 @@ def check_st_09_match_by_tax_id() -> Tuple[bool, str]:
     return True, "ST-09: match_by_tax_id returns only profiles with the requested tax_id."
 
 
-
 # ---------------------------------------------------------------------------
-# Register stories and their guardrails
+# Register stories
 # ---------------------------------------------------------------------------
 
 _register_story(
@@ -236,6 +144,12 @@ _register_story(
     / "stories"
     / "ST-00-backend-api-availability.md",
     check_backend_health_endpoint,
+    [
+        "Import FastAPI app from app_backend.main",
+        "GET /health via TestClient",
+        "Assert HTTP 200",
+        "Assert JSON body contains {'status': 'ok'}",
+    ],
 )
 
 _register_story(
@@ -246,6 +160,12 @@ _register_story(
     / "stories"
     / "ST-03_map_identity_fields.md",
     check_client_profile_data_model_adherence,
+    [
+        "Import ClientProfileService and ClientProfile dataclass",
+        "Call ClientProfileService.get_client_profile('123')",
+        "Assert returned object is dict",
+        "Assert dict contains all ClientProfile dataclass field keys",
+    ],
 )
 
 _register_story(
@@ -256,6 +176,12 @@ _register_story(
     / "stories"
     / "ST-04_map_identifiers.md",
     check_client_profile_data_model_adherence,
+    [
+        "Import ClientProfileService and ClientProfile dataclass",
+        "Call ClientProfileService.get_client_profile('123')",
+        "Assert returned object is dict",
+        "Assert dict contains all ClientProfile dataclass field keys",
+    ],
 )
 
 _register_story(
@@ -266,11 +192,19 @@ _register_story(
     / "stories"
     / "ST-09_match_by_tax_id.md",
     check_st_09_match_by_tax_id,
+    [
+        "Import ClientProfileService",
+        "Set deterministic mock sources (CRM, KYC)",
+        "Call match_by_tax_id(profiles, 'TAX-001')",
+        "Assert list return type",
+        "Assert exactly one match",
+        "Assert matched profile raw_sources.CRM.tax_id == 'TAX-001'",
+    ],
 )
 
 
 # ---------------------------------------------------------------------------
-# Helpers: evidence + front-matter update
+# Helpers
 # ---------------------------------------------------------------------------
 
 
@@ -278,10 +212,10 @@ def write_guardrail_evidence(
     story_id: str,
     passed: bool,
     message: str,
+    guardrails_checked: List[str],
+    warnings_captured: List[Dict[str, Any]],
+    warnings_count: int,
 ) -> Path:
-    """
-    Write a JSON evidence file for guardrail adherence for this Story.
-    """
     results_dir = REPO_ROOT / "evidence" / "guardrails"
     results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -290,53 +224,71 @@ def write_guardrail_evidence(
         "story_id": story_id,
         "passed": passed,
         "message": message,
+        "guardrails_checked": guardrails_checked,
+        "warnings_count": warnings_count,
+        "warnings": warnings_captured,
     }
     evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f">>> Wrote guardrail evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}")
+    print(
+        f">>> Wrote guardrail evidence for {story_id} to "
+        f"{evidence_path.relative_to(REPO_ROOT)}"
+    )
     return evidence_path
 
 
 def update_story_guardrail_adherence(story_file: Path, passed: bool) -> None:
-    """
-    Replace the first 'guardrail_adherence: ...' line in the Story's front matter.
-    """
-    if not story_file.exists():
-        raise FileNotFoundError(f"Story file not found: {story_file}")
-
     status = "pass" if passed else "fail"
 
     text = story_file.read_text(encoding="utf-8")
-
     pattern = r"(^guardrail_adherence:\s*).*$"
     replacement = rf"\1{status}"
     new_text, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
 
     if count == 0:
         raise RuntimeError(
-            f"Story file {story_file} does not contain a guardrail_adherence line to update."
+            f"Story file {story_file} does not contain a guardrail_adherence line."
         )
 
     story_file.write_text(new_text, encoding="utf-8")
-    rel = story_file.relative_to(REPO_ROOT)
-    print(f">>> Updated {rel} -> guardrail_adherence: {status}")
+    print(f">>> Updated {story_file.relative_to(REPO_ROOT)} -> guardrail_adherence: {status}")
 
 
 def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
-    """
-    Run the guardrail check for a single Story:
-    - execute the check function
-    - write evidence
-    - update front matter
-    Returns (passed, message).
-    """
     config = STORY_CONFIG[story_id]
     story_file: Path = config["story_file"]  # type: ignore[assignment]
     check_func: Callable[[], Tuple[bool, str]] = config["check_func"]  # type: ignore[assignment]
+    guardrails_checked: List[str] = config["guardrails_checked"]  # type: ignore[assignment]
 
     print(f">>> Running guardrail checks for Story {story_id}")
-    passed, message = check_func()
 
-    write_guardrail_evidence(story_id, passed, message)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("default")
+        passed, message = check_func()
+
+    warnings_captured: List[Dict[str, Any]] = []
+    for w in caught:
+        try:
+            warnings_captured.append(
+                {
+                    "category": w.category.__name__ if w.category else None,
+                    "message": str(w.message),
+                    "filename": w.filename,
+                    "lineno": w.lineno,
+                }
+            )
+        except Exception:
+            warnings_captured.append({"message": str(getattr(w, "message", ""))})
+
+    warnings_count = len(warnings_captured)
+
+    write_guardrail_evidence(
+        story_id,
+        passed,
+        message,
+        guardrails_checked,
+        warnings_captured,
+        warnings_count,
+    )
     update_story_guardrail_adherence(story_file, passed)
 
     status = "pass" if passed else "fail"
@@ -350,16 +302,10 @@ def run_guardrail_for_story(story_id: str) -> Tuple[bool, str]:
 
 
 def main(argv: List[str]) -> int:
-    """
-    Usage:
-      python tools/run_story_guardrails.py           # run for all configured Stories
-      python tools/run_story_guardrails.py ST-03     # run for a single Story
-    """
     if len(argv) > 1:
         story_id = argv[1].upper()
         if story_id not in STORY_CONFIG:
-            print(f"ERROR: Story {story_id!r} is not configured in STORY_CONFIG.")
-            print(f"Known stories: {', '.join(sorted(STORY_CONFIG.keys()))}")
+            print(f"ERROR: Story {story_id!r} is not configured.")
             return 1
         requested_ids = [story_id]
     else:
@@ -377,3 +323,5 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
+

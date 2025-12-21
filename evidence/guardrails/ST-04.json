@@ -1,5 +1,12 @@
 {
   "story_id": "ST-04",
-  "passed": true,
-  "message": "Output adheres to ClientProfile data model."
+  "passed": false,
+  "message": "Error calling get_client_profile in guardrail check: TypeError(\"argument of type 'NoneType' is not iterable\")",
+  "guardrails_checked": [
+    "Import ClientProfileService and ClientProfile dataclass",
+    "Call ClientProfileService.get_client_profile('123')",
+    "Assert returned object is dict",
+    "Assert dict contains all ClientProfile dataclass field keys"
+  ],
+  "warnings": []
 }

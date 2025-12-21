@@ -12,8 +12,9 @@ stories:
   - ST-00
 
 
-overall_status: Complete
 
-last_updated: <auto>
+overall_status: In Progress
+
+last_updated: 2025-12-21T16:19:34Z
 ---
 

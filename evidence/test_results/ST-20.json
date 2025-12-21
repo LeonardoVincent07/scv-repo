@@ -3,6 +3,9 @@
   "pytest_targets": [
     "tests/services/client_profile/test_st_20_assemble_base_profile.py"
   ],
-  "exit_code": 0,
-  "status": "pass"
+  "exit_code": 1,
+  "status": "fail",
+  "warnings_count": 0,
+  "pytest_summary": "2 failed in 0.17s",
+  "warnings": ""
 }

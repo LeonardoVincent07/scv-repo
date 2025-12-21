@@ -261,8 +261,8 @@ STORY_STATUS_DEFAULTS: Dict[str, str] = {
 
     # MVP status dimensions
     "testing_status": "not_run",
-    # For MVP, halo is effectively defaulted to pass
-    "halo_adherence": "pass",
+    # For MVP, halo is effectively defaulted to not_run
+    "halo_adherence": "not_run",
     "guardrail_adherence": "not_run",
     "code_quality_adherence": "not_run",
     "security_policy_adherence": "not_run",

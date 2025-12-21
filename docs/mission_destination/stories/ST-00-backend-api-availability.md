@@ -9,15 +9,15 @@ feature: FT-00-BE
 testing_status: pass
 halo_adherence: pass
 guardrail_adherence: pass
-code_quality_adherence: pass
+code_quality_adherence: fail
 security_policy_adherence: pass
-overall_status: Complete
+overall_status: In Progress
 policy_adherence: not_run
 technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: 2025-12-04
+last_updated: 2025-12-21T16:19:34Z
 ---
 
 ## Description
