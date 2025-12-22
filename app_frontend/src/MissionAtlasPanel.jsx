@@ -1,5 +1,6 @@
 // app_frontend/src/MissionAtlasPanel.jsx
 import React, { useState } from "react";
+import BusinessDataLineagePanel from "./BusinessDataLineagePanel";
 
 const domains = [
   {
@@ -96,7 +97,7 @@ const services = [
     name: "Lineage Service",
     domain: "Lineage & Audit",
     responsibilities: [
-      "Store lineage and audit events.",
+      "Capture provenance and transformation metadata.",
       "Expose lineage graph for a given client.",
     ],
     consumes: ["LineageEvent", "AuditEvent"],
@@ -178,6 +179,10 @@ export default function MissionAtlasPanel() {
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
 
+  // NEW: view toggle inside MissionAtlas
+  // "overview" | "businessDataLineage"
+  const [atlasView, setAtlasView] = useState("overview");
+
   // Reset when clicking outside domain or service
   const resetSelection = () => {
     setSelectedDomain(null);
@@ -204,9 +209,12 @@ export default function MissionAtlasPanel() {
       )
     : flows;
 
+  const isOverview = atlasView === "overview";
+  const isBusinessLineage = atlasView === "businessDataLineage";
+
   return (
     <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
         <h2
           style={{ fontFamily: "Fjalla One" }}
           className="text-lg text-gray-900 tracking-wide"
@@ -214,110 +222,149 @@ export default function MissionAtlasPanel() {
           MissionAtlas Single Client View
         </h2>
 
-        {(selectedDomain || selectedService) && (
+        <div className="flex items-center gap-2">
+          {/* View toggle buttons */}
           <button
-            onClick={resetSelection}
-            className="text-sm text-[#1A9988] underline hover:text-[#147c6f]"
+            type="button"
+            onClick={() => setAtlasView("overview")}
+            className={`px-3 py-2 rounded-md text-sm font-body border ${
+              isOverview
+                ? "border-halo-primary bg-teal-50 text-gray-900"
+                : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+            }`}
           >
-            Reset
+            Overview
           </button>
-        )}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* DOMAINS */}
-        <div className="space-y-3">
-          <h3 className="font-heading text-sm text-gray-800 mb-1">
-            Domains
-          </h3>
-          {domains.map((d) => {
-            const active = selectedDomain?.id === d.id;
-            return (
-              <div
-                key={d.id}
-                onClick={() => {
-                  setSelectedService(null);
-                  setSelectedDomain(active ? null : d);
-                }}
-                className={`cursor-pointer rounded-md p-3 border ${
-                  active
-                    ? "bg-teal-50 border-teal-300 shadow"
-                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                }`}
-              >
-                <p className="font-heading text-sm text-gray-900">{d.name}</p>
-                <p className="text-xs font-body text-gray-600 mb-2">
-                  {d.description}
-                </p>
-                <p className="text-[11px] font-mono text-gray-500">
-                  Entities: {d.keyEntities.join(", ")}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+          <button
+            type="button"
+            onClick={() => setAtlasView("businessDataLineage")}
+            className={`px-3 py-2 rounded-md text-sm font-body border ${
+              isBusinessLineage
+                ? "border-halo-primary bg-teal-50 text-gray-900"
+                : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+            }`}
+          >
+            Business Data Lineage
+          </button>
 
-        {/* SERVICES */}
-        <div className="space-y-3">
-          <h3 className="font-heading text-sm text-gray-800 mb-1">
-            Services
-          </h3>
-          {visibleServices.map((s) => {
-            const active = selectedService?.id === s.id;
-            const faded =
-              selectedDomain && s.domain !== selectedDomain.name;
-
-            return (
-              <div
-                key={s.id}
-                onClick={() => setSelectedService(active ? null : s)}
-                className={`cursor-pointer rounded-md p-3 border transition ${
-                  active
-                    ? "bg-amber-50 border-amber-300 shadow"
-                    : faded
-                    ? "opacity-50 bg-gray-50 border-gray-200"
-                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                }`}
-              >
-                <p className="font-heading text-sm text-gray-900 mb-1">
-                  {s.name}
-                </p>
-                <p className="text-[11px] font-body text-gray-500 mb-1">
-                  Domain: {s.domain}
-                </p>
-                <ul className="list-disc pl-4 mb-1 space-y-0.5">
-                  {s.responsibilities.map((r, idx) => (
-                    <li
-                      key={idx}
-                      className="text-xs font-body text-gray-700"
-                    >
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* FLOWS */}
-        <div className="space-y-3">
-          <h3 className="font-heading text-sm text-gray-800 mb-1">Flows</h3>
-          {visibleFlows.map((flow) => (
-            <div
-              key={flow.id}
-              className="rounded-md p-3 border bg-gray-50 border-gray-200"
+          {/* Existing reset (only relevant on overview) */}
+          {isOverview && (selectedDomain || selectedService) && (
+            <button
+              onClick={resetSelection}
+              className="text-sm text-halo-primary underline hover:opacity-90"
             >
-              <p className="font-heading text-sm text-gray-900 mb-2">
-                {flow.name}
-              </p>
-              <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
-                {flow.steps.join("  →  ")}
-              </p>
-            </div>
-          ))}
+              Reset
+            </button>
+          )}
         </div>
       </div>
+
+      {/* New: Business Data Lineage screen */}
+      {isBusinessLineage ? (
+        <BusinessDataLineagePanel
+          defaultClientId={1}
+          defaultConceptId="client.legal_name"
+          onBack={() => setAtlasView("overview")}
+        />
+      ) : (
+        /* Existing overview content */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* DOMAINS */}
+          <div className="space-y-3">
+            <h3 className="font-heading text-sm text-gray-800 mb-1">Domains</h3>
+            {domains.map((d) => {
+              const active = selectedDomain?.id === d.id;
+              return (
+                <div
+                  key={d.id}
+                  onClick={() => {
+                    setSelectedService(null);
+                    setSelectedDomain(active ? null : d);
+                  }}
+                  className={`cursor-pointer rounded-md p-3 border ${
+                    active
+                      ? "bg-teal-50 border-teal-300 shadow"
+                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  <p className="font-heading text-sm text-gray-900">{d.name}</p>
+                  <p className="text-xs font-body text-gray-600 mb-2">
+                    {d.description}
+                  </p>
+                  <p className="text-[11px] font-mono text-gray-500">
+                    Entities: {d.keyEntities.join(", ")}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* SERVICES */}
+          <div className="space-y-3">
+            <h3 className="font-heading text-sm text-gray-800 mb-1">
+              Services
+            </h3>
+            {visibleServices.map((s) => {
+              const active = selectedService?.id === s.id;
+              const faded = selectedDomain && s.domain !== selectedDomain.name;
+
+              return (
+                <div
+                  key={s.id}
+                  onClick={() => setSelectedService(active ? null : s)}
+                  className={`cursor-pointer rounded-md p-3 border transition ${
+                    active
+                      ? "bg-amber-50 border-amber-300 shadow"
+                      : faded
+                      ? "opacity-50 bg-gray-50 border-gray-200"
+                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  <p className="font-heading text-sm text-gray-900 mb-1">
+                    {s.name}
+                  </p>
+                  <p className="text-[11px] font-body text-gray-500 mb-1">
+                    Domain: {s.domain}
+                  </p>
+                  <ul className="list-disc pl-4 mb-1 space-y-0.5">
+                    {s.responsibilities.map((r, idx) => (
+                      <li
+                        key={`${s.id}-r-${idx}`}
+                        className="text-xs font-body text-gray-700"
+                      >
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[11px] font-mono text-gray-500">
+                    Produces: {s.produces.join(", ")}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* FLOWS */}
+          <div className="space-y-3">
+            <h3 className="font-heading text-sm text-gray-800 mb-1">Flows</h3>
+            {visibleFlows.map((flow) => (
+              <div
+                key={flow.id}
+                className="rounded-md p-3 border bg-gray-50 border-gray-200"
+              >
+                <p className="font-heading text-sm text-gray-900 mb-2">
+                  {flow.name}
+                </p>
+                <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
+                  {flow.steps.join("  →  ")}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
+

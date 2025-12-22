@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-21 21:48:12Z
+Generated: 2025-12-22 21:25:08Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -6681,7 +6681,7 @@ export default {
 
 ===== FILE: app_frontend\public\missionlog\status_snapshot.json =====
 {
-  "generated_at": "2025-12-21T21:27:04Z",
+  "generated_at": "2025-12-22T19:27:02Z",
   "epics": [
     {
       "epic_id": "E00",
@@ -6804,18 +6804,18 @@ export default {
           "feature_id": "FT-03",
           "name": "Initial Bulk Ingestion",
           "epic_id": "EP-01",
-          "overall_status": "Planned",
+          "overall_status": "In Progress",
           "stories": [
             {
               "story_id": "ST-05",
               "name": "Bulk load CRM",
               "feature_id": "FT-03",
-              "overall_status": "Planned",
-              "testing_status": "not_run",
-              "halo_adherence": "not_run",
-              "guardrail_adherence": "not_run",
-              "code_quality_adherence": "not_run",
-              "security_policy_adherence": "not_run"
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
             },
             {
               "story_id": "ST-06",
@@ -12641,6 +12641,79 @@ DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/scv
 # backend_v2 app package
 
 
+===== FILE: backend_v2\app\atlas\routes.py =====
+from fastapi import APIRouter, HTTPException
+import json
+import requests
+from pathlib import Path
+
+router = APIRouter(prefix="/atlas", tags=["MissionAtlas"])
+
+
+@router.get("/lineage/client/{client_id}/concept/{concept_id}")
+def get_lineage_with_value(client_id: int, concept_id: str):
+    # 1. Load lineage artefact (repo-root anchored path)
+    BASE_DIR = Path(__file__).resolve().parents[3]  # scv-repo root
+    artefact_path = (
+        BASE_DIR
+        / "evidence"
+        / "lineage"
+        / f"client_{client_id}__{concept_id}.json"
+    )
+
+    try:
+        with open(artefact_path, "r") as f:
+            artefact = json.load(f)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Lineage artefact not found")
+
+    # 2. Resolve live value
+    value_ref = artefact["value_reference"]
+    endpoint = value_ref["endpoint"]
+    json_path = value_ref["json_path"]
+
+    try:
+        response = requests.get(f"http://127.0.0.1:8000{endpoint}")
+        response.raise_for_status()
+        payload = response.json()
+    except Exception as e:
+        return {
+            "artifact": artefact,
+            "resolved_value": None,
+            "resolution": {
+                "status": "error",
+                "details": str(e),
+            },
+        }
+
+    # 3. Extract value (handles dict or list payload)
+    field_name = json_path.replace("$.", "")
+
+    resolved_value = None
+    if isinstance(payload, dict):
+        resolved_value = payload.get(field_name)
+    elif isinstance(payload, list):
+        record = next(
+            (x for x in payload if isinstance(x, dict) and x.get("id") == client_id),
+            None,
+        )
+        if record:
+            resolved_value = record.get(field_name)
+
+    return {
+        "artifact": artefact,
+        "resolved_value": resolved_value,
+        "resolution": {
+            "status": "ok" if resolved_value is not None else "not_found",
+            "details": f"Resolved from {endpoint} at {json_path}",
+        },
+    }
+
+
+
+===== FILE: backend_v2\app\atlas\service.py =====
+
+
 ===== FILE: backend_v2\app\config.py =====
 from pydantic_settings import BaseSettings
 
@@ -12694,10 +12767,13 @@ from app.routers.account_router import router as account_router
 from app.routers.transaction_router import router as transaction_router
 from app.routers.kyc_flag_router import router as kyc_flag_router
 from app.routers.scv_router import router as scv_router
+from app.routers.ingestion_router import router as ingestion_router
+from app.atlas.routes import router as atlas_router
 
 
 app = FastAPI(title="Single Client View Backend (Postgres-ready)")
 
+app.include_router(atlas_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -12725,6 +12801,8 @@ app.include_router(account_router)
 app.include_router(transaction_router)
 app.include_router(kyc_flag_router)
 app.include_router(scv_router)
+app.include_router(ingestion_router)
+
 
 
 ===== FILE: backend_v2\app\models\__init__.py =====
@@ -12733,6 +12811,7 @@ from app.models.client import Client
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.kyc_flag import KycFlag
+from app.models.crm_contact import CRMContact
 
 __all__ = ["Client", "Account", "Transaction", "KycFlag", "Base"]
 
@@ -12776,6 +12855,46 @@ class Client(Base):
     tax_id = Column(String, nullable=True)
     segment = Column(String, nullable=True)
     risk_rating = Column(String, nullable=True)
+
+
+===== FILE: backend_v2\app\models\crm_contact.py =====
+from __future__ import annotations
+
+import uuid
+from sqlalchemy import Column, DateTime, String, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import UUID
+
+from app.db import Base
+
+
+class CRMContact(Base):
+    """
+    ST-05 owned persistence table for CRM bulk ingestion.
+
+    Idempotency is enforced via UNIQUE(source_system, source_record_id).
+    """
+    __tablename__ = "crm_contacts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    source_system = Column(String, nullable=False)
+    source_record_id = Column(String, nullable=False)
+
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    __table_args__ = (
+        UniqueConstraint("source_system", "source_record_id", name="uq_crm_contacts_source_key"),
+    )
 
 
 ===== FILE: backend_v2\app\models\kyc_flag.py =====
@@ -12876,6 +12995,70 @@ class ClientRepository:
     @staticmethod
     def list(db: Session) -> list[Client]:
         return db.query(Client).all()
+
+
+===== FILE: backend_v2\app\repositories\crm_contact_repository.py =====
+from __future__ import annotations
+
+from typing import Optional, Tuple
+
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+
+from app.models.crm_contact import CRMContact
+
+
+class CRMContactRepository:
+    @staticmethod
+    def upsert(
+        db: Session,
+        *,
+        source_system: str,
+        source_record_id: str,
+        first_name: Optional[str],
+        last_name: Optional[str],
+        email: Optional[str],
+    ) -> Tuple[str, CRMContact]:
+        """
+        Idempotent upsert:
+        - Inserts when (source_system, source_record_id) is new
+        - Updates mutable fields when it already exists
+
+        Returns: ("inserted" | "updated", row)
+        """
+        stmt = insert(CRMContact).values(
+            source_system=source_system,
+            source_record_id=source_record_id,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+        )
+
+        # Update on conflict
+        update_cols = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "updated_at": func.now(),
+        }
+
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[CRMContact.source_system, CRMContact.source_record_id],
+            set_=update_cols,
+        ).returning(CRMContact)
+
+        row = db.execute(stmt).scalar_one()
+
+        # Determine inserted vs updated in a Postgres-friendly way:
+        # If created_at == updated_at (fresh insert), treat as inserted.
+        # If updated_at moved, treat as updated.
+        # Note: created_at/updated_at are server-side; refresh to ensure values.
+        db.flush()
+        db.refresh(row)
+
+        status = "inserted" if row.created_at == row.updated_at else "updated"
+        return status, row
 
 
 ===== FILE: backend_v2\app\repositories\kyc_flag_repository.py =====
@@ -13194,6 +13377,47 @@ def get_client_sources_for_ui(client_id: int, db: Session = Depends(get_db)):
 
 
 
+
+
+===== FILE: backend_v2\app\routers\ingestion_router.py =====
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.db import get_db
+from app.services.crm_bulk_load_service import BulkCrmIngestionService, FileCrmSource
+
+router = APIRouter(prefix="/ingestion", tags=["ingestion"])
+
+
+@router.post("/crm/bulk")
+def bulk_load_crm(db: Session = Depends(get_db)):
+    """
+    ST-05 demo-first endpoint.
+
+    Guarded so it cannot be triggered accidentally in non-demo scenarios.
+    Set:
+      SCV_DEMO_INGESTION_ENABLED=true
+    """
+    enabled = os.getenv("SCV_DEMO_INGESTION_ENABLED", "false").lower() == "true"
+    if not enabled:
+        raise HTTPException(status_code=403, detail="Demo ingestion disabled")
+
+    fixture_path = Path("backend_v2/app/fixtures/st05/crm_sample.csv")
+    if not fixture_path.exists():
+        raise HTTPException(status_code=500, detail=f"Fixture not found: {fixture_path}")
+
+    result = BulkCrmIngestionService.ingest(db, FileCrmSource(fixture_path))
+    return {
+        "total": result.total,
+        "inserted": result.inserted,
+        "updated": result.updated,
+        "skipped": result.skipped,
+    }
 
 
 ===== FILE: backend_v2\app\routers\kyc_flag_router.py =====
@@ -14190,6 +14414,108 @@ class ClientService:
         return profile
 
 
+===== FILE: backend_v2\app\services\crm_bulk_load_service.py =====
+from __future__ import annotations
+
+import csv
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Iterable, Iterator, Optional, Protocol
+
+from sqlalchemy.orm import Session
+
+from app.repositories.crm_contact_repository import CRMContactRepository
+
+
+@dataclass(frozen=True)
+class IngestionResult:
+    total: int
+    inserted: int
+    updated: int
+    skipped: int
+
+
+class CrmSource(Protocol):
+    def read(self) -> Iterable[Dict[str, Optional[str]]]:
+        """
+        Each record must at minimum supply:
+          - source_system
+          - source_record_id
+        Other fields are optional.
+        """
+        ...
+
+
+class FileCrmSource:
+    """
+    Deterministic, controlled source for ST-05.
+    CSV header must include:
+      source_system, source_record_id, first_name, last_name, email
+    """
+    def __init__(self, path: Path):
+        self.path = path
+
+    def read(self) -> Iterator[Dict[str, Optional[str]]]:
+        with self.path.open("r", encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # Normalise keys we care about (ignore extras)
+                yield {
+                    "source_system": (row.get("source_system") or "").strip() or None,
+                    "source_record_id": (row.get("source_record_id") or "").strip() or None,
+                    "first_name": (row.get("first_name") or "").strip() or None,
+                    "last_name": (row.get("last_name") or "").strip() or None,
+                    "email": (row.get("email") or "").strip() or None,
+                }
+
+
+class BulkCrmIngestionService:
+    """
+    ST-05 operational batch ingestion.
+    - minimal validation
+    - real persistence through repository
+    - idempotent via upsert
+    """
+
+    @staticmethod
+    def ingest(db: Session, source: CrmSource) -> IngestionResult:
+        total = inserted = updated = skipped = 0
+
+        for rec in source.read():
+            total += 1
+
+            source_system = rec.get("source_system")
+            source_record_id = rec.get("source_record_id")
+
+            # Minimal required-field validation only (strict scope)
+            if not source_system or not source_record_id:
+                skipped += 1
+                continue
+
+            status, _row = CRMContactRepository.upsert(
+                db,
+                source_system=source_system,
+                source_record_id=source_record_id,
+                first_name=rec.get("first_name"),
+                last_name=rec.get("last_name"),
+                email=rec.get("email"),
+            )
+
+            if status == "inserted":
+                inserted += 1
+            else:
+                updated += 1
+
+        db.commit()
+
+        return IngestionResult(
+            total=total,
+            inserted=inserted,
+            updated=updated,
+            skipped=skipped,
+        )
+
+
 ===== FILE: backend_v2\app\services\evidence_artefact_service.py =====
 # backend_v2/app/services/evidence_artefact_service.py
 from __future__ import annotations
@@ -14963,10 +15289,10 @@ stories:
 
 
 
-overall_status: Planned
+overall_status: In Progress
 
 
-last_updated: 2025-12-21T15:22:45Z
+last_updated: 2025-12-22T19:26:53Z
 ---
 
 
@@ -16130,20 +16456,20 @@ description: |
 acceptance_criteria:
   - Records loaded
 
-overall_status: Planned
+overall_status: Complete
 
-testing_status: not_run
-halo_adherence: not_run
-guardrail_adherence: not_run
-code_quality_adherence: not_run
-security_policy_adherence: not_run
+testing_status: pass
+halo_adherence: pass
+guardrail_adherence: pass
+code_quality_adherence: pass
+security_policy_adherence: pass
 
 policy_adherence: not_run
 technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: <auto>
+last_updated: 2025-12-22T19:26:52Z
 ---
 
 
@@ -17035,6 +17361,13 @@ ST-04:
   feature: Client Profile Assembly
   service: client_profile
   code_file: src/services/client_profile/service.py
+
+ST-05:
+  story_id: ST-05
+  story_name: Bulk load CRM
+  feature: Initial Bulk Ingestion
+  service: crm_bulk_load
+  code_file: backend_v2/app/services/crm_bulk_load_service.py
 
 ST-09:
   story_id: ST-09
@@ -18628,7 +18961,7 @@ END OF META-PROMPT
 | FT-00-UI | E00-UI | Frontend Fundamentals | In Progress | ST-00-FRONTEND-UI-SHELL |
 | FT-01 | EP-01 | Source System Configuration | Planned | ST-01, ST-02 |
 | FT-02 | EP-01 | Schema Mapping to Canonical Model | In Progress | ST-03, ST-04 |
-| FT-03 | EP-01 | Initial Bulk Ingestion | Planned | ST-05, ST-06 |
+| FT-03 | EP-01 | Initial Bulk Ingestion | In Progress | ST-05, ST-06 |
 | FT-04 | EP-01 | Incremental Ingestion & Change Detection | Planned | ST-07, ST-08 |
 | FT-05 | EP-02 | Exact Match Rules | Planned | ST-09, ST-10 |
 | FT-06 | EP-02 | Fuzzy & Probabilistic Matching | Planned | ST-11, ST-12 |
@@ -18655,7 +18988,7 @@ END OF META-PROMPT
 | ST-02 | FT-01 | Register KYC source | Planned |
 | ST-03 | FT-02 | Map identity fields | In Progress |
 | ST-04 | FT-02 | Map identifiers | In Progress |
-| ST-05 | FT-03 | Bulk load CRM | Planned |
+| ST-05 | FT-03 | Bulk load CRM | Complete |
 | ST-06 | FT-03 | Bulk load KYC | Planned |
 | ST-07 | FT-04 | Detect upstream deltas | Planned |
 | ST-08 | FT-04 | Apply deltas | Planned |
@@ -19240,6 +19573,59 @@ def test_frontend_shell_index_is_served():
     assert "<title>SCV Frontend</title>" in body
 
 
+===== FILE: tests\conftest.py =====
+from __future__ import annotations
+
+import uuid
+import pytest
+from sqlalchemy import text
+
+from app.db import Base, SessionLocal, engine
+
+# Ensure models are imported so Base.metadata knows about them
+from app.models import *  # noqa: F401,F403
+
+
+def _is_postgres() -> bool:
+    return engine.url.drivername.startswith("postgresql")
+
+
+@pytest.fixture(scope="function")
+def db_schema_session():
+    """
+    Real DB session isolated by ephemeral schema.
+
+    - Creates schema scv_st05_<uuid>
+    - Sets search_path to that schema on the session connection
+    - Creates tables in that schema (using the SAME connection)
+    - Drops schema afterwards (disposable)
+    """
+    if not _is_postgres():
+        pytest.fail(f"ST-05 requires Postgres; got driver: {engine.url.drivername}")
+
+    schema = f"scv_st05_{uuid.uuid4().hex}"
+
+    db = SessionLocal()
+    try:
+        db.execute(text(f'CREATE SCHEMA "{schema}"'))
+        db.execute(text(f'SET search_path TO "{schema}"'))
+        db.commit()
+
+        # IMPORTANT: create tables using the same connection that has search_path set
+        conn = db.connection()
+        Base.metadata.create_all(bind=conn)
+
+        yield db
+
+    finally:
+        try:
+            db.rollback()
+            db.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+            db.commit()
+        finally:
+            db.close()
+
+
 ===== FILE: tests\services\__init__.py =====
 
 
@@ -19454,6 +19840,54 @@ class TestClientSearchService:
         with pytest.raises(NotImplementedError):
             service.search("dummy query")
 
+
+
+===== FILE: tests\services\ingestion\test_st_05_bulk_load_crm.py =====
+from __future__ import annotations
+
+from pathlib import Path
+
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from app.services.crm_bulk_load_service import BulkCrmIngestionService, FileCrmSource
+
+
+STORY_ID = "ST-05"
+
+
+def _fixture_path() -> Path:
+    return Path("backend_v2/app/fixtures/st05/crm_sample.csv")
+
+
+def _count_rows(db: Session) -> int:
+    return int(db.execute(text("SELECT COUNT(*) FROM crm_contacts")).scalar_one())
+
+
+def test_bulk_load_persists_records_and_is_idempotent(db_schema_session: Session):
+    db = db_schema_session
+
+    # 1) Initial load
+    result_1 = BulkCrmIngestionService.ingest(db, FileCrmSource(_fixture_path()))
+    count_1 = _count_rows(db)
+
+    assert result_1.total == 3
+    assert result_1.skipped == 0
+    assert result_1.inserted == 3
+    assert result_1.updated == 0
+    assert count_1 == 3
+
+    # 2) Re-run (must not duplicate, must upsert)
+    result_2 = BulkCrmIngestionService.ingest(db, FileCrmSource(_fixture_path()))
+    count_2 = _count_rows(db)
+
+    assert result_2.total == 3
+    assert result_2.skipped == 0
+    assert result_2.inserted == 0
+    assert result_2.updated == 3
+    assert count_2 == 3
+
+   
 
 
 ===== FILE: tools\audit_status_schema.py =====
@@ -22352,6 +22786,16 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
+    "ST-05": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-05_bulk_load_crm.md",
+        "lint_targets": [
+            "backend_v2\app\services\crm_bulk_load_service.py",
+        ],
+    },
     "ST-09": {
     "story_file": REPO_ROOT
         / "docs"
@@ -22659,6 +23103,16 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
+    "ST-05": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-05_bulk_load_crm.md",
+        "security_targets": [
+            "backend_v2\app\services\crm_bulk_load_service.py",
+        ],
+    },
     "ST-09": {
     "story_file": REPO_ROOT
         / "docs"
@@ -22931,6 +23385,7 @@ For each Story:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -22965,6 +23420,16 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         / "ST-04_map_identifiers.md",
         "pytest_targets": [
             "tests/services/client_profile/test_st_04_map_identifiers.py",
+        ],
+    },
+    "ST-05": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-05_bulk_load_crm.md",
+       "pytest_targets": [
+            r"tests/services/ingestion/test_st_05_bulk_load_crm.py",
         ],
     },
     "ST-09": {
@@ -23032,12 +23497,22 @@ def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> Tuple[int,
     """
     cmd = [sys.executable, "-m", "pytest", "-q", "-r", "w", *pytest_targets]
     print(f">>> Running tests for {story_id}: {' '.join(cmd)}")
+
+    # Ensure backend_v2 is on PYTHONPATH so tests can import `app.*`
+    env = os.environ.copy()
+    backend_v2_path = str(REPO_ROOT / "backend_v2")
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = (
+        backend_v2_path if not existing else backend_v2_path + os.pathsep + existing
+    )
+
     result = subprocess.run(
         cmd,
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
         check=False,
+        env=env,
     )
 
     combined_output = (result.stdout or "") + (
