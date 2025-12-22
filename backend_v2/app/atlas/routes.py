@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 import json
 import requests
 from pathlib import Path
+from datetime import datetime, timezone  # <-- ONLY new import
 
 router = APIRouter(prefix="/atlas", tags=["MissionAtlas"])
 
@@ -39,6 +40,7 @@ def get_lineage_with_value(client_id: int, concept_id: str):
             "resolution": {
                 "status": "error",
                 "details": str(e),
+                "evaluated_at": datetime.now(timezone.utc).isoformat(),
             },
         }
 
@@ -62,6 +64,9 @@ def get_lineage_with_value(client_id: int, concept_id: str):
         "resolution": {
             "status": "ok" if resolved_value is not None else "not_found",
             "details": f"Resolved from {endpoint} at {json_path}",
+            "evaluated_at": datetime.now(timezone.utc).isoformat(),
         },
     }
+
+
 
