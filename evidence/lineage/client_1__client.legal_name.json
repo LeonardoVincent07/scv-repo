@@ -1,0 +1,36 @@
+{
+  "artifact_type": "business_data_lineage",
+  "artifact_version": "1.0",
+  "subject": {
+    "entity_type": "client",
+    "entity_id": "1",
+    "display_name": "Acme Manufacturing Ltd"
+  },
+  "concept": {
+    "concept_id": "client.legal_name",
+    "display_name": "Client Legal Name"
+  },
+  "value_reference": {
+    "service": "profile",
+    "endpoint": "/clients/",
+    "json_path": "$.full_name"
+  },
+  "lineage": [
+    {
+      "stage": "source",
+      "system": "crm",
+      "assertion": "Authoritative client legal name sourced from CRM"
+    },
+    {
+      "stage": "transformation",
+      "rule": "none",
+      "assertion": "No transformation applied"
+    },
+    {
+      "stage": "surface",
+      "surface": "scv_app",
+      "component": "DetailedClientProfilePanel",
+      "field_label": "Legal name"
+    }
+  ]
+}

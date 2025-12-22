@@ -1,0 +1,19 @@
+{
+  "story_id": "ST-05",
+  "targets": [
+    "backend_v2\u0007pp\\services\\crm_bulk_load_service.py"
+  ],
+  "passed": false,
+  "message": "Ruff reported 1 code-quality issue(s).",
+  "issues": [
+    {
+      "filename": "C:\\Dev\\scv-repo\\backend_v2\u0007pp\\services\\crm_bulk_load_service.py",
+      "code": "E902",
+      "message": "The filename, directory name, or volume label syntax is incorrect. (os error 123)",
+      "location": {
+        "column": 1,
+        "row": 1
+      }
+    }
+  ]
+}

@@ -3,5 +3,6 @@ from app.models.client import Client
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.kyc_flag import KycFlag
+from app.models.crm_contact import CRMContact
 
 __all__ = ["Client", "Account", "Transaction", "KycFlag", "Base"]

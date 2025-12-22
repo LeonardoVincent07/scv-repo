@@ -1,0 +1,9 @@
+{
+  "story_id": "ST-05",
+  "targets": [
+    "backend_v2\u0007pp\\services\\crm_bulk_load_service.py"
+  ],
+  "passed": true,
+  "message": "No medium/high security issues found by Bandit.",
+  "issues": []
+}

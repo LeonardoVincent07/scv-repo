@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-21T21:27:04Z",
+  "generated_at": "2025-12-22T19:27:02Z",
   "epics": [
     {
       "epic_id": "E00",
@@ -122,18 +122,18 @@
           "feature_id": "FT-03",
           "name": "Initial Bulk Ingestion",
           "epic_id": "EP-01",
-          "overall_status": "Planned",
+          "overall_status": "In Progress",
           "stories": [
             {
               "story_id": "ST-05",
               "name": "Bulk load CRM",
               "feature_id": "FT-03",
-              "overall_status": "Planned",
-              "testing_status": "not_run",
-              "halo_adherence": "not_run",
-              "guardrail_adherence": "not_run",
-              "code_quality_adherence": "not_run",
-              "security_policy_adherence": "not_run"
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
             },
             {
               "story_id": "ST-06",

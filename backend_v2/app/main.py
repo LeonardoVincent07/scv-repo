@@ -10,10 +10,13 @@ from app.routers.account_router import router as account_router
 from app.routers.transaction_router import router as transaction_router
 from app.routers.kyc_flag_router import router as kyc_flag_router
 from app.routers.scv_router import router as scv_router
+from app.routers.ingestion_router import router as ingestion_router
+from app.atlas.routes import router as atlas_router
 
 
 app = FastAPI(title="Single Client View Backend (Postgres-ready)")
 
+app.include_router(atlas_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,3 +44,5 @@ app.include_router(account_router)
 app.include_router(transaction_router)
 app.include_router(kyc_flag_router)
 app.include_router(scv_router)
+app.include_router(ingestion_router)
+

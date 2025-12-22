@@ -26,6 +26,13 @@ ST-04:
   service: client_profile
   code_file: src/services/client_profile/service.py
 
+ST-05:
+  story_id: ST-05
+  story_name: Bulk load CRM
+  feature: Initial Bulk Ingestion
+  service: crm_bulk_load
+  code_file: backend_v2/app/services/crm_bulk_load_service.py
+
 ST-09:
   story_id: ST-09
   story_name: Match by tax ID

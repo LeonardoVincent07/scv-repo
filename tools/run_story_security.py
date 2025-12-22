@@ -57,6 +57,16 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/domain/models/client_profile.py",
         ],
     },
+    "ST-05": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-05_bulk_load_crm.md",
+        "security_targets": [
+            "backend_v2\app\services\crm_bulk_load_service.py",
+        ],
+    },
     "ST-09": {
     "story_file": REPO_ROOT
         / "docs"

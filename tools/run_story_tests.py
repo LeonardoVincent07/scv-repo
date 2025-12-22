@@ -12,6 +12,7 @@ For each Story:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -46,6 +47,16 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
         / "ST-04_map_identifiers.md",
         "pytest_targets": [
             "tests/services/client_profile/test_st_04_map_identifiers.py",
+        ],
+    },
+    "ST-05": {
+        "story_file": REPO_ROOT
+        / "docs"
+        / "mission_destination"
+        / "stories"
+        / "ST-05_bulk_load_crm.md",
+       "pytest_targets": [
+            r"tests/services/ingestion/test_st_05_bulk_load_crm.py",
         ],
     },
     "ST-09": {
@@ -113,12 +124,22 @@ def run_pytest_for_story(story_id: str, pytest_targets: List[str]) -> Tuple[int,
     """
     cmd = [sys.executable, "-m", "pytest", "-q", "-r", "w", *pytest_targets]
     print(f">>> Running tests for {story_id}: {' '.join(cmd)}")
+
+    # Ensure backend_v2 is on PYTHONPATH so tests can import `app.*`
+    env = os.environ.copy()
+    backend_v2_path = str(REPO_ROOT / "backend_v2")
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = (
+        backend_v2_path if not existing else backend_v2_path + os.pathsep + existing
+    )
+
     result = subprocess.run(
         cmd,
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
         check=False,
+        env=env,
     )
 
     combined_output = (result.stdout or "") + (
