@@ -1,5 +1,5 @@
 // app_frontend/src/MissionAtlasPanel.jsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import BusinessDataLineagePanel from "./BusinessDataLineagePanel";
 
 const domains = [
@@ -175,42 +175,446 @@ const flows = [
   },
 ];
 
+function ComingSoonPanel({ title, subtitle, bullets }) {
+  return (
+    <div className="rounded-halo border border-gray-200 bg-gray-50 p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="font-heading text-sm text-gray-900">{title}</h3>
+          {subtitle ? (
+            <p className="mt-1 text-xs font-body text-gray-600">{subtitle}</p>
+          ) : null}
+        </div>
+        <span className="text-[11px] font-mono text-gray-500 bg-white border border-gray-200 rounded-md px-2 py-1">
+          Planned
+        </span>
+      </div>
+
+      {bullets?.length ? (
+        <ul className="mt-4 list-disc pl-5 space-y-1">
+          {bullets.map((b, idx) => (
+            <li key={`cs-${idx}`} className="text-xs font-body text-gray-700">
+              {b}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 export default function MissionAtlasPanel() {
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
 
-  // NEW: view toggle inside MissionAtlas
-  // "overview" | "businessDataLineage"
-  const [atlasView, setAtlasView] = useState("overview");
+  // "landing" | "businessCapabilities" | "businessDataLineage" | "technologyArchitecture" | "serviceTopology"
+  // | "logicalDataModel" | "physicalDataModel" | "engineeringQuality" | "securityPosture" | "selfHealing"
+  const [atlasView, setAtlasView] = useState("landing");
 
-  // Reset when clicking outside domain or service
   const resetSelection = () => {
     setSelectedDomain(null);
     setSelectedService(null);
   };
 
-  // Determine which services to show
-  const visibleServices = selectedDomain
-    ? services.filter((s) => s.domain === selectedDomain.name)
-    : services;
+  const visibleServices = useMemo(() => {
+    return selectedDomain
+      ? services.filter((s) => s.domain === selectedDomain.name)
+      : services;
+  }, [selectedDomain]);
 
-  // Determine which flows to show
-  const visibleFlows = selectedService
-    ? flows.filter((flow) =>
+  const visibleFlows = useMemo(() => {
+    if (selectedService) {
+      return flows.filter((flow) =>
         flow.steps.some((step) =>
           step.toLowerCase().includes(selectedService.name.toLowerCase())
         )
-      )
-    : selectedDomain
-    ? flows.filter((flow) =>
+      );
+    }
+    if (selectedDomain) {
+      return flows.filter((flow) =>
         flow.steps.some((step) =>
           step.toLowerCase().includes(selectedDomain.name.toLowerCase())
         )
-      )
-    : flows;
+      );
+    }
+    return flows;
+  }, [selectedDomain, selectedService]);
 
-  const isOverview = atlasView === "overview";
-  const isBusinessLineage = atlasView === "businessDataLineage";
+  const tiles = [
+    {
+      key: "businessCapabilities",
+      title: "Business Capabilities",
+      desc: "What this system does today, derived from the current codebase.",
+      badge: "Live",
+    },
+    {
+      key: "businessDataLineage",
+      title: "Business Data Lineage",
+      desc: "Where data comes from, how it transforms, and where it is used.",
+      badge: "Live",
+    },
+    {
+      key: "technologyArchitecture",
+      title: "Technology Architecture",
+      desc: "Domains, services, and flows across the SCV platform.",
+      badge: "Live",
+    },
+    {
+      key: "serviceTopology",
+      title: "Service Topology",
+      desc: "Microservices, contracts, and interactions (focused view).",
+      badge: "Planned",
+    },
+    {
+      key: "logicalDataModel",
+      title: "Logical Data Model",
+      desc: "Business entities, relationships, and rules.",
+      badge: "Planned",
+    },
+    {
+      key: "physicalDataModel",
+      title: "Physical Data Model",
+      desc: "Database schema: tables, fields, constraints, and indexes.",
+      badge: "Planned",
+    },
+    {
+      key: "engineeringQuality",
+      title: "Engineering Quality",
+      desc: "Automated quality checks enforced in this repository.",
+      badge: "Planned",
+    },
+    {
+      key: "securityPosture",
+      title: "Security Posture",
+      desc: "Active security checks and assurance signals.",
+      badge: "Planned",
+    },
+    {
+      key: "selfHealing",
+      title: "Self-Healing",
+      desc: "Data integrity and agentic support, built on live system truth.",
+      badge: "Planned",
+    },
+  ];
+
+  const viewTitle = (() => {
+    switch (atlasView) {
+      case "landing":
+        return "MissionAtlas — Live System Map";
+      case "businessCapabilities":
+        return "Business Capabilities";
+      case "businessDataLineage":
+        return "Business Data Lineage";
+      case "technologyArchitecture":
+        return "Technology Architecture";
+      case "serviceTopology":
+        return "Service Topology";
+      case "logicalDataModel":
+        return "Logical Data Model";
+      case "physicalDataModel":
+        return "Physical Data Model";
+      case "engineeringQuality":
+        return "Engineering Quality";
+      case "securityPosture":
+        return "Security Posture";
+      case "selfHealing":
+        return "Self-Healing";
+      default:
+        return "MissionAtlas — Live System Map";
+    }
+  })();
+
+  const showBack = atlasView !== "landing";
+
+  const renderLanding = () => (
+    <div>
+      <div className="mb-4">
+        <h3 className="font-heading text-sm text-gray-800">Live Areas</h3>
+        <p className="mt-1 text-xs font-body text-gray-600">
+          MissionAtlas reflects the system as it exists right now — derived from code, data,
+          and execution.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {tiles.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => {
+              // entering views that use selection should start clean
+              if (t.key !== "technologyArchitecture") resetSelection();
+              setAtlasView(t.key);
+            }}
+            className="text-left rounded-halo border border-gray-200 bg-white hover:bg-gray-50 shadow-sm p-4 transition"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-heading text-sm text-gray-900">{t.title}</p>
+                <p className="mt-1 text-xs font-body text-gray-600">{t.desc}</p>
+              </div>
+              <span
+                className={`text-[11px] font-mono rounded-md px-2 py-1 border ${
+                  t.badge === "Live"
+                    ? "bg-teal-50 border-teal-200 text-gray-800"
+                    : "bg-gray-50 border-gray-200 text-gray-600"
+                }`}
+              >
+                {t.badge}
+              </span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderBusinessCapabilities = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-3">
+        <h3 className="font-heading text-sm text-gray-800 mb-1">Capabilities</h3>
+        {domains.map((d) => (
+          <div
+            key={d.id}
+            className="rounded-md p-3 border bg-gray-50 border-gray-200"
+          >
+            <p className="font-heading text-sm text-gray-900">{d.name}</p>
+            <p className="text-xs font-body text-gray-600 mb-2">{d.description}</p>
+            <p className="text-[11px] font-mono text-gray-500">
+              Key entities: {d.keyEntities.join(", ")}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="font-heading text-sm text-gray-800 mb-1">Key Flows</h3>
+        {flows.map((flow) => (
+          <div
+            key={flow.id}
+            className="rounded-md p-3 border bg-gray-50 border-gray-200"
+          >
+            <p className="font-heading text-sm text-gray-900 mb-2">{flow.name}</p>
+            <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
+              {flow.steps.join("  →  ")}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderTechnologyArchitecture = () => {
+    // This is your existing "overview" screen, preserved and simply re-homed.
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* DOMAINS */}
+        <div className="space-y-3">
+          <h3 className="font-heading text-sm text-gray-800 mb-1">Domains</h3>
+          {domains.map((d) => {
+            const active = selectedDomain?.id === d.id;
+            return (
+              <div
+                key={d.id}
+                onClick={() => {
+                  setSelectedService(null);
+                  setSelectedDomain(active ? null : d);
+                }}
+                className={`cursor-pointer rounded-md p-3 border ${
+                  active
+                    ? "bg-teal-50 border-teal-300 shadow"
+                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                <p className="font-heading text-sm text-gray-900">{d.name}</p>
+                <p className="text-xs font-body text-gray-600 mb-2">
+                  {d.description}
+                </p>
+                <p className="text-[11px] font-mono text-gray-500">
+                  Entities: {d.keyEntities.join(", ")}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* SERVICES */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-heading text-sm text-gray-800 mb-1">Services</h3>
+            {(selectedDomain || selectedService) && (
+              <button
+                type="button"
+                onClick={resetSelection}
+                className="text-xs text-halo-primary underline hover:opacity-90"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          {visibleServices.map((s) => {
+            const active = selectedService?.id === s.id;
+            const faded = selectedDomain && s.domain !== selectedDomain.name;
+
+            return (
+              <div
+                key={s.id}
+                onClick={() => setSelectedService(active ? null : s)}
+                className={`cursor-pointer rounded-md p-3 border transition ${
+                  active
+                    ? "bg-amber-50 border-amber-300 shadow"
+                    : faded
+                    ? "opacity-50 bg-gray-50 border-gray-200"
+                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                <p className="font-heading text-sm text-gray-900 mb-1">{s.name}</p>
+                <p className="text-[11px] font-body text-gray-500 mb-1">
+                  Domain: {s.domain}
+                </p>
+                <ul className="list-disc pl-4 mb-1 space-y-0.5">
+                  {s.responsibilities.map((r, idx) => (
+                    <li
+                      key={`${s.id}-r-${idx}`}
+                      className="text-xs font-body text-gray-700"
+                    >
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[11px] font-mono text-gray-500">
+                  Produces: {s.produces.join(", ")}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* FLOWS */}
+        <div className="space-y-3">
+          <h3 className="font-heading text-sm text-gray-800 mb-1">Flows</h3>
+          {visibleFlows.map((flow) => (
+            <div
+              key={flow.id}
+              className="rounded-md p-3 border bg-gray-50 border-gray-200"
+            >
+              <p className="font-heading text-sm text-gray-900 mb-2">{flow.name}</p>
+              <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
+                {flow.steps.join("  →  ")}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderServiceTopology = () => (
+    <ComingSoonPanel
+      title="Service Topology"
+      subtitle="A focused view of microservices, contracts, and interactions."
+      bullets={[
+        "Service catalogue (live from codebase)",
+        "API surface (routes + contracts)",
+        "Inter-service dependencies and call graph",
+      ]}
+    />
+  );
+
+  const renderLogicalDataModel = () => (
+    <ComingSoonPanel
+      title="Logical Data Model"
+      subtitle="Business entities, relationships, and rules."
+      bullets={[
+        "Entity catalogue (Client, SourceRecord, MatchGroup, EvidenceArtefact, etc.)",
+        "Relationships and cardinality",
+        "Declarative invariants used by Self-Healing",
+      ]}
+    />
+  );
+
+  const renderPhysicalDataModel = () => (
+    <ComingSoonPanel
+      title="Physical Data Model"
+      subtitle="Database schema: tables, fields, constraints, and indexes."
+      bullets={[
+        "Live schema snapshot (tables + columns)",
+        "Constraints and foreign keys",
+        "Diff vs previous snapshot (change detection)",
+      ]}
+    />
+  );
+
+  const renderEngineeringQuality = () => (
+    <ComingSoonPanel
+      title="Engineering Quality"
+      subtitle="Automated checks enforced in this repository."
+      bullets={[
+        "Linting and formatting rules",
+        "Test suites and coverage",
+        "Guardrail checks and evidence outputs",
+      ]}
+    />
+  );
+
+  const renderSecurityPosture = () => (
+    <ComingSoonPanel
+      title="Security Posture"
+      subtitle="Active security checks and assurance signals."
+      bullets={[
+        "Dependency scanning",
+        "SAST checks and policy gates",
+        "Security evidence artefacts",
+      ]}
+    />
+  );
+
+  const renderSelfHealing = () => (
+    <ComingSoonPanel
+      title="Self-Healing"
+      subtitle="Data integrity and agentic support, built on live system truth."
+      bullets={[
+        "Data Integrity: detect → recommend → repair → evidence",
+        "Agentic Support: explain → diagnose → guided remediation",
+        "Audit trail and rollback semantics",
+      ]}
+    />
+  );
+
+  const renderContent = () => {
+    switch (atlasView) {
+      case "landing":
+        return renderLanding();
+      case "businessCapabilities":
+        return renderBusinessCapabilities();
+      case "businessDataLineage":
+        // IMPORTANT: this remains unchanged from your current panel wiring
+        return (
+          <BusinessDataLineagePanel
+            defaultClientId={1}
+            defaultConceptId="client.legal_name"
+            onBack={() => setAtlasView("landing")}
+          />
+        );
+      case "technologyArchitecture":
+        return renderTechnologyArchitecture();
+      case "serviceTopology":
+        return renderServiceTopology();
+      case "logicalDataModel":
+        return renderLogicalDataModel();
+      case "physicalDataModel":
+        return renderPhysicalDataModel();
+      case "engineeringQuality":
+        return renderEngineeringQuality();
+      case "securityPosture":
+        return renderSecurityPosture();
+      case "selfHealing":
+        return renderSelfHealing();
+      default:
+        return renderLanding();
+    }
+  };
 
   return (
     <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
@@ -219,152 +623,29 @@ export default function MissionAtlasPanel() {
           style={{ fontFamily: "Fjalla One" }}
           className="text-lg text-gray-900 tracking-wide"
         >
-          MissionAtlas Single Client View
+          {viewTitle}
         </h2>
 
         <div className="flex items-center gap-2">
-          {/* View toggle buttons */}
-          <button
-            type="button"
-            onClick={() => setAtlasView("overview")}
-            className={`px-3 py-2 rounded-md text-sm font-body border ${
-              isOverview
-                ? "border-halo-primary bg-teal-50 text-gray-900"
-                : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
-            }`}
-          >
-            Overview
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAtlasView("businessDataLineage")}
-            className={`px-3 py-2 rounded-md text-sm font-body border ${
-              isBusinessLineage
-                ? "border-halo-primary bg-teal-50 text-gray-900"
-                : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
-            }`}
-          >
-            Business Data Lineage
-          </button>
-
-          {/* Existing reset (only relevant on overview) */}
-          {isOverview && (selectedDomain || selectedService) && (
+          {showBack ? (
             <button
-              onClick={resetSelection}
-              className="text-sm text-halo-primary underline hover:opacity-90"
+              type="button"
+              onClick={() => {
+                // Keep selections only for technology architecture view; otherwise reset.
+                if (atlasView !== "technologyArchitecture") resetSelection();
+                setAtlasView("landing");
+              }}
+              className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
             >
-              Reset
+              Back
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
-      {/* New: Business Data Lineage screen */}
-      {isBusinessLineage ? (
-        <BusinessDataLineagePanel
-          defaultClientId={1}
-          defaultConceptId="client.legal_name"
-          onBack={() => setAtlasView("overview")}
-        />
-      ) : (
-        /* Existing overview content */
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* DOMAINS */}
-          <div className="space-y-3">
-            <h3 className="font-heading text-sm text-gray-800 mb-1">Domains</h3>
-            {domains.map((d) => {
-              const active = selectedDomain?.id === d.id;
-              return (
-                <div
-                  key={d.id}
-                  onClick={() => {
-                    setSelectedService(null);
-                    setSelectedDomain(active ? null : d);
-                  }}
-                  className={`cursor-pointer rounded-md p-3 border ${
-                    active
-                      ? "bg-teal-50 border-teal-300 shadow"
-                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                  }`}
-                >
-                  <p className="font-heading text-sm text-gray-900">{d.name}</p>
-                  <p className="text-xs font-body text-gray-600 mb-2">
-                    {d.description}
-                  </p>
-                  <p className="text-[11px] font-mono text-gray-500">
-                    Entities: {d.keyEntities.join(", ")}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* SERVICES */}
-          <div className="space-y-3">
-            <h3 className="font-heading text-sm text-gray-800 mb-1">
-              Services
-            </h3>
-            {visibleServices.map((s) => {
-              const active = selectedService?.id === s.id;
-              const faded = selectedDomain && s.domain !== selectedDomain.name;
-
-              return (
-                <div
-                  key={s.id}
-                  onClick={() => setSelectedService(active ? null : s)}
-                  className={`cursor-pointer rounded-md p-3 border transition ${
-                    active
-                      ? "bg-amber-50 border-amber-300 shadow"
-                      : faded
-                      ? "opacity-50 bg-gray-50 border-gray-200"
-                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                  }`}
-                >
-                  <p className="font-heading text-sm text-gray-900 mb-1">
-                    {s.name}
-                  </p>
-                  <p className="text-[11px] font-body text-gray-500 mb-1">
-                    Domain: {s.domain}
-                  </p>
-                  <ul className="list-disc pl-4 mb-1 space-y-0.5">
-                    {s.responsibilities.map((r, idx) => (
-                      <li
-                        key={`${s.id}-r-${idx}`}
-                        className="text-xs font-body text-gray-700"
-                      >
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-[11px] font-mono text-gray-500">
-                    Produces: {s.produces.join(", ")}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* FLOWS */}
-          <div className="space-y-3">
-            <h3 className="font-heading text-sm text-gray-800 mb-1">Flows</h3>
-            {visibleFlows.map((flow) => (
-              <div
-                key={flow.id}
-                className="rounded-md p-3 border bg-gray-50 border-gray-200"
-              >
-                <p className="font-heading text-sm text-gray-900 mb-2">
-                  {flow.name}
-                </p>
-                <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
-                  {flow.steps.join("  →  ")}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {renderContent()}
     </section>
   );
 }
+
 

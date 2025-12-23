@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-22 21:25:08Z
+Generated: 2025-12-23 16:17:21Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -10739,6 +10739,712 @@ export default App;
 
 
 
+===== FILE: app_frontend\src\BusinessDataLineagePanel.jsx =====
+// app_frontend/src/BusinessDataLineagePanel.jsx
+import React, { useEffect, useMemo, useState } from "react";
+
+const BACKEND_BASE_URL = "http://127.0.0.1:8000";
+
+const CRITICAL_DATA_ELEMENTS = [
+  {
+    group: "Identity",
+    items: [
+      {
+        conceptId: "client.legal_name",
+        displayName: "Client Legal Name",
+        status: "tracked",
+        note: "Authoritative CRM source",
+      },
+      {
+        conceptId: "client.trade_name",
+        displayName: "Trading / Known-As Name",
+        status: "planned",
+      },
+      {
+        conceptId: "client.external_id",
+        displayName: "External Client Identifier",
+        status: "planned",
+      },
+      {
+        conceptId: "client.primary_address",
+        displayName: "Primary Registered Address",
+        status: "planned",
+      },
+    ],
+  },
+  {
+    group: "Jurisdiction & Regulatory",
+    items: [
+      {
+        conceptId: "client.country",
+        displayName: "Country of Incorporation",
+        status: "planned",
+      },
+      {
+        conceptId: "client.tax_id",
+        displayName: "Tax Identifier",
+        status: "planned",
+        note: "Sensitive / masked",
+      },
+      {
+        conceptId: "client.lei",
+        displayName: "Legal Entity Identifier (LEI)",
+        status: "planned",
+      },
+    ],
+  },
+  {
+    group: "Risk & Classification",
+    items: [
+      {
+        conceptId: "client.segment",
+        displayName: "Client Segment",
+        status: "planned",
+      },
+      {
+        conceptId: "client.risk_rating",
+        displayName: "Risk Rating",
+        status: "planned",
+        note: "Policy-derived",
+      },
+    ],
+  },
+  {
+    group: "Lifecycle & Governance",
+    items: [
+      {
+        conceptId: "client.onboarding_date",
+        displayName: "Onboarding Date",
+        status: "planned",
+      },
+      {
+        conceptId: "client.status",
+        displayName: "Client Status",
+        status: "planned",
+      },
+      {
+        conceptId: "client.last_reviewed_at",
+        displayName: "Last KYC Review Date",
+        status: "planned",
+      },
+      {
+        conceptId: "client.source_system",
+        displayName: "Source System of Record",
+        status: "planned",
+      },
+    ],
+  },
+];
+
+function Pill({ children, tone = "neutral" }) {
+  const toneClass =
+    tone === "ok"
+      ? "bg-green-100 text-green-800 border-green-200"
+      : tone === "error"
+      ? "bg-red-100 text-red-800 border-red-200"
+      : tone === "warn"
+      ? "bg-yellow-100 text-yellow-900 border-yellow-200"
+      : "bg-gray-100 text-gray-800 border-gray-200";
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-body border ${toneClass}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function formatUtc(ts) {
+  if (!ts) return "â€”";
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return String(ts);
+  return d.toLocaleString();
+}
+
+export default function BusinessDataLineagePanel({
+  defaultClientId = 1,
+  defaultConceptId = "client.legal_name",
+  onBack,
+}) {
+  const [clientId, setClientId] = useState(String(defaultClientId));
+  const [conceptId, setConceptId] = useState(String(defaultConceptId));
+
+  // Three-step flow:
+  // 1) CDE list
+  // 2) Client list (for selected CDE)
+  // 3) Detail view
+  const [view, setView] = useState("cdeList"); // "cdeList" | "clientList" | "detail"
+
+  const [loading, setLoading] = useState(false);
+  const [payload, setPayload] = useState(null);
+  const [error, setError] = useState("");
+
+  // Client list state
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [clientsError, setClientsError] = useState("");
+
+  const lineageEndpoint = useMemo(() => {
+    const cid = encodeURIComponent(String(clientId).trim());
+    const cc = encodeURIComponent(String(conceptId).trim());
+    return `${BACKEND_BASE_URL}/atlas/lineage/client/${cid}/concept/${cc}`;
+  }, [clientId, conceptId]);
+
+  const fetchLineage = async () => {
+    setError("");
+    setLoading(true);
+    setPayload(null);
+
+    try {
+      const res = await fetch(lineageEndpoint);
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({}));
+        throw new Error(detail?.detail || `HTTP ${res.status}`);
+      }
+      const json = await res.json();
+      setPayload(json);
+    } catch (e) {
+      setError(e?.message || "Failed to load lineage.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchClients = async () => {
+    setClientsError("");
+    setClientsLoading(true);
+    setClients([]);
+
+    try {
+      const res = await fetch(`${BACKEND_BASE_URL}/clients/`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (!Array.isArray(json)) throw new Error("Unexpected clients payload");
+      setClients(json);
+    } catch (e) {
+      setClientsError(e?.message || "Failed to load clients.");
+    } finally {
+      setClientsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (view === "clientList") {
+      fetchClients();
+    }
+    if (view === "detail") {
+      fetchLineage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
+
+  const artifact = payload?.artifact || null;
+  const resolvedValue = payload?.resolved_value;
+  const resolution = payload?.resolution;
+
+  const statusTone =
+    resolution?.status === "ok"
+      ? "ok"
+      : resolution?.status === "not_found"
+      ? "warn"
+      : resolution?.status === "error"
+      ? "error"
+      : "neutral";
+
+  const trackedConcepts = new Set(["client.legal_name"]);
+
+  const goToClientList = (nextConceptId) => {
+    setConceptId(String(nextConceptId));
+    setView("clientList");
+  };
+
+  const goToDetail = (nextClientId) => {
+    setClientId(String(nextClientId));
+    setView("detail");
+  };
+
+  const selectedCdeMeta = useMemo(() => {
+    for (const g of CRITICAL_DATA_ELEMENTS) {
+      const found = g.items.find((x) => x.conceptId === conceptId);
+      if (found) return found;
+    }
+    return null;
+  }, [conceptId]);
+
+  // =========================
+  // VIEW 1: CDE LIST
+  // =========================
+  if (view === "cdeList") {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="font-fjalla text-base text-gray-900 tracking-wide">
+              Business Data Lineage
+            </h3>
+            <p className="text-xs font-body text-gray-600">
+              Critical Data Elements tracked by the platform
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+              >
+                Back
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-halo p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-heading text-sm text-gray-900">
+              Critical Data Elements
+            </h4>
+            <span className="text-[11px] font-mono text-gray-500">
+              tracked: {Array.from(trackedConcepts).length} â€¢ planned:{" "}
+              {CRITICAL_DATA_ELEMENTS.reduce(
+                (acc, g) =>
+                  acc + g.items.filter((i) => i.status === "planned").length,
+                0
+              )}
+            </span>
+          </div>
+
+          <div className="space-y-6">
+            {CRITICAL_DATA_ELEMENTS.map((section) => (
+              <div key={section.group}>
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="font-heading text-sm text-gray-800">
+                    {section.group}
+                  </h5>
+                </div>
+
+                <div className="space-y-2">
+                  {section.items.map((item) => {
+                    const isTracked = item.status === "tracked";
+                    const isClickable = isTracked && trackedConcepts.has(item.conceptId);
+
+                    return (
+                      <div
+                        key={item.conceptId}
+                        className={`flex items-center justify-between p-3 rounded-md border ${
+                          isClickable
+                            ? "bg-white border-halo-primary cursor-pointer hover:bg-teal-50"
+                            : "bg-gray-50 border-gray-200 opacity-70"
+                        }`}
+                        onClick={() => {
+                          if (isClickable) goToClientList(item.conceptId);
+                        }}
+                      >
+                        <div>
+                          <div className="font-body text-sm text-gray-900">
+                            {item.displayName}
+                          </div>
+                          <div className="text-xs font-mono text-gray-500">
+                            {item.conceptId}
+                          </div>
+                          {item.note && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {item.note}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="text-xs font-body">
+                          {isClickable ? (
+                            <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 border border-green-200">
+                              Tracked
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                              Planned
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 text-xs font-body text-gray-600">
+            Tip: click a tracked element (e.g.{" "}
+            <span className="font-mono">client.legal_name</span>) to choose a
+            client and drill into live lineage.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================
+  // VIEW 2: CLIENT LIST (for selected CDE)
+  // =========================
+  if (view === "clientList") {
+    const isTracked = trackedConcepts.has(conceptId);
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="font-fjalla text-base text-gray-900 tracking-wide">
+              Business Data Lineage
+            </h3>
+            <p className="text-xs font-body text-gray-600">
+              Select a client to evaluate{" "}
+              <span className="font-mono">{conceptId}</span>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setView("cdeList")}
+              className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+            >
+              Critical Data Elements
+            </button>
+
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+              >
+                Back
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={fetchClients}
+              className="px-3 py-2 rounded-md text-sm font-body text-white bg-halo-primary hover:opacity-90"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-halo p-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+            <div className="space-y-1">
+              <div className="text-xs font-heading text-gray-500">
+                Selected CDE
+              </div>
+              <div className="text-sm font-body text-gray-900">
+                {selectedCdeMeta?.displayName || "â€”"}
+                <span className="text-xs text-gray-500">
+                  {" "}
+                  ({conceptId})
+                </span>
+              </div>
+              {selectedCdeMeta?.note && (
+                <div className="text-xs font-body text-gray-600">
+                  {selectedCdeMeta.note}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-xs font-heading text-gray-500">Status</div>
+              <div className="text-sm font-body text-gray-900">
+                {isTracked ? (
+                  <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 border border-green-200">
+                    Tracked
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                    Planned
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            {clientsLoading && (
+              <div className="text-sm font-body text-gray-600">Loadingâ€¦</div>
+            )}
+
+            {clientsError && <Pill tone="error">{clientsError}</Pill>}
+
+            {!clientsLoading && !clientsError && (
+              <div className="border border-gray-200 rounded-md overflow-hidden">
+                <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 px-3 py-2">
+                  <div className="col-span-2 text-xs font-heading text-gray-600">
+                    ID
+                  </div>
+                  <div className="col-span-7 text-xs font-heading text-gray-600">
+                    Client
+                  </div>
+                  <div className="col-span-3 text-xs font-heading text-gray-600 text-right">
+                    Action
+                  </div>
+                </div>
+
+                {clients.map((c) => (
+                  <div
+                    key={c.id}
+                    className="grid grid-cols-12 px-3 py-2 border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <div className="col-span-2 text-sm font-mono text-gray-800">
+                      {c.id}
+                    </div>
+                    <div className="col-span-7 text-sm font-body text-gray-900">
+                      {c.full_name || c.display_name || "â€”"}
+                      <div className="text-xs text-gray-500 font-mono">
+                        {c.external_id || ""}
+                      </div>
+                    </div>
+                    <div className="col-span-3 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => goToDetail(c.id)}
+                        className="px-3 py-2 rounded-md text-sm font-body text-white bg-halo-primary hover:opacity-90 disabled:opacity-50"
+                        disabled={!isTracked}
+                        title={!isTracked ? "Planned CDE" : "Explain lineage"}
+                      >
+                        Explain
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {!clients.length && (
+                  <div className="px-3 py-3 text-sm font-body text-gray-600">
+                    No clients found.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================
+  // VIEW 3: DETAIL (existing look & feel preserved)
+  // =========================
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="font-fjalla text-base text-gray-900 tracking-wide">
+            Business Data Lineage
+          </h3>
+          <p className="text-xs font-body text-gray-600">
+            Attribute-level lineage with live value resolution
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setView("clientList")}
+            className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+          >
+            Clients
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setView("cdeList")}
+            className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+          >
+            Critical Data Elements
+          </button>
+
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+            >
+              Back
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={fetchLineage}
+            className="px-3 py-2 rounded-md text-sm font-body text-white bg-halo-primary hover:opacity-90"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+          <label className="block text-xs font-heading text-gray-700 mb-1">
+            Client ID
+          </label>
+          <input
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+            className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-sm font-body"
+            placeholder="1"
+          />
+        </div>
+
+        <div className="md:col-span-2 bg-gray-50 border border-gray-200 rounded-md p-3">
+          <label className="block text-xs font-heading text-gray-700 mb-1">
+            Concept ID
+          </label>
+          <input
+            value={conceptId}
+            onChange={(e) => setConceptId(e.target.value)}
+            className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-sm font-body"
+            placeholder="client.legal_name"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={fetchLineage}
+          className="px-4 py-2 rounded-md text-sm font-body text-white bg-halo-primary hover:opacity-90 disabled:opacity-50"
+          disabled={loading}
+        >
+          {loading ? "Loadingâ€¦" : "Resolve lineage + value"}
+        </button>
+
+        {resolution?.status && (
+          <Pill tone={statusTone}>
+            Resolution: {String(resolution.status).toUpperCase()}
+          </Pill>
+        )}
+
+        {error && <Pill tone="error">{error}</Pill>}
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-halo p-4">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div className="space-y-1">
+            <div className="text-xs font-heading text-gray-500">Subject</div>
+            <div className="text-sm font-body text-gray-900">
+              {artifact?.subject?.display_name || "â€”"}
+              <span className="text-xs text-gray-500">
+                {" "}
+                (client_id: {artifact?.subject?.entity_id || clientId || "â€”"})
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-xs font-heading text-gray-500">Concept</div>
+            <div className="text-sm font-body text-gray-900">
+              {artifact?.concept?.display_name || "â€”"}
+              <span className="text-xs text-gray-500">
+                {" "}
+                ({artifact?.concept?.concept_id || conceptId || "â€”"})
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-xs font-heading text-gray-500">
+              Resolved value
+            </div>
+            <div className="text-sm font-body text-gray-900">
+              {resolvedValue == null ? "â€”" : String(resolvedValue)}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="text-xs font-body text-gray-600">
+            <span className="font-heading text-gray-500">Captured at:</span>{" "}
+            {formatUtc(artifact?.captured_at)}
+          </div>
+          <div className="text-xs font-body text-gray-600">
+            <span className="font-heading text-gray-500">Evaluated at:</span>{" "}
+            {formatUtc(resolution?.evaluated_at)}
+          </div>
+        </div>
+
+        {resolution?.details && (
+          <div className="mt-3 text-xs font-body text-gray-600">
+            {resolution.details}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-halo p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-heading text-sm text-gray-900">Lineage path</h4>
+          <span className="text-[11px] font-mono text-gray-500">
+            artefact: {artifact?.artifact_type || "â€”"} v
+            {artifact?.artifact_version || "â€”"}
+          </span>
+        </div>
+
+        {!artifact?.lineage?.length ? (
+          <div className="text-sm font-body text-gray-600">
+            No lineage stages found in the artefact.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {artifact.lineage.map((step, idx) => (
+              <div
+                key={`${step.stage || "stage"}-${idx}`}
+                className="border border-gray-200 rounded-md p-3 bg-gray-50"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-heading text-sm text-gray-900">
+                    {String(step.stage || "stage").toUpperCase()}
+                  </div>
+                  <div className="text-[11px] font-mono text-gray-600">
+                    {step.system ? `system=${step.system}` : ""}
+                    {step.rule ? ` rule=${step.rule}` : ""}
+                    {step.surface ? ` surface=${step.surface}` : ""}
+                  </div>
+                </div>
+
+                {step.assertion && (
+                  <div className="mt-2 text-sm font-body text-gray-700">
+                    {step.assertion}
+                  </div>
+                )}
+
+                {(step.component || step.field_label) && (
+                  <div className="mt-2 text-xs font-body text-gray-600">
+                    {step.component ? `Component: ${step.component}` : ""}
+                    {step.component && step.field_label ? " â€¢ " : ""}
+                    {step.field_label ? `Field: ${step.field_label}` : ""}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-halo p-4">
+        <h4 className="font-heading text-sm text-gray-900 mb-2">
+          Raw response payload
+        </h4>
+        <pre className="whitespace-pre-wrap text-[11px] font-mono text-gray-800 bg-gray-50 border border-gray-200 rounded-md p-3 max-h-[260px] overflow-auto">
+          {payload ? JSON.stringify(payload, null, 2) : "â€”"}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+
+
+
 ===== FILE: app_frontend\src\DetailedClientProfilePanel.jsx =====
 import React, { useMemo, useState } from "react";
 
@@ -11463,6 +12169,7 @@ createRoot(document.getElementById('root')).render(
 ===== FILE: app_frontend\src\MissionAtlasPanel.jsx =====
 // app_frontend/src/MissionAtlasPanel.jsx
 import React, { useState } from "react";
+import BusinessDataLineagePanel from "./BusinessDataLineagePanel";
 
 const domains = [
   {
@@ -11559,7 +12266,7 @@ const services = [
     name: "Lineage Service",
     domain: "Lineage & Audit",
     responsibilities: [
-      "Store lineage and audit events.",
+      "Capture provenance and transformation metadata.",
       "Expose lineage graph for a given client.",
     ],
     consumes: ["LineageEvent", "AuditEvent"],
@@ -11641,6 +12348,10 @@ export default function MissionAtlasPanel() {
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
 
+  // NEW: view toggle inside MissionAtlas
+  // "overview" | "businessDataLineage"
+  const [atlasView, setAtlasView] = useState("overview");
+
   // Reset when clicking outside domain or service
   const resetSelection = () => {
     setSelectedDomain(null);
@@ -11667,9 +12378,12 @@ export default function MissionAtlasPanel() {
       )
     : flows;
 
+  const isOverview = atlasView === "overview";
+  const isBusinessLineage = atlasView === "businessDataLineage";
+
   return (
     <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
         <h2
           style={{ fontFamily: "Fjalla One" }}
           className="text-lg text-gray-900 tracking-wide"
@@ -11677,113 +12391,152 @@ export default function MissionAtlasPanel() {
           MissionAtlas Single Client View
         </h2>
 
-        {(selectedDomain || selectedService) && (
+        <div className="flex items-center gap-2">
+          {/* View toggle buttons */}
           <button
-            onClick={resetSelection}
-            className="text-sm text-[#1A9988] underline hover:text-[#147c6f]"
+            type="button"
+            onClick={() => setAtlasView("overview")}
+            className={`px-3 py-2 rounded-md text-sm font-body border ${
+              isOverview
+                ? "border-halo-primary bg-teal-50 text-gray-900"
+                : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+            }`}
           >
-            Reset
+            Overview
           </button>
-        )}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* DOMAINS */}
-        <div className="space-y-3">
-          <h3 className="font-heading text-sm text-gray-800 mb-1">
-            Domains
-          </h3>
-          {domains.map((d) => {
-            const active = selectedDomain?.id === d.id;
-            return (
-              <div
-                key={d.id}
-                onClick={() => {
-                  setSelectedService(null);
-                  setSelectedDomain(active ? null : d);
-                }}
-                className={`cursor-pointer rounded-md p-3 border ${
-                  active
-                    ? "bg-teal-50 border-teal-300 shadow"
-                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                }`}
-              >
-                <p className="font-heading text-sm text-gray-900">{d.name}</p>
-                <p className="text-xs font-body text-gray-600 mb-2">
-                  {d.description}
-                </p>
-                <p className="text-[11px] font-mono text-gray-500">
-                  Entities: {d.keyEntities.join(", ")}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+          <button
+            type="button"
+            onClick={() => setAtlasView("businessDataLineage")}
+            className={`px-3 py-2 rounded-md text-sm font-body border ${
+              isBusinessLineage
+                ? "border-halo-primary bg-teal-50 text-gray-900"
+                : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+            }`}
+          >
+            Business Data Lineage
+          </button>
 
-        {/* SERVICES */}
-        <div className="space-y-3">
-          <h3 className="font-heading text-sm text-gray-800 mb-1">
-            Services
-          </h3>
-          {visibleServices.map((s) => {
-            const active = selectedService?.id === s.id;
-            const faded =
-              selectedDomain && s.domain !== selectedDomain.name;
-
-            return (
-              <div
-                key={s.id}
-                onClick={() => setSelectedService(active ? null : s)}
-                className={`cursor-pointer rounded-md p-3 border transition ${
-                  active
-                    ? "bg-amber-50 border-amber-300 shadow"
-                    : faded
-                    ? "opacity-50 bg-gray-50 border-gray-200"
-                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                }`}
-              >
-                <p className="font-heading text-sm text-gray-900 mb-1">
-                  {s.name}
-                </p>
-                <p className="text-[11px] font-body text-gray-500 mb-1">
-                  Domain: {s.domain}
-                </p>
-                <ul className="list-disc pl-4 mb-1 space-y-0.5">
-                  {s.responsibilities.map((r, idx) => (
-                    <li
-                      key={idx}
-                      className="text-xs font-body text-gray-700"
-                    >
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* FLOWS */}
-        <div className="space-y-3">
-          <h3 className="font-heading text-sm text-gray-800 mb-1">Flows</h3>
-          {visibleFlows.map((flow) => (
-            <div
-              key={flow.id}
-              className="rounded-md p-3 border bg-gray-50 border-gray-200"
+          {/* Existing reset (only relevant on overview) */}
+          {isOverview && (selectedDomain || selectedService) && (
+            <button
+              onClick={resetSelection}
+              className="text-sm text-halo-primary underline hover:opacity-90"
             >
-              <p className="font-heading text-sm text-gray-900 mb-2">
-                {flow.name}
-              </p>
-              <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
-                {flow.steps.join("  â†’  ")}
-              </p>
-            </div>
-          ))}
+              Reset
+            </button>
+          )}
         </div>
       </div>
+
+      {/* New: Business Data Lineage screen */}
+      {isBusinessLineage ? (
+        <BusinessDataLineagePanel
+          defaultClientId={1}
+          defaultConceptId="client.legal_name"
+          onBack={() => setAtlasView("overview")}
+        />
+      ) : (
+        /* Existing overview content */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* DOMAINS */}
+          <div className="space-y-3">
+            <h3 className="font-heading text-sm text-gray-800 mb-1">Domains</h3>
+            {domains.map((d) => {
+              const active = selectedDomain?.id === d.id;
+              return (
+                <div
+                  key={d.id}
+                  onClick={() => {
+                    setSelectedService(null);
+                    setSelectedDomain(active ? null : d);
+                  }}
+                  className={`cursor-pointer rounded-md p-3 border ${
+                    active
+                      ? "bg-teal-50 border-teal-300 shadow"
+                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  <p className="font-heading text-sm text-gray-900">{d.name}</p>
+                  <p className="text-xs font-body text-gray-600 mb-2">
+                    {d.description}
+                  </p>
+                  <p className="text-[11px] font-mono text-gray-500">
+                    Entities: {d.keyEntities.join(", ")}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* SERVICES */}
+          <div className="space-y-3">
+            <h3 className="font-heading text-sm text-gray-800 mb-1">
+              Services
+            </h3>
+            {visibleServices.map((s) => {
+              const active = selectedService?.id === s.id;
+              const faded = selectedDomain && s.domain !== selectedDomain.name;
+
+              return (
+                <div
+                  key={s.id}
+                  onClick={() => setSelectedService(active ? null : s)}
+                  className={`cursor-pointer rounded-md p-3 border transition ${
+                    active
+                      ? "bg-amber-50 border-amber-300 shadow"
+                      : faded
+                      ? "opacity-50 bg-gray-50 border-gray-200"
+                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  <p className="font-heading text-sm text-gray-900 mb-1">
+                    {s.name}
+                  </p>
+                  <p className="text-[11px] font-body text-gray-500 mb-1">
+                    Domain: {s.domain}
+                  </p>
+                  <ul className="list-disc pl-4 mb-1 space-y-0.5">
+                    {s.responsibilities.map((r, idx) => (
+                      <li
+                        key={`${s.id}-r-${idx}`}
+                        className="text-xs font-body text-gray-700"
+                      >
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[11px] font-mono text-gray-500">
+                    Produces: {s.produces.join(", ")}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* FLOWS */}
+          <div className="space-y-3">
+            <h3 className="font-heading text-sm text-gray-800 mb-1">Flows</h3>
+            {visibleFlows.map((flow) => (
+              <div
+                key={flow.id}
+                className="rounded-md p-3 border bg-gray-50 border-gray-200"
+              >
+                <p className="font-heading text-sm text-gray-900 mb-2">
+                  {flow.name}
+                </p>
+                <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
+                  {flow.steps.join("  â†’  ")}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
+
 
 
 ===== FILE: app_frontend\src\MissionLogPanel.jsx =====
@@ -12646,6 +13399,7 @@ from fastapi import APIRouter, HTTPException
 import json
 import requests
 from pathlib import Path
+from datetime import datetime, timezone  # <-- ONLY new import
 
 router = APIRouter(prefix="/atlas", tags=["MissionAtlas"])
 
@@ -12683,6 +13437,7 @@ def get_lineage_with_value(client_id: int, concept_id: str):
             "resolution": {
                 "status": "error",
                 "details": str(e),
+                "evaluated_at": datetime.now(timezone.utc).isoformat(),
             },
         }
 
@@ -12706,8 +13461,11 @@ def get_lineage_with_value(client_id: int, concept_id: str):
         "resolution": {
             "status": "ok" if resolved_value is not None else "not_found",
             "details": f"Resolved from {endpoint} at {json_path}",
+            "evaluated_at": datetime.now(timezone.utc).isoformat(),
         },
     }
+
+
 
 
 
