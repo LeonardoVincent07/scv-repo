@@ -117,7 +117,6 @@ function formatUtc(ts) {
   if (!ts) return "—";
   const d = new Date(ts);
   if (Number.isNaN(d.getTime())) return String(ts);
-  // Keep it simple and consistent; browser locale is fine for demo
   return d.toLocaleString();
 }
 
@@ -129,16 +128,22 @@ export default function BusinessDataLineagePanel({
   const [clientId, setClientId] = useState(String(defaultClientId));
   const [conceptId, setConceptId] = useState(String(defaultConceptId));
 
-  // NEW: simple two-step flow:
+  // Three-step flow:
   // 1) CDE list
-  // 2) Detail view
-  const [view, setView] = useState("cdeList"); // "cdeList" | "detail"
+  // 2) Client list (for selected CDE)
+  // 3) Detail view
+  const [view, setView] = useState("cdeList"); // "cdeList" | "clientList" | "detail"
 
   const [loading, setLoading] = useState(false);
   const [payload, setPayload] = useState(null);
   const [error, setError] = useState("");
 
-  const endpoint = useMemo(() => {
+  // Client list state
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [clientsError, setClientsError] = useState("");
+
+  const lineageEndpoint = useMemo(() => {
     const cid = encodeURIComponent(String(clientId).trim());
     const cc = encodeURIComponent(String(conceptId).trim());
     return `${BACKEND_BASE_URL}/atlas/lineage/client/${cid}/concept/${cc}`;
@@ -150,7 +155,7 @@ export default function BusinessDataLineagePanel({
     setPayload(null);
 
     try {
-      const res = await fetch(endpoint);
+      const res = await fetch(lineageEndpoint);
       if (!res.ok) {
         const detail = await res.json().catch(() => ({}));
         throw new Error(detail?.detail || `HTTP ${res.status}`);
@@ -164,8 +169,28 @@ export default function BusinessDataLineagePanel({
     }
   };
 
+  const fetchClients = async () => {
+    setClientsError("");
+    setClientsLoading(true);
+    setClients([]);
+
+    try {
+      const res = await fetch(`${BACKEND_BASE_URL}/clients/`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (!Array.isArray(json)) throw new Error("Unexpected clients payload");
+      setClients(json);
+    } catch (e) {
+      setClientsError(e?.message || "Failed to load clients.");
+    } finally {
+      setClientsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Keep behaviour aligned: only fetch when entering the detail view
+    if (view === "clientList") {
+      fetchClients();
+    }
     if (view === "detail") {
       fetchLineage();
     }
@@ -187,10 +212,23 @@ export default function BusinessDataLineagePanel({
 
   const trackedConcepts = new Set(["client.legal_name"]);
 
-  const goToDetail = (nextConceptId) => {
+  const goToClientList = (nextConceptId) => {
     setConceptId(String(nextConceptId));
+    setView("clientList");
+  };
+
+  const goToDetail = (nextClientId) => {
+    setClientId(String(nextClientId));
     setView("detail");
   };
+
+  const selectedCdeMeta = useMemo(() => {
+    for (const g of CRITICAL_DATA_ELEMENTS) {
+      const found = g.items.find((x) => x.conceptId === conceptId);
+      if (found) return found;
+    }
+    return null;
+  }, [conceptId]);
 
   // =========================
   // VIEW 1: CDE LIST
@@ -198,7 +236,6 @@ export default function BusinessDataLineagePanel({
   if (view === "cdeList") {
     return (
       <div className="space-y-4">
-        {/* Header row (kept consistent) */}
         <div className="flex items-center justify-between gap-3">
           <div>
             <h3 className="font-fjalla text-base text-gray-900 tracking-wide">
@@ -222,32 +259,6 @@ export default function BusinessDataLineagePanel({
           </div>
         </div>
 
-        {/* Controls (client stays on the list page too, for realism) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
-            <label className="block text-xs font-heading text-gray-700 mb-1">
-              Client ID
-            </label>
-            <input
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-sm font-body"
-              placeholder="1"
-            />
-          </div>
-
-          <div className="md:col-span-2 bg-gray-50 border border-gray-200 rounded-md p-3">
-            <label className="block text-xs font-heading text-gray-700 mb-1">
-              Catalogue scope
-            </label>
-            <div className="text-sm font-body text-gray-700">
-              Showing grouped Critical Data Elements (CDEs). Tracked items are
-              clickable.
-            </div>
-          </div>
-        </div>
-
-        {/* CDE catalogue */}
         <div className="bg-white border border-gray-200 rounded-halo p-4">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-heading text-sm text-gray-900">
@@ -286,7 +297,7 @@ export default function BusinessDataLineagePanel({
                             : "bg-gray-50 border-gray-200 opacity-70"
                         }`}
                         onClick={() => {
-                          if (isClickable) goToDetail(item.conceptId);
+                          if (isClickable) goToClientList(item.conceptId);
                         }}
                       >
                         <div>
@@ -323,7 +334,9 @@ export default function BusinessDataLineagePanel({
           </div>
 
           <div className="mt-4 text-xs font-body text-gray-600">
-            Tip: click a tracked element (e.g. <span className="font-mono">client.legal_name</span>) to drill into live lineage.
+            Tip: click a tracked element (e.g.{" "}
+            <span className="font-mono">client.legal_name</span>) to choose a
+            client and drill into live lineage.
           </div>
         </div>
       </div>
@@ -331,11 +344,156 @@ export default function BusinessDataLineagePanel({
   }
 
   // =========================
-  // VIEW 2: DETAIL (existing look & feel preserved)
+  // VIEW 2: CLIENT LIST (for selected CDE)
+  // =========================
+  if (view === "clientList") {
+    const isTracked = trackedConcepts.has(conceptId);
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="font-fjalla text-base text-gray-900 tracking-wide">
+              Business Data Lineage
+            </h3>
+            <p className="text-xs font-body text-gray-600">
+              Select a client to evaluate{" "}
+              <span className="font-mono">{conceptId}</span>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setView("cdeList")}
+              className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+            >
+              Critical Data Elements
+            </button>
+
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+              >
+                Back
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={fetchClients}
+              className="px-3 py-2 rounded-md text-sm font-body text-white bg-halo-primary hover:opacity-90"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-halo p-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+            <div className="space-y-1">
+              <div className="text-xs font-heading text-gray-500">
+                Selected CDE
+              </div>
+              <div className="text-sm font-body text-gray-900">
+                {selectedCdeMeta?.displayName || "—"}
+                <span className="text-xs text-gray-500">
+                  {" "}
+                  ({conceptId})
+                </span>
+              </div>
+              {selectedCdeMeta?.note && (
+                <div className="text-xs font-body text-gray-600">
+                  {selectedCdeMeta.note}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-xs font-heading text-gray-500">Status</div>
+              <div className="text-sm font-body text-gray-900">
+                {isTracked ? (
+                  <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 border border-green-200">
+                    Tracked
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                    Planned
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            {clientsLoading && (
+              <div className="text-sm font-body text-gray-600">Loading…</div>
+            )}
+
+            {clientsError && <Pill tone="error">{clientsError}</Pill>}
+
+            {!clientsLoading && !clientsError && (
+              <div className="border border-gray-200 rounded-md overflow-hidden">
+                <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 px-3 py-2">
+                  <div className="col-span-2 text-xs font-heading text-gray-600">
+                    ID
+                  </div>
+                  <div className="col-span-7 text-xs font-heading text-gray-600">
+                    Client
+                  </div>
+                  <div className="col-span-3 text-xs font-heading text-gray-600 text-right">
+                    Action
+                  </div>
+                </div>
+
+                {clients.map((c) => (
+                  <div
+                    key={c.id}
+                    className="grid grid-cols-12 px-3 py-2 border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <div className="col-span-2 text-sm font-mono text-gray-800">
+                      {c.id}
+                    </div>
+                    <div className="col-span-7 text-sm font-body text-gray-900">
+                      {c.full_name || c.display_name || "—"}
+                      <div className="text-xs text-gray-500 font-mono">
+                        {c.external_id || ""}
+                      </div>
+                    </div>
+                    <div className="col-span-3 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => goToDetail(c.id)}
+                        className="px-3 py-2 rounded-md text-sm font-body text-white bg-halo-primary hover:opacity-90 disabled:opacity-50"
+                        disabled={!isTracked}
+                        title={!isTracked ? "Planned CDE" : "Explain lineage"}
+                      >
+                        Explain
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {!clients.length && (
+                  <div className="px-3 py-3 text-sm font-body text-gray-600">
+                    No clients found.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================
+  // VIEW 3: DETAIL (existing look & feel preserved)
   // =========================
   return (
     <div className="space-y-4">
-      {/* Header row */}
       <div className="flex items-center justify-between gap-3">
         <div>
           <h3 className="font-fjalla text-base text-gray-900 tracking-wide">
@@ -347,7 +505,14 @@ export default function BusinessDataLineagePanel({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* NEW: back to CDE list */}
+          <button
+            type="button"
+            onClick={() => setView("clientList")}
+            className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50"
+          >
+            Clients
+          </button>
+
           <button
             type="button"
             onClick={() => setView("cdeList")}
@@ -376,7 +541,6 @@ export default function BusinessDataLineagePanel({
         </div>
       </div>
 
-      {/* Controls */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
           <label className="block text-xs font-heading text-gray-700 mb-1">
@@ -422,7 +586,6 @@ export default function BusinessDataLineagePanel({
         {error && <Pill tone="error">{error}</Pill>}
       </div>
 
-      {/* Summary card */}
       <div className="bg-white border border-gray-200 rounded-halo p-4">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div className="space-y-1">
@@ -457,7 +620,6 @@ export default function BusinessDataLineagePanel({
           </div>
         </div>
 
-        {/* NEW: Captured at / Evaluated at */}
         <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="text-xs font-body text-gray-600">
             <span className="font-heading text-gray-500">Captured at:</span>{" "}
@@ -476,7 +638,6 @@ export default function BusinessDataLineagePanel({
         )}
       </div>
 
-      {/* Lineage detail */}
       <div className="bg-white border border-gray-200 rounded-halo p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="font-heading text-sm text-gray-900">Lineage path</h4>
@@ -527,7 +688,6 @@ export default function BusinessDataLineagePanel({
         )}
       </div>
 
-      {/* Raw payload (collapsible-ish) */}
       <div className="bg-white border border-gray-200 rounded-halo p-4">
         <h4 className="font-heading text-sm text-gray-900 mb-2">
           Raw response payload
@@ -539,4 +699,5 @@ export default function BusinessDataLineagePanel({
     </div>
   );
 }
+
 
