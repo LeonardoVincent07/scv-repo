@@ -257,146 +257,7 @@ function App() {
           <MissionAtlasPanel />
         ) : (
           <>
-            {/* 4.1 Landing screen: Client Overview */}
-            <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                <div>
-                  <h2 className="font-heading text-lg text-gray-800">
-                    Client overview
-                  </h2>
-                  <p className="mt-1 text-sm font-body text-gray-600">
-                    Search and filter clients, then navigate to the detailed profile.
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                  <div className="flex-1 sm:w-64">
-                    <label className="block text-sm font-body text-gray-700 mb-1">
-                      Search
-                    </label>
-                    <input
-                      type="text"
-                      value={clientSearch}
-                      onChange={(e) => setClientSearch(e.target.value)}
-                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
-                      placeholder="Name, ID, segment…"
-                    />
-                  </div>
-
-                  <div className="sm:w-44">
-                    <label className="block text-sm font-body text-gray-700 mb-1">
-                      Risk rating
-                    </label>
-                    <select
-                      value={riskFilter}
-                      onChange={(e) => setRiskFilter(e.target.value)}
-                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
-                    >
-                      <option value="All">All</option>
-                      {distinctRiskRatings.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="sm:w-44">
-                    <label className="block text-sm font-body text-gray-700 mb-1">
-                      Status
-                    </label>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
-                    >
-                      <option value="All">All</option>
-                      {distinctStatuses.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5">
-                {clientsLoading ? (
-                  <p className="text-sm font-body text-gray-500">
-                    Loading client list…
-                  </p>
-                ) : clientIndexError ? (
-                  <p className="text-sm font-body text-gray-500">
-                    {clientIndexError}
-                  </p>
-                ) : filteredClientIndex.length === 0 ? (
-                  <p className="text-sm font-body text-gray-500">
-                    No clients match your search/filters.
-                  </p>
-                ) : (
-                  <div className="overflow-auto border border-gray-200 rounded-md">
-                    <table className="min-w-full text-sm font-body">
-                      <thead className="bg-gray-50 text-gray-700">
-                        <tr>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Client ID
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Name
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Risk
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Status
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Segment
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Action
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {filteredClientIndex.map((c) => (
-                          <tr key={c.client_id} className="bg-white">
-                            <td className="px-4 py-3 font-mono text-gray-900">
-                              {c.client_id}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {c.name || "—"}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {c.risk_rating || "—"}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {c.status || "—"}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {c.segment || "—"}
-                            </td>
-                            <td className="px-4 py-3">
-                              <button
-                                type="button"
-                                className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
-                                onClick={() => setClientId(c.client_id)}
-                                title="Populate Client ID"
-                              >
-                                Select
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* Find client profile */}
+            {/* Find client profile (always shown in SCV view) */}
             <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
               <h2 className="font-heading text-lg text-gray-800 mb-4">
                 Find client profile
@@ -493,7 +354,159 @@ function App() {
               )}
             </section>
 
-            {/* SCV layout grid */}
+            {/* Initial landing screen (only when no profile): Client Overview + Pre-Matched placeholder */}
+            {!profile && (
+              <>
+                {/* Client overview */}
+                <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+                  <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div>
+                      <h2 className="font-heading text-lg text-gray-800">
+                        Client overview
+                      </h2>
+                      <p className="mt-1 text-sm font-body text-gray-600">
+                        Search and filter clients, then navigate to the detailed profile.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                      <div className="flex-1 sm:w-64">
+                        <label className="block text-sm font-body text-gray-700 mb-1">
+                          Search
+                        </label>
+                        <input
+                          type="text"
+                          value={clientSearch}
+                          onChange={(e) => setClientSearch(e.target.value)}
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                          placeholder="Name, ID, segment…"
+                        />
+                      </div>
+
+                      <div className="sm:w-44">
+                        <label className="block text-sm font-body text-gray-700 mb-1">
+                          Risk rating
+                        </label>
+                        <select
+                          value={riskFilter}
+                          onChange={(e) => setRiskFilter(e.target.value)}
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                        >
+                          <option value="All">All</option>
+                          {distinctRiskRatings.map((r) => (
+                            <option key={r} value={r}>
+                              {r}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="sm:w-44">
+                        <label className="block text-sm font-body text-gray-700 mb-1">
+                          Status
+                        </label>
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                        >
+                          <option value="All">All</option>
+                          {distinctStatuses.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5">
+                    {clientsLoading ? (
+                      <p className="text-sm font-body text-gray-500">
+                        Loading client list…
+                      </p>
+                    ) : clientIndexError ? (
+                      <p className="text-sm font-body text-gray-500">
+                        {clientIndexError}
+                      </p>
+                    ) : filteredClientIndex.length === 0 ? (
+                      <p className="text-sm font-body text-gray-500">
+                        No clients match your search/filters.
+                      </p>
+                    ) : (
+                      <div className="overflow-auto border border-gray-200 rounded-md">
+                        <table className="min-w-full text-sm font-body">
+                          <thead className="bg-gray-50 text-gray-700">
+                            <tr>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Client ID
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Name
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Risk
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Status
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Segment
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Action
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {filteredClientIndex.map((c) => (
+                              <tr key={c.client_id} className="bg-white">
+                                <td className="px-4 py-3 font-mono text-gray-900">
+                                  {c.client_id}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900">
+                                  {c.name || "—"}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900">
+                                  {c.risk_rating || "—"}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900">
+                                  {c.status || "—"}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900">
+                                  {c.segment || "—"}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
+                                    onClick={() => setClientId(c.client_id)}
+                                    title="Populate Client ID"
+                                  >
+                                    Select
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* Pre-Matched Records (placeholder only, intentionally blank) */}
+                <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+                  <h2 className="font-heading text-lg text-gray-800">
+                    Pre-Matched Records
+                  </h2>
+                  {/* Intentionally left blank until ST-05 wiring is added */}
+                </section>
+              </>
+            )}
+
+            {/* SCV layout grid (only when profile loaded) */}
             {profile && (
               <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                 {/* Left column: core profile */}
@@ -615,7 +628,7 @@ function App() {
               </section>
             )}
 
-            {/* NEW: Detailed Profile panel (below existing SCV grid, no regression) */}
+            {/* Detailed Profile panel (below existing SCV grid, no regression) */}
             {profile && showDetailedProfile && (
               <div id="scv-detailed-profile">
                 <DetailedClientProfilePanel
@@ -632,6 +645,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
