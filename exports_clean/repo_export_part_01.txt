@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-24 21:23:46Z
+Generated: 2025-12-25 07:14:16Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -10112,6 +10112,37 @@ function App() {
   // 'scv' | 'missionLog' | 'missionAtlas'
   const [activeView, setActiveView] = useState("scv");
 
+  // NEW: Pre-Matched Records (ST-05 demo ingestion)
+  const [preMatchedRecords, setPreMatchedRecords] = useState([]);
+  const [preMatchedLoading, setPreMatchedLoading] = useState(false);
+  const [preMatchedError, setPreMatchedError] = useState("");
+
+  const fetchPreMatched = async () => {
+    setPreMatchedLoading(true);
+    setPreMatchedError("");
+
+    try {
+      const res = await fetch(
+        `${BACKEND_BASE_URL}/ingestion/crm/contacts?source_system=DEMO_CRM`
+      );
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({}));
+        throw new Error(
+          detail.detail || `Failed to fetch pre-matched records (${res.status}).`
+        );
+      }
+
+      const data = await res.json();
+      const records = Array.isArray(data?.records) ? data.records : [];
+      setPreMatchedRecords(records);
+    } catch (err) {
+      setPreMatchedRecords([]);
+      setPreMatchedError(err?.message || "Failed to fetch pre-matched records.");
+    } finally {
+      setPreMatchedLoading(false);
+    }
+  };
+
   // Fetch client index (best-effort; UI degrades gracefully if endpoint not available)
   useEffect(() => {
     let cancelled = false;
@@ -10184,6 +10215,9 @@ function App() {
     };
 
     fetchClientIndex();
+
+    // NEW: fetch pre-matched records on landing load
+    fetchPreMatched();
 
     return () => {
       cancelled = true;
@@ -10339,146 +10373,7 @@ function App() {
           <MissionAtlasPanel />
         ) : (
           <>
-            {/* 4.1 Landing screen: Client Overview */}
-            <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                <div>
-                  <h2 className="font-heading text-lg text-gray-800">
-                    Client overview
-                  </h2>
-                  <p className="mt-1 text-sm font-body text-gray-600">
-                    Search and filter clients, then navigate to the detailed profile.
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                  <div className="flex-1 sm:w-64">
-                    <label className="block text-sm font-body text-gray-700 mb-1">
-                      Search
-                    </label>
-                    <input
-                      type="text"
-                      value={clientSearch}
-                      onChange={(e) => setClientSearch(e.target.value)}
-                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
-                      placeholder="Name, ID, segmentâ€¦"
-                    />
-                  </div>
-
-                  <div className="sm:w-44">
-                    <label className="block text-sm font-body text-gray-700 mb-1">
-                      Risk rating
-                    </label>
-                    <select
-                      value={riskFilter}
-                      onChange={(e) => setRiskFilter(e.target.value)}
-                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
-                    >
-                      <option value="All">All</option>
-                      {distinctRiskRatings.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="sm:w-44">
-                    <label className="block text-sm font-body text-gray-700 mb-1">
-                      Status
-                    </label>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
-                    >
-                      <option value="All">All</option>
-                      {distinctStatuses.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5">
-                {clientsLoading ? (
-                  <p className="text-sm font-body text-gray-500">
-                    Loading client listâ€¦
-                  </p>
-                ) : clientIndexError ? (
-                  <p className="text-sm font-body text-gray-500">
-                    {clientIndexError}
-                  </p>
-                ) : filteredClientIndex.length === 0 ? (
-                  <p className="text-sm font-body text-gray-500">
-                    No clients match your search/filters.
-                  </p>
-                ) : (
-                  <div className="overflow-auto border border-gray-200 rounded-md">
-                    <table className="min-w-full text-sm font-body">
-                      <thead className="bg-gray-50 text-gray-700">
-                        <tr>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Client ID
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Name
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Risk
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Status
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Segment
-                          </th>
-                          <th className="text-left px-4 py-3 font-medium">
-                            Action
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {filteredClientIndex.map((c) => (
-                          <tr key={c.client_id} className="bg-white">
-                            <td className="px-4 py-3 font-mono text-gray-900">
-                              {c.client_id}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {c.name || "â€”"}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {c.risk_rating || "â€”"}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {c.status || "â€”"}
-                            </td>
-                            <td className="px-4 py-3 text-gray-900">
-                              {c.segment || "â€”"}
-                            </td>
-                            <td className="px-4 py-3">
-                              <button
-                                type="button"
-                                className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
-                                onClick={() => setClientId(c.client_id)}
-                                title="Populate Client ID"
-                              >
-                                Select
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* Find client profile */}
+            {/* Find client profile (always shown in SCV view) */}
             <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
               <h2 className="font-heading text-lg text-gray-800 mb-4">
                 Find client profile
@@ -10575,7 +10470,236 @@ function App() {
               )}
             </section>
 
-            {/* SCV layout grid */}
+            {/* Initial landing screen (only when no profile): Client Overview + Pre-Matched */}
+            {!profile && (
+              <>
+                {/* Client overview */}
+                <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+                  <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div>
+                      <h2 className="font-heading text-lg text-gray-800">
+                        Client overview
+                      </h2>
+                      <p className="mt-1 text-sm font-body text-gray-600">
+                        Search and filter clients, then navigate to the detailed profile.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                      <div className="flex-1 sm:w-64">
+                        <label className="block text-sm font-body text-gray-700 mb-1">
+                          Search
+                        </label>
+                        <input
+                          type="text"
+                          value={clientSearch}
+                          onChange={(e) => setClientSearch(e.target.value)}
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                          placeholder="Name, ID, segmentâ€¦"
+                        />
+                      </div>
+
+                      <div className="sm:w-44">
+                        <label className="block text-sm font-body text-gray-700 mb-1">
+                          Risk rating
+                        </label>
+                        <select
+                          value={riskFilter}
+                          onChange={(e) => setRiskFilter(e.target.value)}
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                        >
+                          <option value="All">All</option>
+                          {distinctRiskRatings.map((r) => (
+                            <option key={r} value={r}>
+                              {r}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="sm:w-44">
+                        <label className="block text-sm font-body text-gray-700 mb-1">
+                          Status
+                        </label>
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-body text-gray-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A9988]"
+                        >
+                          <option value="All">All</option>
+                          {distinctStatuses.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5">
+                    {clientsLoading ? (
+                      <p className="text-sm font-body text-gray-500">
+                        Loading client listâ€¦
+                      </p>
+                    ) : clientIndexError ? (
+                      <p className="text-sm font-body text-gray-500">
+                        {clientIndexError}
+                      </p>
+                    ) : filteredClientIndex.length === 0 ? (
+                      <p className="text-sm font-body text-gray-500">
+                        No clients match your search/filters.
+                      </p>
+                    ) : (
+                      <div className="overflow-auto border border-gray-200 rounded-md">
+                        <table className="min-w-full text-sm font-body">
+                          <thead className="bg-gray-50 text-gray-700">
+                            <tr>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Client ID
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Name
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Risk
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Status
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Segment
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Action
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {filteredClientIndex.map((c) => (
+                              <tr key={c.client_id} className="bg-white">
+                                <td className="px-4 py-3 font-mono text-gray-900">
+                                  {c.client_id}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900">
+                                  {c.name || "â€”"}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900">
+                                  {c.risk_rating || "â€”"}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900">
+                                  {c.status || "â€”"}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900">
+                                  {c.segment || "â€”"}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
+                                    onClick={() => setClientId(c.client_id)}
+                                    title="Populate Client ID"
+                                  >
+                                    Select
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* Pre-Matched Records */}
+                <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-heading text-lg text-gray-800">
+                      Pre-Matched Records
+                    </h2>
+
+                    <button
+                      type="button"
+                      style={{ fontFamily: "Fjalla One" }}
+                      className="inline-flex items-center justify-center px-5 py-2 rounded-md text-sm text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
+                      onClick={fetchPreMatched}
+                      disabled={preMatchedLoading}
+                      title="Refresh pre-matched records"
+                    >
+                      {preMatchedLoading ? "Refreshingâ€¦" : "Refresh"}
+                    </button>
+                  </div>
+
+                  {preMatchedError && (
+                    <p className="text-sm font-body text-red-600">{preMatchedError}</p>
+                  )}
+
+                  {!preMatchedError && preMatchedRecords.length === 0 ? (
+                    <p className="text-sm font-body text-gray-500">
+                      No pre-matched records.
+                    </p>
+                  ) : (
+                    preMatchedRecords.length > 0 && (
+                      <div className="overflow-auto border border-gray-200 rounded-md">
+                        <table className="min-w-full text-sm font-body">
+                          <thead className="bg-gray-50 text-gray-700">
+                            <tr>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Source
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Record ID
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Name
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Email
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Created
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {preMatchedRecords.map((r) => {
+                              const name = `${r.first_name || ""} ${r.last_name || ""}`.trim();
+                              const created =
+                                r.created_at
+                                  ? String(r.created_at).replace("T", " ").slice(0, 19)
+                                  : "â€”";
+
+                              return (
+                                <tr key={r.id} className="bg-white">
+                                  <td className="px-4 py-3 text-gray-900">
+                                    {r.source_system || "â€”"}
+                                  </td>
+                                  <td className="px-4 py-3 font-mono text-gray-900">
+                                    {r.source_record_id || "â€”"}
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-900">
+                                    {name || "â€”"}
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-900">
+                                    {r.email || "â€”"}
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-900">
+                                    {created}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  )}
+                </section>
+              </>
+            )}
+
+            {/* SCV layout grid (only when profile loaded) */}
             {profile && (
               <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                 {/* Left column: core profile */}
@@ -10697,7 +10821,7 @@ function App() {
               </section>
             )}
 
-            {/* NEW: Detailed Profile panel (below existing SCV grid, no regression) */}
+            {/* Detailed Profile panel (below existing SCV grid, no regression) */}
             {profile && showDetailedProfile && (
               <div id="scv-detailed-profile">
                 <DetailedClientProfilePanel
@@ -10714,6 +10838,8 @@ function App() {
 }
 
 export default App;
+
+
 
 
 
@@ -15088,29 +15214,37 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.services.crm_bulk_load_service import BulkCrmIngestionService, FileCrmSource
+from app.services.crm_bulk_load_service import (
+    BulkCrmIngestionService,
+    FileCrmSource,
+)
 
 router = APIRouter(prefix="/ingestion", tags=["ingestion"])
+
+# Resolve paths relative to this file, not the process working directory
+BASE_DIR = Path(__file__).resolve().parents[1]
+
+
+def _demo_enabled() -> bool:
+    return os.getenv("SCV_DEMO_INGESTION_ENABLED", "false").lower() == "true"
 
 
 @router.post("/crm/bulk")
 def bulk_load_crm(db: Session = Depends(get_db)):
     """
-    ST-05 demo-first endpoint.
+    ST-05 demo-first endpoint (original sample fixture).
 
-    Guarded so it cannot be triggered accidentally in non-demo scenarios.
-    Set:
-      SCV_DEMO_INGESTION_ENABLED=true
+    Loads crm_sample.csv â€“ DO NOT CHANGE.
     """
-    enabled = os.getenv("SCV_DEMO_INGESTION_ENABLED", "false").lower() == "true"
-    if not enabled:
+    if not _demo_enabled():
         raise HTTPException(status_code=403, detail="Demo ingestion disabled")
 
-    fixture_path = Path("backend_v2/app/fixtures/st05/crm_sample.csv")
+    fixture_path = BASE_DIR / "fixtures" / "st05" / "crm_sample.csv"
     if not fixture_path.exists():
         raise HTTPException(status_code=500, detail=f"Fixture not found: {fixture_path}")
 
@@ -15121,6 +15255,122 @@ def bulk_load_crm(db: Session = Depends(get_db)):
         "updated": result.updated,
         "skipped": result.skipped,
     }
+
+
+@router.post("/crm/bulk_demo_corporate")
+def bulk_load_crm_demo_corporate(db: Session = Depends(get_db)):
+    """
+    Demo-only endpoint that loads corporate-style CRM records.
+    """
+    if not _demo_enabled():
+        raise HTTPException(status_code=403, detail="Demo ingestion disabled")
+
+    fixture_path = BASE_DIR / "fixtures" / "st05" / "crm_demo_corporate.csv"
+    if not fixture_path.exists():
+        raise HTTPException(status_code=500, detail=f"Fixture not found: {fixture_path}")
+
+    result = BulkCrmIngestionService.ingest(db, FileCrmSource(fixture_path))
+    return {
+        "fixture": "crm_demo_corporate.csv",
+        "total": result.total,
+        "inserted": result.inserted,
+        "updated": result.updated,
+        "skipped": result.skipped,
+    }
+
+
+@router.get("/crm/contacts")
+def list_crm_contacts(
+    db: Session = Depends(get_db),
+    source_system: str | None = Query(default=None),
+    limit: int = Query(default=200, ge=1, le=2000),
+):
+    """
+    Demo utility: list ingested CRM contacts (for Pre-Matched Records UI).
+    """
+    if not _demo_enabled():
+        raise HTTPException(status_code=403, detail="Demo ingestion disabled")
+
+    if source_system:
+        rows = (
+            db.execute(
+                text(
+                    """
+                    SELECT id, source_system, source_record_id, first_name, last_name, email, created_at, updated_at
+                    FROM crm_contacts
+                    WHERE source_system = :source_system
+                    ORDER BY created_at DESC
+                    LIMIT :limit
+                    """
+                ),
+                {"source_system": source_system, "limit": limit},
+            )
+            .mappings()
+            .all()
+        )
+    else:
+        rows = (
+            db.execute(
+                text(
+                    """
+                    SELECT id, source_system, source_record_id, first_name, last_name, email, created_at, updated_at
+                    FROM crm_contacts
+                    ORDER BY created_at DESC
+                    LIMIT :limit
+                    """
+                ),
+                {"limit": limit},
+            )
+            .mappings()
+            .all()
+        )
+
+    return {"records": [dict(r) for r in rows]}
+
+
+@router.get("/crm/contacts/count")
+def crm_contacts_count(db: Session = Depends(get_db)):
+    """
+    Demo utility: confirm how many CRM ingestion records exist.
+    """
+    if not _demo_enabled():
+        raise HTTPException(status_code=403, detail="Demo ingestion disabled")
+
+    count = int(db.execute(text("SELECT COUNT(*) FROM crm_contacts")).scalar_one())
+    return {"count": count}
+
+
+@router.delete("/crm/contacts")
+def delete_crm_contacts(
+    db: Session = Depends(get_db),
+    source_system: str | None = Query(default=None),
+):
+    """
+    Demo utility: delete ingested CRM contacts.
+
+    - If source_system is provided, deletes only those rows
+    - If omitted, deletes all rows
+    """
+    if not _demo_enabled():
+        raise HTTPException(status_code=403, detail="Demo ingestion disabled")
+
+    if source_system:
+        res = db.execute(
+            text("DELETE FROM crm_contacts WHERE source_system = :source_system"),
+            {"source_system": source_system},
+        )
+    else:
+        res = db.execute(text("DELETE FROM crm_contacts"))
+
+    db.commit()
+    return {
+        "deleted": int(res.rowcount or 0),
+        "scope": {"source_system": source_system},
+    }
+
+
+
+
 
 
 ===== FILE: backend_v2\app\routers\kyc_flag_router.py =====

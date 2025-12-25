@@ -1,48 +1,196 @@
-import React, { useEffect, useState } from "react";
-
-// Status categories for easy reference (currently not used directly but kept for clarity)
-const STATUS_MAP = {
-  Complete: "Complete",
-  "In Progress": "In Progress",
-  Planned: "Planned",
-};
+import React, { useEffect, useMemo, useState } from "react";
 
 // Status normalisation function
 function normaliseStatus(status) {
-  return status ? status.toUpperCase() : "UNKNOWN";
+  return status ? String(status).toUpperCase() : "UNKNOWN";
 }
 
-// Status Chip (adjusted for consistent look)
-function StatusChip({ label, status, extraClass }) {
-  let statusClass = "bg-gray-100"; // Default to grey for N/A statuses
+// Status Chip (fixed width + no wrap)
+function StatusChip({ label, status, extraClass = "", onClick }) {
+  let statusClass = "bg-gray-200"; // Default grey
 
-  // Define specific color mappings for statuses
   if (status === "Complete" || status === "pass") {
-    statusClass = "bg-green-100"; // Green for complete / passed
+    statusClass = "bg-green-100";
   } else if (status === "In Progress" || status === "fail") {
-    statusClass = "bg-yellow-100"; // Yellow for in progress / failed
+    statusClass = "bg-yellow-100";
   } else if (status === "Planned" || status === "not_run") {
-    statusClass = "bg-blue-100"; // Blue for planned / not_run
+    statusClass = "bg-blue-100";
   } else if (status === "N/A") {
-    statusClass = "bg-gray-200"; // Grey color for N/A statuses
+    statusClass = "bg-gray-200";
   }
 
+  const isClickable = typeof onClick === "function";
+
+  const classes = [
+    "inline-flex items-center justify-center",
+    "px-2.5 py-0.5 rounded-full",
+    "text-xs font-body text-gray-900",
+    "w-20",
+    "text-center",
+    "whitespace-nowrap",
+    statusClass,
+    isClickable ? "cursor-pointer hover:shadow-sm" : "cursor-default",
+    extraClass,
+  ].join(" ");
+
+  if (!isClickable) return <span className={classes}>{label}</span>;
+
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-body ${statusClass} ${
-        extraClass || ""
-      }`}
-    >
+    <button type="button" onClick={onClick} className={classes} title={label}>
       {label}
-    </span>
+    </button>
   );
 }
 
-// MissionLog Panel with Key, alignment, and Back button
+// Evidence modal
+function EvidenceModal({ open, onClose, title, subtitle, loading, error, data }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        role="button"
+        tabIndex={0}
+      />
+
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl bg-white rounded-halo shadow-lg border border-gray-200">
+          <div className="flex items-start justify-between p-4 border-b border-gray-200">
+            <div>
+              <h3
+                style={{ fontFamily: "Fjalla One" }}
+                className="text-lg text-gray-900 tracking-wide"
+              >
+                {title}
+              </h3>
+              {subtitle && (
+                <p className="text-sm font-body text-gray-600 mt-1">{subtitle}</p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-body hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="p-4">
+            {loading && (
+              <p className="text-sm font-body text-gray-500">Loading evidence…</p>
+            )}
+
+            {!loading && error && (
+              <p className="text-sm font-body text-red-600">{error}</p>
+            )}
+
+            {!loading && !error && (
+              <div className="bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-[60vh]">
+                <pre className="text-xs font-mono text-gray-800 whitespace-pre-wrap">
+                  {JSON.stringify(data, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            <p className="text-xs font-body text-gray-400 mt-3">
+              Evidence is expected at{" "}
+              <code>/missionlog/evidence/&lt;story_id&gt;/&lt;dimension&gt;.json</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Story definition modal (connectivity wired later)
+function StoryDefinitionModal({ open, onClose, title, subtitle }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        role="button"
+        tabIndex={0}
+      />
+
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl bg-white rounded-halo shadow-lg border border-gray-200">
+          <div className="flex items-start justify-between p-4 border-b border-gray-200">
+            <div>
+              <h3
+                style={{ fontFamily: "Fjalla One" }}
+                className="text-lg text-gray-900 tracking-wide"
+              >
+                {title}
+              </h3>
+              {subtitle && (
+                <p className="text-sm font-body text-gray-600 mt-1">{subtitle}</p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-body hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="p-4">
+            <p className="text-sm font-body text-gray-700">
+              Story definition will be loaded from the Story markdown file in the
+              next step.
+            </p>
+
+            <div className="mt-3 bg-gray-50 border border-gray-200 rounded-md p-3">
+              <p className="text-xs font-body text-gray-500">
+                Placeholder: story markdown connectivity not yet implemented.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MissionLogPanel({ setActiveView }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Evidence modal state
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [evidenceLoading, setEvidenceLoading] = useState(false);
+  const [evidenceError, setEvidenceError] = useState("");
+  const [evidenceData, setEvidenceData] = useState(null);
+  const [evidenceMeta, setEvidenceMeta] = useState({
+    storyId: "",
+    storyName: "",
+    dimensionKey: "",
+    dimensionLabel: "",
+    status: "",
+  });
+
+  // Story definition modal state
+  const [storyDefOpen, setStoryDefOpen] = useState(false);
+  const [storyDefMeta, setStoryDefMeta] = useState({
+    storyId: "",
+    storyName: "",
+  });
+
+  // Filters (multi-select)
+  const [selectedEpics, setSelectedEpics] = useState([]);
+  const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [selectedStories, setSelectedStories] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,9 +200,7 @@ export default function MissionLogPanel({ setActiveView }) {
         const res = await fetch("/missionlog/status_snapshot.json", {
           cache: "no-store",
         });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (!cancelled) {
           setData(json);
@@ -62,13 +208,9 @@ export default function MissionLogPanel({ setActiveView }) {
         }
       } catch (err) {
         console.error("Failed to load MissionLog status snapshot", err);
-        if (!cancelled) {
-          setError("Could not load latest status snapshot.");
-        }
+        if (!cancelled) setError("Could not load latest status snapshot.");
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -80,18 +222,245 @@ export default function MissionLogPanel({ setActiveView }) {
 
   const epics = data?.epics || [];
 
-  // Handle Back button
+  // Fixed badge spec (exact order)
+  const BADGES = useMemo(
+    () => [
+      { label: "Testing", key: "testing_status", mvp: true, evidenceDim: "testing" },
+      { label: "Halo", key: "halo_adherence", mvp: true, evidenceDim: "halo" },
+      { label: "Guardrails", key: "guardrail_adherence", mvp: true, evidenceDim: "guardrails" },
+      { label: "Quality", key: "code_quality_adherence", mvp: true, evidenceDim: "code_quality" },
+      { label: "Security", key: "security_policy_adherence", mvp: true, evidenceDim: "security" },
+
+      { label: "Policy", key: "policy_adherence", mvp: false, evidenceDim: "policy" },
+      { label: "Tech Trace", key: "technology_lineage_adherence", mvp: false, evidenceDim: "tech_lineage" },
+      { label: "Lineage", key: "business_data_lineage_adherence", mvp: false, evidenceDim: "business_lineage" },
+      { label: "Self-Heal", key: "self_healing_adherence", mvp: false, evidenceDim: "self_healing" },
+      { label: "Analytics", key: "analytics_adherence", mvp: false, evidenceDim: "analytics" },
+    ],
+    []
+  );
+
   const handleBack = () => {
-    if (typeof setActiveView === "function") {
-      setActiveView("scv");
-    } else {
-      window.location.reload();
-    }
+    if (typeof setActiveView === "function") setActiveView("scv");
+    else window.location.reload();
   };
+
+  async function openEvidence(story, badge) {
+    const raw = story?.[badge.key];
+    const statusVal = badge.mvp ? (raw || "not_run") : "N/A";
+    if (statusVal !== "pass" && statusVal !== "fail") return;
+
+    const storyId = story.story_id;
+    const storyName = story.name;
+
+    setEvidenceMeta({
+      storyId,
+      storyName,
+      dimensionKey: badge.key,
+      dimensionLabel: badge.label,
+      status: statusVal,
+    });
+
+    setEvidenceOpen(true);
+    setEvidenceLoading(true);
+    setEvidenceError("");
+    setEvidenceData(null);
+
+    const url = `/missionlog/evidence/${encodeURIComponent(
+      storyId
+    )}/${encodeURIComponent(badge.evidenceDim)}.json`;
+
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok)
+        throw new Error(`Evidence not found (HTTP ${res.status}). Expected: ${url}`);
+      const json = await res.json();
+      setEvidenceData(json);
+    } catch (err) {
+      setEvidenceError(
+        err?.message || "Could not load evidence for this badge (file missing or invalid JSON)."
+      );
+    } finally {
+      setEvidenceLoading(false);
+    }
+  }
+
+  const closeEvidence = () => {
+    setEvidenceOpen(false);
+    setEvidenceLoading(false);
+    setEvidenceError("");
+    setEvidenceData(null);
+  };
+
+  const openStoryDefinition = (story) => {
+    setStoryDefMeta({ storyId: story.story_id, storyName: story.name });
+    setStoryDefOpen(true);
+  };
+
+  const closeStoryDefinition = () => {
+    setStoryDefOpen(false);
+  };
+
+  // ---------- Filter indexes + expansion rules ----------
+
+  const index = useMemo(() => {
+    const epicsById = new Map();
+    const featuresById = new Map();
+    const storiesById = new Map();
+    const featureToEpic = new Map();
+    const storyToFeature = new Map();
+    const epicToFeatures = new Map();
+    const featureToStories = new Map();
+
+    for (const e of epics) {
+      epicsById.set(e.epic_id, e);
+      epicToFeatures.set(e.epic_id, []);
+      for (const f of e.features || []) {
+        featuresById.set(f.feature_id, f);
+        featureToEpic.set(f.feature_id, e.epic_id);
+        epicToFeatures.get(e.epic_id).push(f.feature_id);
+
+        featureToStories.set(f.feature_id, []);
+        for (const s of f.stories || []) {
+          storiesById.set(s.story_id, s);
+          storyToFeature.set(s.story_id, f.feature_id);
+          featureToStories.get(f.feature_id).push(s.story_id);
+        }
+      }
+    }
+
+    return {
+      epicsById,
+      featuresById,
+      storiesById,
+      featureToEpic,
+      storyToFeature,
+      epicToFeatures,
+      featureToStories,
+    };
+  }, [epics]);
+
+  const options = useMemo(() => {
+    const epicOpts = epics.map((e) => ({
+      id: e.epic_id,
+      label: `${e.epic_id}: ${e.name}`,
+    }));
+
+    const featureOpts = [];
+    const storyOpts = [];
+
+    for (const e of epics) {
+      for (const f of e.features || []) {
+        featureOpts.push({
+          id: f.feature_id,
+          label: `${f.feature_id}: ${f.name}`,
+        });
+        for (const s of f.stories || []) {
+          storyOpts.push({
+            id: s.story_id,
+            label: `${s.story_id}: ${s.name}`,
+          });
+        }
+      }
+    }
+
+    return { epicOpts, featureOpts, storyOpts };
+  }, [epics]);
+
+  const visibleSets = useMemo(() => {
+    const anySelected =
+      selectedEpics.length > 0 ||
+      selectedFeatures.length > 0 ||
+      selectedStories.length > 0;
+
+    if (!anySelected) {
+      return {
+        anySelected: false,
+        visibleEpicIds: null,
+        visibleFeatureIds: null,
+        visibleStoryIds: null,
+      };
+    }
+
+    const visibleEpicIds = new Set();
+    const visibleFeatureIds = new Set();
+    const visibleStoryIds = new Set();
+
+    // 1) Expand epics -> all features + all stories
+    for (const epicId of selectedEpics) {
+      visibleEpicIds.add(epicId);
+      const feats = index.epicToFeatures.get(epicId) || [];
+      for (const fid of feats) {
+        visibleFeatureIds.add(fid);
+        const stories = index.featureToStories.get(fid) || [];
+        for (const sid of stories) visibleStoryIds.add(sid);
+      }
+    }
+
+    // 2) Expand features -> parent epic + all stories
+    for (const featureId of selectedFeatures) {
+      visibleFeatureIds.add(featureId);
+      const epicId = index.featureToEpic.get(featureId);
+      if (epicId) visibleEpicIds.add(epicId);
+
+      const stories = index.featureToStories.get(featureId) || [];
+      for (const sid of stories) visibleStoryIds.add(sid);
+    }
+
+    // 3) Expand stories -> parent feature + parent epic (only that story)
+    for (const storyId of selectedStories) {
+      visibleStoryIds.add(storyId);
+      const featureId = index.storyToFeature.get(storyId);
+      if (featureId) {
+        visibleFeatureIds.add(featureId);
+        const epicId = index.featureToEpic.get(featureId);
+        if (epicId) visibleEpicIds.add(epicId);
+      }
+    }
+
+    return {
+      anySelected: true,
+      visibleEpicIds,
+      visibleFeatureIds,
+      visibleStoryIds,
+    };
+  }, [selectedEpics, selectedFeatures, selectedStories, index]);
+
+  const filteredEpics = useMemo(() => {
+    if (!visibleSets.anySelected) return epics;
+
+    return epics
+      .filter((e) => visibleSets.visibleEpicIds.has(e.epic_id))
+      .map((e) => ({
+        ...e,
+        features: (e.features || [])
+          .filter((f) => visibleSets.visibleFeatureIds.has(f.feature_id))
+          .map((f) => ({
+            ...f,
+            stories: (f.stories || []).filter((s) =>
+              visibleSets.visibleStoryIds.has(s.story_id)
+            ),
+          })),
+      }));
+  }, [epics, visibleSets]);
+
+  const clearFilters = () => {
+    setSelectedEpics([]);
+    setSelectedFeatures([]);
+    setSelectedStories([]);
+  };
+
+  const onMultiSelectChange = (setter) => (e) => {
+    const vals = Array.from(e.target.selectedOptions).map((o) => o.value);
+    setter(vals);
+  };
+
+  // ---------- Status column alignment ----------
+  // One fixed status column width for epic/feature/story to guarantee same X-position
+  const ROW_GRID = "grid grid-cols-[1fr_7rem] items-start gap-3"; // 7rem ~ w-28
 
   return (
     <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
-      {/* Back to Single Client View button */}
       <div className="flex justify-between mb-4">
         <h2
           style={{ fontFamily: "Fjalla One" }}
@@ -109,174 +478,225 @@ export default function MissionLogPanel({ setActiveView }) {
         </button>
       </div>
 
-      {/* Key/Legend for Statuses */}
       <div className="mb-4 p-3 bg-gray-50 rounded-md text-sm font-body text-gray-800">
         <strong>Status Key:</strong>
         <div className="flex flex-wrap gap-3 mt-2">
-          <StatusChip label="Complete" status="Complete" />
-          <StatusChip label="In Progress" status="In Progress" />
-          <StatusChip label="Planned" status="Planned" />
+          <StatusChip label="Complete" status="pass" />
+          <StatusChip label="In Progress" status="fail" />
+          <StatusChip label="Planned" status="not_run" />
           <StatusChip label="N/A" status="N/A" />
         </div>
       </div>
 
+      {/* NEW: Filters */}
+      <div className="mb-4 p-4 bg-white rounded-md border border-gray-200">
+        <div className="flex items-start justify-between gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+            <div>
+              <label className="block text-xs font-body text-gray-700 mb-1">
+                Filter Epics
+              </label>
+              <select
+                multiple
+                value={selectedEpics}
+                onChange={onMultiSelectChange(setSelectedEpics)}
+                className="w-full text-sm font-body border border-gray-300 rounded-md p-2 bg-white"
+                size={Math.min(6, Math.max(3, options.epicOpts.length))}
+              >
+                {options.epicOpts.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-body text-gray-700 mb-1">
+                Filter Features
+              </label>
+              <select
+                multiple
+                value={selectedFeatures}
+                onChange={onMultiSelectChange(setSelectedFeatures)}
+                className="w-full text-sm font-body border border-gray-300 rounded-md p-2 bg-white"
+                size={Math.min(6, Math.max(3, options.featureOpts.length))}
+              >
+                {options.featureOpts.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-body text-gray-700 mb-1">
+                Filter Stories
+              </label>
+              <select
+                multiple
+                value={selectedStories}
+                onChange={onMultiSelectChange(setSelectedStories)}
+                className="w-full text-sm font-body border border-gray-300 rounded-md p-2 bg-white"
+                size={Math.min(6, Math.max(3, options.storyOpts.length))}
+              >
+                {options.storyOpts.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-body hover:bg-gray-50"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <p className="text-xs font-body text-gray-500 mt-3">
+          Select any combination. Stories show their parent Feature and Epic.
+          Features show their Epic and all Stories. Epics show all Features and
+          Stories.
+        </p>
+      </div>
+
       {loading && (
-        <p className="text-sm font-body text-gray-500">
-          Loading latest status snapshot…
-        </p>
+        <p className="text-sm font-body text-gray-500">Loading latest status snapshot…</p>
+      )}
+      {!loading && error && <p className="text-sm font-body text-red-600 mb-2">{error}</p>}
+      {!loading && !error && filteredEpics.length === 0 && (
+        <p className="text-sm font-body text-gray-500">No status data available.</p>
       )}
 
-      {!loading && error && (
-        <p className="text-sm font-body text-red-600 mb-2">{error}</p>
-      )}
-
-      {!loading && !error && epics.length === 0 && (
-        <p className="text-sm font-body text-gray-500">
-          No status data available.
-        </p>
-      )}
-
-      {/* MissionLog Data */}
-      {!loading && !error && epics.length > 0 && (
+      {!loading && !error && filteredEpics.length > 0 && (
         <div className="space-y-6">
-          {epics.map((epic) => (
+          {filteredEpics.map((epic) => (
             <div
               key={epic.epic_id}
               className="bg-gray-50 rounded-lg border border-gray-200 p-4"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="font-heading text-sm text-gray-900">
-                    Epic {epic.epic_id}: {epic.name}
-                  </p>
+              {/* CHANGED: grid row to align status chips vertically across epic/feature/story */}
+              <div className={`${ROW_GRID} mb-3`}>
+                <p className="font-heading text-sm text-gray-900">
+                  Epic {epic.epic_id}: {epic.name}
+                </p>
+
+                <div className="flex justify-end">
+                  <StatusChip
+                    label={normaliseStatus(epic.overall_status)}
+                    status={epic.overall_status}
+                    extraClass="w-28"
+                  />
                 </div>
-                {/* Epic status chip – same size styling as feature-level */}
-                <StatusChip
-                  label={normaliseStatus(epic.overall_status)}
-                  status={epic.overall_status}
-                  extraClass="ml-auto px-3 py-1 text-xs"
-                />
               </div>
 
               <div className="space-y-4">
-                {epic.features.map((feature) => {
-                  const stories = feature.stories || [];
-                  const totalStories = stories.length;
-                  const completedStories = stories.filter(
-                    (s) => normaliseStatus(s.overall_status) === "COMPLETE"
-                  ).length;
+                {(epic.features || []).map((feature) => (
+                  <div
+                    key={feature.feature_id}
+                    className="bg-white rounded-md border border-gray-200 p-4"
+                  >
+                    {/* CHANGED: grid row to align status chips vertically */}
+                    <div className={`${ROW_GRID}`}>
+                      <p className="font-heading text-sm text-gray-900">
+                        Feature {feature.feature_id}: {feature.name}
+                      </p>
 
-                  return (
-                    <div
-                      key={feature.feature_id}
-                      className="bg-white rounded-md border border-gray-200 p-3"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="font-heading text-sm text-gray-900">
-                            Feature {feature.feature_id}: {feature.name}
-                          </p>
-                          <p className="text-xs font-body text-gray-500">
-                            {completedStories}/{totalStories} stories complete
-                          </p>
-                        </div>
-                        {/* Feature status chip – same size styling as epic-level */}
+                      <div className="flex justify-end">
                         <StatusChip
                           label={normaliseStatus(feature.overall_status)}
                           status={feature.overall_status}
-                          extraClass="ml-auto px-3 py-1 text-xs"
+                          extraClass="w-28"
                         />
                       </div>
-
-                      <div className="space-y-1.5">
-                        {stories.map((story) => {
-                          return (
-                            <div
-                              key={story.story_id}
-                              className="flex items-center justify-between"
-                            >
-                              <div className="flex-1">
-                                <p className="text-sm font-body text-gray-700">
-                                  {story.name}
-                                </p>
-                              </div>
-
-                              {/* Render badges for each story */}
-                              <div className="flex space-x-2">
-                                {story.testing_status && (
-                                  <StatusChip
-                                    label="Testing"
-                                    status={story.testing_status}
-                                  />
-                                )}
-                                {story.halo_adherence && (
-                                  <StatusChip
-                                    label="Halo"
-                                    status={story.halo_adherence}
-                                  />
-                                )}
-                                {story.guardrail_adherence && (
-                                  <StatusChip
-                                    label="Guardrails"
-                                    status={story.guardrail_adherence}
-                                  />
-                                )}
-                                {story.code_quality_adherence && (
-                                  <StatusChip
-                                    label="Code Quality"
-                                    status={story.code_quality_adherence}
-                                  />
-                                )}
-                                {story.security_adherence && (
-                                  <StatusChip
-                                    label="Security"
-                                    status={story.security_adherence}
-                                  />
-                                )}
-                                {/* Default to "N/A" for the following statuses if they don't exist */}
-                                {!story.policy_adherence && (
-                                  <StatusChip
-                                    label="Policy Adherence"
-                                    status="N/A"
-                                  />
-                                )}
-                                {!story.technology_lineage && (
-                                  <StatusChip
-                                    label="Technology Lineage"
-                                    status="N/A"
-                                  />
-                                )}
-                                {!story.business_data_lineage && (
-                                  <StatusChip
-                                    label="Business Data Lineage"
-                                    status="N/A"
-                                  />
-                                )}
-                                {!story.self_healing_adherence && (
-                                  <StatusChip
-                                    label="Self-healing Adherence"
-                                    status="N/A"
-                                  />
-                                )}
-                                {!story.analytics && (
-                                  <StatusChip label="Analytics" status="N/A" />
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
-                  );
-                })}
+
+                    <div className="mt-3 space-y-2">
+                      {(feature.stories || []).map((story) => (
+                        <div
+                          key={story.story_id}
+                          className="bg-gray-50 rounded-md border border-gray-200 p-3"
+                        >
+                          {/* CHANGED: grid row to align story status chip to same X-position */}
+                          <div className={`${ROW_GRID}`}>
+                            <button
+                              type="button"
+                              onClick={() => openStoryDefinition(story)}
+                              className="text-sm font-body text-gray-900 truncate min-w-0 text-left rounded-md px-2 py-1 -ml-2 hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#1A9988]"
+                              title="View story definition"
+                            >
+                              <span className="font-semibold">{story.story_id}</span> · {story.name}
+                            </button>
+
+                            <div className="flex justify-end">
+                              <StatusChip
+                                label={normaliseStatus(story.overall_status)}
+                                status={story.overall_status}
+                                extraClass="w-28"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="mt-2 overflow-x-auto">
+                            <div className="flex flex-nowrap gap-2 justify-start">
+                              {BADGES.map((b) => {
+                                const raw = story?.[b.key];
+                                const statusVal = b.mvp ? (raw || "not_run") : "N/A";
+                                const clickable = statusVal === "pass" || statusVal === "fail";
+
+                                return (
+                                  <StatusChip
+                                    key={`${story.story_id}-${b.key}`}
+                                    label={b.label}
+                                    status={statusVal}
+                                    onClick={clickable ? () => openEvidence(story, b) : undefined}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <EvidenceModal
+        open={evidenceOpen}
+        onClose={closeEvidence}
+        title={`${evidenceMeta.storyId} · ${evidenceMeta.dimensionLabel} Evidence`}
+        subtitle={`${evidenceMeta.storyName} · Status: ${evidenceMeta.status}`}
+        loading={evidenceLoading}
+        error={evidenceError}
+        data={evidenceData}
+      />
+
+      <StoryDefinitionModal
+        open={storyDefOpen}
+        onClose={closeStoryDefinition}
+        title={`${storyDefMeta.storyId} · Story Definition`}
+        subtitle={storyDefMeta.storyName}
+      />
     </section>
   );
 }
+
+
+
+
 
 
 
