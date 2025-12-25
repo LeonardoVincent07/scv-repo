@@ -1,0 +1,4 @@
+source_system,source_record_id,first_name,last_name,email
+DEMO_CRM,DEMO_ACME_0001,Acme Manufacturing Ltd,Treasury Operations,treasury.ops@acme-mfg.test
+DEMO_CRM,DEMO_NORTHRIDGE_0001,Northridge Capital Markets LLP,FX Trading Desk,fx.ops@northridge.test
+DEMO_CRM,DEMO_EUROTECH_0001,EuroTech Components AG,Payments & Settlements,payments.ops@eurotech.test

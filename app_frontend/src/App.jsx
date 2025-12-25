@@ -30,6 +30,37 @@ function App() {
   // 'scv' | 'missionLog' | 'missionAtlas'
   const [activeView, setActiveView] = useState("scv");
 
+  // NEW: Pre-Matched Records (ST-05 demo ingestion)
+  const [preMatchedRecords, setPreMatchedRecords] = useState([]);
+  const [preMatchedLoading, setPreMatchedLoading] = useState(false);
+  const [preMatchedError, setPreMatchedError] = useState("");
+
+  const fetchPreMatched = async () => {
+    setPreMatchedLoading(true);
+    setPreMatchedError("");
+
+    try {
+      const res = await fetch(
+        `${BACKEND_BASE_URL}/ingestion/crm/contacts?source_system=DEMO_CRM`
+      );
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({}));
+        throw new Error(
+          detail.detail || `Failed to fetch pre-matched records (${res.status}).`
+        );
+      }
+
+      const data = await res.json();
+      const records = Array.isArray(data?.records) ? data.records : [];
+      setPreMatchedRecords(records);
+    } catch (err) {
+      setPreMatchedRecords([]);
+      setPreMatchedError(err?.message || "Failed to fetch pre-matched records.");
+    } finally {
+      setPreMatchedLoading(false);
+    }
+  };
+
   // Fetch client index (best-effort; UI degrades gracefully if endpoint not available)
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +133,9 @@ function App() {
     };
 
     fetchClientIndex();
+
+    // NEW: fetch pre-matched records on landing load
+    fetchPreMatched();
 
     return () => {
       cancelled = true;
@@ -354,7 +388,7 @@ function App() {
               )}
             </section>
 
-            {/* Initial landing screen (only when no profile): Client Overview + Pre-Matched placeholder */}
+            {/* Initial landing screen (only when no profile): Client Overview + Pre-Matched */}
             {!profile && (
               <>
                 {/* Client overview */}
@@ -496,12 +530,89 @@ function App() {
                   </div>
                 </section>
 
-                {/* Pre-Matched Records (placeholder only, intentionally blank) */}
+                {/* Pre-Matched Records */}
                 <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
-                  <h2 className="font-heading text-lg text-gray-800">
-                    Pre-Matched Records
-                  </h2>
-                  {/* Intentionally left blank until ST-05 wiring is added */}
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-heading text-lg text-gray-800">
+                      Pre-Matched Records
+                    </h2>
+
+                    <button
+                      type="button"
+                      style={{ fontFamily: "Fjalla One" }}
+                      className="inline-flex items-center justify-center px-5 py-2 rounded-md text-sm text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
+                      onClick={fetchPreMatched}
+                      disabled={preMatchedLoading}
+                      title="Refresh pre-matched records"
+                    >
+                      {preMatchedLoading ? "Refreshing…" : "Refresh"}
+                    </button>
+                  </div>
+
+                  {preMatchedError && (
+                    <p className="text-sm font-body text-red-600">{preMatchedError}</p>
+                  )}
+
+                  {!preMatchedError && preMatchedRecords.length === 0 ? (
+                    <p className="text-sm font-body text-gray-500">
+                      No pre-matched records.
+                    </p>
+                  ) : (
+                    preMatchedRecords.length > 0 && (
+                      <div className="overflow-auto border border-gray-200 rounded-md">
+                        <table className="min-w-full text-sm font-body">
+                          <thead className="bg-gray-50 text-gray-700">
+                            <tr>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Source
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Record ID
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Name
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Email
+                              </th>
+                              <th className="text-left px-4 py-3 font-medium">
+                                Created
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {preMatchedRecords.map((r) => {
+                              const name = `${r.first_name || ""} ${r.last_name || ""}`.trim();
+                              const created =
+                                r.created_at
+                                  ? String(r.created_at).replace("T", " ").slice(0, 19)
+                                  : "—";
+
+                              return (
+                                <tr key={r.id} className="bg-white">
+                                  <td className="px-4 py-3 text-gray-900">
+                                    {r.source_system || "—"}
+                                  </td>
+                                  <td className="px-4 py-3 font-mono text-gray-900">
+                                    {r.source_record_id || "—"}
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-900">
+                                    {name || "—"}
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-900">
+                                    {r.email || "—"}
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-900">
+                                    {created}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  )}
                 </section>
               </>
             )}
@@ -645,6 +756,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
