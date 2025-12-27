@@ -10,7 +10,7 @@ testing_status: pass
 halo_adherence: not_run
 guardrail_adherence: not_run
 code_quality_adherence: fail
-security_policy_adherence: not_run
+security_policy_adherence: pass
 overall_status: In Progress
 policy_adherence: not_run
 technology_lineage_adherence: not_run

@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "story_id": "ST-20",
+    "dimension": "security",
+    "published_at_utc": "2025-12-27T22:26:29Z",
+    "source_path": "evidence/security/ST-20.json"
+  },
+  "payload": {
+    "story_id": "ST-20",
+    "targets": [
+      "src/services/client_profile/service.py",
+      "src/domain/models/client_profile.py"
+    ],
+    "passed": true,
+    "message": "No medium/high security issues found by Bandit.",
+    "issues": []
+  }
+}
