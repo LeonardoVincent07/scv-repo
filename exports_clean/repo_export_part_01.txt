@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-27 17:41:00Z
+Generated: 2025-12-27 21:10:45Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -8772,7 +8772,7 @@ export default {
   "story_id": "ST-00",
   "slug": "ST-00-backend-api-availability",
   "source_path": "docs/mission_destination/stories/ST-00-backend-api-availability.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-00",
     "slug": "st-00-backend-api-availability",
@@ -8792,7 +8792,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "2025-12-21T16:19:34+00:00"
   },
-  "body_markdown": "## Description\n\nAs a developer,  \nI want the backend to expose a basic availability endpoint,  \nso that I can confirm the service is running and reachable.\n\nThis story establishes the foundational API contract for the backend and enables fast automated verification that the service is alive.\n\n## Acceptance Criteria\n\n- **AC1:** Backend can be started using the documented command (e.g. `uvicorn app_backend.main:app`).\n- **AC2:** A `/health` endpoint is available.\n- **AC3:** Calling `/health` returns HTTP **200**.\n- **AC4:** Response JSON contains at least `{ \"status\": \"ok\" }`.\n- **AC5:** A backend test exercises AC2â€“AC4.\n- **AC6:** Running the story test updates `testing_status:` to `pass` when successful.\n\n## Implementation Notes\n\n- Touchpoint: `app_backend/main.py`\n- This endpoint underpins availability checks for the entire platform and is required before any higher-level stories can be executed."
+  "body_markdown": "# Provide Basic Backend API Availability\n\n## Statement\nAs a platform owner, I want a basic backend API to be available so that the system can support the incremental delivery of client data capabilities in a controlled and extensible way.\n\n## Description\nThis story establishes the foundational backend capability on which the entire platform depends. It confirms that the backend application is not merely runnable, but correctly structured to support enterprise-grade delivery across ingestion, processing, audit, and exposure use cases.\n\nThe backend will be implemented using a modern service architecture, with clear separation between routing, service logic, persistence, and configuration. Core infrastructure concerns such as application startup, dependency wiring, configuration loading, and error handling are to be validated.\n\nThe backend exposes initial API endpoints to demonstrate:\n- request handling and routing\n- structured request/response models\n- consistent error behaviour\n- environment-driven configuration\n- health and readiness signalling\n\nPersistence wired using the real database layer, ensuring that subsequent stories operate against a genuine persistence mechanism rather than mocks or stubs. This confirms that the backend is capable of supporting real data flows, controlled schema evolution, and transactional behaviour.\n\nThis story also validates that the backend can be:\n- started locally in a development environment\n- exercised via automated tests\n- extended incrementally by subsequent stories without rework\n\nAll subsequent backend stories assume this capability as a prerequisite.\n\n## Acceptance Criteria\n- **Given** the backend application is started locally or in a deployed environment  \n  **When** a basic API endpoint is invoked  \n  **Then** the backend responds successfully with a structured response\n\n- **Given** the backend application is running  \n  **When** a health or readiness endpoint is accessed  \n  **Then** the application reports itself as available and correctly initialised\n\n- **Given** the backend configuration is invalid or incomplete  \n  **When** the application starts  \n  **Then** failures are surfaced clearly and prevent ambiguous or silent failure\n\n- **Given** automated tests are executed  \n  **When** backend functionality is exercised  \n  **Then** the application behaves consistently across environments"
 }
 
 
@@ -8801,7 +8801,7 @@ export default {
   "story_id": "ST-00-FRONTEND-UI-SHELL",
   "slug": "ST-00-frontend-ui-shell",
   "source_path": "docs/mission_destination/stories/ST-00-frontend-ui-shell.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-00-FRONTEND-UI-SHELL",
     "slug": "st-00-frontend-ui-shell",
@@ -8821,7 +8821,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "2025-12-21T16:51:47+00:00"
   },
-  "body_markdown": "## Description\n\nAs a developer,  \nI want the frontend UI shell to be built and served by the backend,  \nso that I can confirm the Single Client View application is accessible as a SPA.\n\nThis story verifies that the built frontend exists and the backend correctly serves\nthe index.html shell at the root path.\n\n## Acceptance Criteria\n\n- **AC1:** `npm run build` produces a frontend `dist/` folder.\n- **AC2:** Backend is configured to serve the frontend build output.\n- **AC3:** `GET /` returns HTTP **200**.\n- **AC4:** HTML contains `<div id=\"root\">`.\n- **AC5:** HTML contains the expected page `<title>` from the built frontend.\n- **AC6:** A backend test verifies AC1â€“AC5.\n- **AC7:** Running the ST-00-FRONTEND-UI-SHELL tests sets `testing_status: pass`.\n\n## Implementation Notes\n\n- Frontend: `app_frontend/`\n- Backend serving logic: `app_backend/main.py`\n- Test: `tests/api/http/test_st_00_frontend_ui_shell.py`"
+  "body_markdown": "# Provide Frontend UI Shell\n\n## Statement\nAs a platform owner, I want a frontend UI shell to be available so that delivered business functionality can be surfaced consistently and credibly as the platform evolves.\n\n## Description\nThis story establishes the foundational frontend capability required to present platform functionality to users in a coherent and extensible way. It confirms that the frontend is not merely a static page, but a properly structured application capable of supporting complex, data-driven user journeys.\n\nThe frontend UI shell has been implemented using a modern component-based framework, with:\n- a running application build and dev workflow\n- a consistent layout and visual structure\n- routing and navigation foundations\n- reusable UI components and styling conventions\n\nThe UI shell provides defined integration points for backend services and has been wired to consume real data where appropriate, rather than relying on mock or placeholder responses. This ensures that the frontend is validated against real backend behaviour from the outset.\n\nCore concerns such as:\n- application startup\n- dependency loading\n- error handling\n- environment configuration\n- visual consistency\n\nhave been exercised and proven.\n\nThis story also establishes the structural container into which future stories will be rendered, including MissionLog, evidence panels, lineage views, and client profile screens. As such, it acts as the visual and interaction baseline for all subsequent frontend work.\n\nAll subsequent frontend stories assume the existence of this shell.\n\n## Acceptance Criteria\n- **Given** the frontend application is started  \n  **When** a user accesses the application  \n  **Then** the UI shell loads successfully without errors\n\n- **Given** the UI shell is loaded  \n  **When** navigation and layout elements are displayed  \n  **Then** they provide a consistent structure for future feature integration\n\n- **Given** the frontend build or configuration is invalid  \n  **When** the application is started  \n  **Then** errors are surfaced clearly and prevent ambiguous failure\n\n- **Given** the frontend is connected to backend services  \n  **When** real data is requested  \n  **Then** responses are handled and rendered correctly"
 }
 
 
@@ -8830,7 +8830,7 @@ export default {
   "story_id": "ST-01",
   "slug": "ST-01_register_crm_source",
   "source_path": "docs/mission_destination/stories/ST-01_register_crm_source.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-01",
     "feature": "FT-01",
@@ -8853,7 +8853,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Register CRM Source System\n\n## Statement\nAs a data operations user, I want to register a CRM source system so that client data ingested from that system can be correctly identified, governed, and traced throughout the platform.\n\n## Description\nThe platform must allow a CRM source system to be registered as an approved upstream data provider.  \nRegistering a CRM source system establishes it as a recognised origin for client data and enables downstream ingestion, mapping, matching, and lineage tracking.\n\nThe registration process captures the minimum information required to uniquely identify the CRM system and treat it as a governed source within the platform. Once registered, the CRM source system can be referenced consistently by ingestion and processing workflows.\n\n## Acceptance Criteria\n- **Given** a CRM source system has not previously been registered  \n  **When** a data operations user registers the CRM source system  \n  **Then** the system is stored as a recognised and active source\n\n- **Given** a CRM source system is registered  \n  **When** downstream processes reference the source  \n  **Then** the system is identifiable as the origin of ingested client data\n\n- **Given** an attempt is made to register a CRM source system with missing or invalid identifying information  \n  **When** the registration is submitted  \n  **Then** the registration is rejected with a clear validation error"
 }
 
 
@@ -8862,7 +8862,7 @@ export default {
   "story_id": "ST-02",
   "slug": "ST-02_register_kyc_source",
   "source_path": "docs/mission_destination/stories/ST-02_register_kyc_source.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-02",
     "feature": "FT-01",
@@ -8885,7 +8885,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Register KYC Source System\n\n## Statement\nAs a compliance operations user, I want to register a KYC source system so that client due-diligence data can be ingested and governed with clear provenance.\n\n## Description\nThe platform must support the registration of KYC source systems as approved providers of compliance and due-diligence data.  \nRegistering a KYC source system ensures that KYC data entering the platform can be traced back to its originating system and treated according to governance and compliance requirements.\n\nOnce registered, the KYC source system can be referenced by ingestion, enrichment, and profile assembly processes.\n\n## Acceptance Criteria\n- **Given** a KYC source system has not previously been registered  \n  **When** a compliance operations user registers the KYC source system  \n  **Then** the system is stored as a recognised and active KYC data source\n\n- **Given** a KYC source system is registered  \n  **When** KYC data is ingested  \n  **Then** the data is associated with the registered source system\n\n- **Given** invalid or incomplete registration details are provided  \n  **When** the registration is attempted  \n  **Then** the registration is rejected with a clear error message"
 }
 
 
@@ -8894,7 +8894,7 @@ export default {
   "story_id": "ST-03",
   "slug": "ST-03_map_identity_fields",
   "source_path": "docs/mission_destination/stories/ST-03_map_identity_fields.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-03",
     "feature": "FT-02",
@@ -8917,7 +8917,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "2025-12-21T16:19:34+00:00"
   },
-  "body_markdown": ""
+  "body_markdown": "# Map Identity Fields\n\n## Statement\nAs a data operations user, I want to map identity fields so that equivalent client attributes from different source systems can be normalised and compared consistently.\n\n## Description\nClient identity data may be provided by multiple source systems using different field names and structures.  \nThe platform must support mapping source-specific identity fields to a canonical representation so that identity information can be processed consistently across the platform.\n\nMapped identity fields form the basis for downstream matching, profile assembly, and lineage reporting.\n\n## Acceptance Criteria\n- **Given** identity fields exist in a source system  \n  **When** identity field mappings are defined  \n  **Then** the fields are mapped to the platformâ€™s canonical identity model\n\n- **Given** identity mappings are defined  \n  **When** client data is ingested  \n  **Then** identity values are normalised according to the mappings\n\n- **Given** a required identity field is unmapped  \n  **When** identity processing is attempted  \n  **Then** the issue is reported clearly"
 }
 
 
@@ -8926,7 +8926,7 @@ export default {
   "story_id": "ST-04",
   "slug": "ST-04_map_identifiers",
   "source_path": "docs/mission_destination/stories/ST-04_map_identifiers.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-04",
     "feature": "FT-02",
@@ -8948,7 +8948,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "2025-12-21T16:19:34+00:00"
   },
-  "body_markdown": ""
+  "body_markdown": "# Map Identifiers\n\n## Statement\nAs a data operations user, I want to map client identifiers so that records referring to the same real-world entity can be reliably linked across systems.\n\n## Description\nDifferent source systems may represent client identifiers using different formats or naming conventions.  \nThe platform must support mapping these identifiers to a canonical identifier model so that they can be compared and used reliably for matching and consolidation.\n\nCorrect identifier mapping is essential for accurate client matching and profile assembly.\n\n## Acceptance Criteria\n- **Given** identifier fields exist in a source system  \n  **When** identifier mappings are defined  \n  **Then** identifiers are mapped to the canonical identifier model\n\n- **Given** identifier mappings are in place  \n  **When** client records are processed  \n  **Then** identifiers are available for matching logic\n\n- **Given** an identifier required for matching is missing or unmapped  \n  **When** matching is attempted  \n  **Then** the issue is surfaced clearly for investigation"
 }
 
 
@@ -8957,7 +8957,7 @@ export default {
   "story_id": "ST-05",
   "slug": "ST-05_bulk_load_crm",
   "source_path": "docs/mission_destination/stories/ST-05_bulk_load_crm.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-05",
     "feature": "FT-03",
@@ -8979,7 +8979,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "2025-12-22T19:26:52+00:00"
   },
-  "body_markdown": ""
+  "body_markdown": "# Ingest CRM Data\n\n## Statement\nAs a data operations user, I want to bulk load CRM data so that existing client records can be ingested into the platform efficiently and consistently.\n\n## Description\nThe platform must support bulk ingestion of client data from a registered CRM source system.  \nThis capability enables an initial or repeat load of CRM records into the platform using a controlled and repeatable process.\n\nBulk loading creates persisted client records that can subsequently be mapped, matched, and assembled into client profiles. The same ingestion logic must be usable for automated testing and operational execution.\n\n## Acceptance Criteria\n- **Given** a CRM source system is registered  \n  **When** a bulk load of CRM data is executed  \n  **Then** client records are ingested and persisted successfully\n\n- **Given** a bulk load is executed  \n  **When** individual records fail validation  \n  **Then** valid records are persisted and invalid records are reported clearly\n\n- **Given** the bulk load process completes  \n  **When** downstream processes run  \n  **Then** the ingested CRM records are available for mapping and matching"
 }
 
 
@@ -8988,7 +8988,7 @@ export default {
   "story_id": "ST-06",
   "slug": "ST-06_bulk_load_kyc",
   "source_path": "docs/mission_destination/stories/ST-06_bulk_load_kyc.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-06",
     "feature": "FT-03",
@@ -9010,7 +9010,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Ingest KYC Data\n\n## Statement\nAs a compliance operations user, I want KYC data to be ingested from approved source systems so that client due-diligence information is available for review and downstream processing.\n\n## Description\nThe platform must support ingestion of KYC data from registered KYC source systems.  \nIngested KYC data should be persisted in a controlled manner and associated with the originating source system to ensure provenance and auditability.\n\nOnce ingested, KYC data can be used for client enrichment, profile assembly, and compliance review processes.\n\n## Acceptance Criteria\n- **Given** a KYC source system is registered  \n  **When** KYC data is ingested  \n  **Then** the data is persisted successfully and linked to the source system\n\n- **Given** ingested KYC data  \n  **When** downstream processing is performed  \n  **Then** the data is available for enrichment and profile assembly\n\n- **Given** invalid KYC records are encountered  \n  **When** ingestion is attempted  \n  **Then** valid records are stored and invalid records are reported clearly"
 }
 
 
@@ -9019,7 +9019,7 @@ export default {
   "story_id": "ST-07",
   "slug": "ST-07_detect_upstream_deltas",
   "source_path": "docs/mission_destination/stories/ST-07_detect_upstream_deltas.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-07",
     "feature": "FT-04",
@@ -9041,7 +9041,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Detect Upstream Deltas\n\n## Statement\nAs a data operations user, I want the platform to detect upstream data changes so that only new or modified client records are processed incrementally.\n\n## Description\nUpstream source systems may deliver repeated data extracts containing a mixture of unchanged, new, updated, or removed records.  \nThe platform must be able to compare incoming data against previously ingested data to detect meaningful deltas.\n\nDetecting upstream deltas enables efficient incremental processing and prevents unnecessary reprocessing of unchanged client records.\n\n## Acceptance Criteria\n- **Given** a previous ingestion has occurred  \n  **When** new data is received from the same source system  \n  **Then** the platform identifies new, changed, and unchanged records\n\n- **Given** upstream records have not changed  \n  **When** delta detection runs  \n  **Then** those records are marked as unchanged\n\n- **Given** records are new or updated  \n  **When** delta detection completes  \n  **Then** they are flagged for downstream processing"
 }
 
 
@@ -9050,7 +9050,7 @@ export default {
   "story_id": "ST-08",
   "slug": "ST-08_apply_deltas",
   "source_path": "docs/mission_destination/stories/ST-08_apply_deltas.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-08",
     "feature": "FT-04",
@@ -9072,7 +9072,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Apply Upstream Deltas\n\n## Statement\nAs a data operations user, I want detected upstream deltas to be applied so that the platform state remains aligned with source system changes.\n\n## Description\nOnce upstream deltas have been identified, the platform must apply those changes to its internal representation of client data.  \nApplying deltas ensures that new records are added, updated records are amended, and removed records are handled appropriately.\n\nThis process keeps the platformâ€™s client data synchronised with upstream systems without requiring full reloads.\n\n## Acceptance Criteria\n- **Given** upstream deltas have been detected  \n  **When** delta application is executed  \n  **Then** new and updated records are applied to the platform state\n\n- **Given** records are marked as removed  \n  **When** deltas are applied  \n  **Then** the platform state reflects the removal according to defined rules\n\n- **Given** no deltas are detected  \n  **When** delta application runs  \n  **Then** no changes are applied"
 }
 
 
@@ -9081,7 +9081,7 @@ export default {
   "story_id": "ST-09",
   "slug": "ST-09_match_by_tax_id",
   "source_path": "docs/mission_destination/stories/ST-09_match_by_tax_id.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-09",
     "feature": "FT-05",
@@ -9103,7 +9103,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Match Clients by Tax Identifier\n\n## Statement\nAs a compliance operations user, I want clients to be matched by tax identifier so that duplicate or related client records can be identified accurately.\n\n## Description\nClients may appear in multiple source systems with different representations.  \nThe platform must support matching client records using tax identifiers as a strong matching attribute.\n\nSuccessful matching enables consolidation of records that refer to the same real-world entity and reduces duplication in client profiles.\n\n## Acceptance Criteria\n- **Given** multiple client records exist  \n  **When** matching by tax identifier is performed  \n  **Then** records with the same tax identifier are identified as potential matches\n\n- **Given** a tax identifier match is identified  \n  **When** client profiles are assembled  \n  **Then** matched records are treated as referring to the same client\n\n- **Given** a tax identifier is missing or invalid  \n  **When** matching is attempted  \n  **Then** the limitation is reported clearly"
 }
 
 
@@ -9112,7 +9112,7 @@ export default {
   "story_id": "ST-10",
   "slug": "ST-10_match_by_registration_number",
   "source_path": "docs/mission_destination/stories/ST-10_match_by_registration_number.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-10",
     "feature": "FT-05",
@@ -9134,7 +9134,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Match Clients by Registration Number\n\n## Statement\nAs a compliance operations user, I want clients to be matched by registration number so that records referring to the same legal entity can be identified reliably.\n\n## Description\nClient records originating from different systems may refer to the same legal entity using a common registration number.  \nThe platform must support matching client records based on registration number as a strong identifier.\n\nMatching by registration number complements other matching strategies and improves the accuracy of client consolidation.\n\n## Acceptance Criteria\n- **Given** multiple client records exist  \n  **When** matching by registration number is performed  \n  **Then** records with the same registration number are identified as potential matches\n\n- **Given** registration number matches are identified  \n  **When** downstream processing occurs  \n  **Then** those records are treated as referring to the same entity\n\n- **Given** a registration number is missing or invalid  \n  **When** matching is attempted  \n  **Then** the limitation is reported clearly"
 }
 
 
@@ -9143,7 +9143,7 @@ export default {
   "story_id": "ST-11",
   "slug": "ST-11_fuzzy_name_match",
   "source_path": "docs/mission_destination/stories/ST-11_fuzzy_name_match.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-11",
     "feature": "FT-06",
@@ -9165,7 +9165,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Drill Down Lineage\n\n## Statement\nAs a compliance or audit user, I want to drill down into lineage details so that I can inspect how specific data elements were produced.\n\n## Description\nHigh-level lineage views may not provide sufficient detail for investigation or audit purposes.  \nThe platform must support drilling down into lineage information, allowing users or systems to navigate from high-level lineage to detailed events and attributes.\n\nDrill-down capability enables deeper understanding of data provenance and processing history.\n\n## Acceptance Criteria\n- **Given** lineage information is available  \n  **When** a drill-down is requested  \n  **Then** more detailed lineage information is returned\n\n- **Given** detailed lineage is displayed  \n  **When** it is inspected  \n  **Then** it clearly shows contributing sources and transformations\n\n- **Given** no further detail exists  \n  **When** a drill-down is attempted  \n  **Then** this is communicated clearly"
 }
 
 
@@ -9174,7 +9174,7 @@ export default {
   "story_id": "ST-12",
   "slug": "ST-12_attribute_confidence",
   "source_path": "docs/mission_destination/stories/ST-12_attribute_confidence.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-12",
     "feature": "FT-06",
@@ -9196,7 +9196,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Fuzzy Name Match\n\n## Statement\nAs a compliance operations user, I want client records to be matched using fuzzy name matching so that potential duplicates can be identified even when names are not identical.\n\n## Description\nClient names may be represented inconsistently across source systems due to spelling variations, abbreviations, or formatting differences.  \nThe platform must support fuzzy name matching to identify potential matches where exact matching is insufficient.\n\nFuzzy name matching complements deterministic matching strategies and supports improved identification of related client records.\n\n## Acceptance Criteria\n- **Given** multiple client records exist with similar names  \n  **When** fuzzy name matching is performed  \n  **Then** records with similar names are identified as potential matches\n\n- **Given** fuzzy name matches are identified  \n  **When** downstream processing occurs  \n  **Then** the records are flagged for consolidation or further review\n\n- **Given** names are dissimilar beyond acceptable thresholds  \n  **When** fuzzy matching is attempted  \n  **Then** no match is identified"
 }
 
 
@@ -9205,7 +9205,7 @@ export default {
   "story_id": "ST-13",
   "slug": "ST-13_merge_identity",
   "source_path": "docs/mission_destination/stories/ST-13_merge_identity.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-13",
     "feature": "FT-07",
@@ -9227,7 +9227,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Merge Identity\n\n## Statement\nAs a compliance operations user, I want identity information to be merged so that client profiles reflect a single, coherent representation of the client.\n\n## Description\nWhen client records are identified as referring to the same real-world entity, identity attributes from those records must be merged.  \nThe platform must combine identity information in a controlled manner, resolving conflicts according to defined rules.\n\nMerging identity information enables accurate and consistent client profiles.\n\n## Acceptance Criteria\n- **Given** client records are identified as matches  \n  **When** identity merge is performed  \n  **Then** identity attributes are combined into a single representation\n\n- **Given** conflicting identity attributes exist  \n  **When** a merge occurs  \n  **Then** conflicts are resolved according to defined rules\n\n- **Given** identity merge cannot be completed  \n  **When** the process runs  \n  **Then** the issue is reported clearly"
 }
 
 
@@ -9236,7 +9236,7 @@ export default {
   "story_id": "ST-14",
   "slug": "ST-14_merge_addresses",
   "source_path": "docs/mission_destination/stories/ST-14_merge_addresses.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-14",
     "feature": "FT-07",
@@ -9258,7 +9258,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Merge Addresses\n\n## Statement\nAs a compliance or operations user, I want client address information to be merged so that address data is consistent and complete within the client profile.\n\n## Description\nClients may have multiple address records originating from different source systems.  \nThe platform must merge address information when records are matched, ensuring that valid and relevant addresses are retained.\n\nAddress merging supports accurate client profiling and downstream operational use.\n\n## Acceptance Criteria\n- **Given** matched client records contain address information  \n  **When** address merging is performed  \n  **Then** addresses are combined into a unified set\n\n- **Given** duplicate or conflicting addresses exist  \n  **When** merging occurs  \n  **Then** duplicates are handled and conflicts resolved appropriately\n\n- **Given** address data is incomplete  \n  **When** merging is attempted  \n  **Then** available address information is retained"
 }
 
 
@@ -9267,7 +9267,7 @@ export default {
   "story_id": "ST-15",
   "slug": "ST-15_record_lineage",
   "source_path": "docs/mission_destination/stories/ST-15_record_lineage.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-15",
     "feature": "FT-07",
@@ -9289,7 +9289,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Record Lineage\n\n## Statement\nAs a compliance or audit user, I want lineage to be recorded so that the origin and transformation of client data can be traced over time.\n\n## Description\nAs client data is ingested, matched, merged, and assembled, the platform must record lineage information describing how the data was produced.  \nRecorded lineage provides the foundation for auditability, transparency, and trust in client profiles.\n\nLineage records must be associated with the relevant data and processing events.\n\n## Acceptance Criteria\n- **Given** client data is processed  \n  **When** processing occurs  \n  **Then** lineage information is recorded for the relevant events\n\n- **Given** lineage has been recorded  \n  **When** it is queried  \n  **Then** it accurately reflects data origins and transformations\n\n- **Given** lineage recording fails  \n  **When** processing continues  \n  **Then** the failure is reported clearly"
 }
 
 
@@ -9298,7 +9298,7 @@ export default {
   "story_id": "ST-16",
   "slug": "ST-16_build_index",
   "source_path": "docs/mission_destination/stories/ST-16_build_index.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-16",
     "feature": "FT-08",
@@ -9320,7 +9320,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Build Index\n\n## Statement\nAs an operations user, I want client data to be indexed so that client information can be searched and retrieved efficiently.\n\n## Description\nTo support fast and reliable search, the platform must build and maintain indexes over relevant client data.  \nIndexes are derived from ingested and assembled client information and are optimised for common search and retrieval patterns.\n\nIndexing enables responsive search and supports downstream operational use of the platform.\n\n## Acceptance Criteria\n- **Given** client data exists  \n  **When** index building is executed  \n  **Then** search indexes are created successfully\n\n- **Given** client data changes  \n  **When** indexes are rebuilt or updated  \n  **Then** indexes reflect the latest data state\n\n- **Given** indexing fails  \n  **When** index construction is attempted  \n  **Then** the failure is reported clearly"
 }
 
 
@@ -9329,7 +9329,7 @@ export default {
   "story_id": "ST-17",
   "slug": "ST-17_normalise_search_fields",
   "source_path": "docs/mission_destination/stories/ST-17_normalise_search_fields.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-17",
     "feature": "FT-08",
@@ -9351,7 +9351,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Normalise Search Fields\n\n## Statement\nAs an operations user, I want search fields to be normalised so that client data can be searched consistently regardless of source formatting.\n\n## Description\nClient data may be represented differently across source systems, including variations in casing, formatting, and structure.  \nThe platform must normalise search-relevant fields into a consistent representation suitable for indexing and querying.\n\nNormalised search fields improve search accuracy and user experience.\n\n## Acceptance Criteria\n- **Given** client data contains searchable attributes  \n  **When** normalisation is performed  \n  **Then** search fields are transformed into a consistent format\n\n- **Given** normalised search fields  \n  **When** indexing occurs  \n  **Then** the normalised values are used\n\n- **Given** a field cannot be normalised  \n  **When** processing occurs  \n  **Then** the limitation is reported clearly"
 }
 
 
@@ -9360,7 +9360,7 @@ export default {
   "story_id": "ST-18",
   "slug": "ST-18_fuzzy_search_queries",
   "source_path": "docs/mission_destination/stories/ST-18_fuzzy_search_queries.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-18",
     "feature": "FT-09",
@@ -9382,7 +9382,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Fuzzy Search Queries\n\n## Statement\nAs an operations or compliance user, I want to perform fuzzy search queries so that I can find clients even when search terms are approximate or incomplete.\n\n## Description\nExact search queries may not always return relevant results due to spelling variations or incomplete information.  \nThe platform must support fuzzy search queries that tolerate minor differences between search input and indexed data.\n\nFuzzy search improves usability and helps users locate client profiles more effectively.\n\n## Acceptance Criteria\n- **Given** indexed client data exists  \n  **When** a fuzzy search query is performed  \n  **Then** relevant approximate matches are returned\n\n- **Given** multiple potential matches exist  \n  **When** fuzzy search is executed  \n  **Then** all relevant results are included\n\n- **Given** no close matches exist  \n  **When** a fuzzy search is performed  \n  **Then** no results are returned clearly"
 }
 
 
@@ -9391,7 +9391,7 @@ export default {
   "story_id": "ST-19",
   "slug": "ST-19_search_ranking",
   "source_path": "docs/mission_destination/stories/ST-19_search_ranking.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-19",
     "feature": "FT-09",
@@ -9413,7 +9413,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Search Ranking\n\n## Statement\nAs an operations user, I want search results to be ranked so that the most relevant client profiles appear first.\n\n## Description\nWhen multiple client profiles match a search query, the platform must rank results based on relevance.  \nRanking may consider factors such as match strength, attribute confidence, and data completeness.\n\nSearch ranking ensures that users can quickly identify the most likely relevant clients.\n\n## Acceptance Criteria\n- **Given** multiple search results are returned  \n  **When** ranking is applied  \n  **Then** results are ordered by relevance\n\n- **Given** ranking criteria change  \n  **When** search is performed  \n  **Then** result ordering reflects the updated criteria\n\n- **Given** ranking cannot be applied  \n  **When** search is executed  \n  **Then** results are returned without ranking and the issue is reported"
 }
 
 
@@ -9422,7 +9422,7 @@ export default {
   "story_id": "ST-20",
   "slug": "ST-20_assemble_base_profile",
   "source_path": "docs/mission_destination/stories/ST-20_assemble_base_profile.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-20",
     "feature": "FT-10",
@@ -9464,7 +9464,7 @@ export default {
   "story_id": "ST-21",
   "slug": "ST-21_assemble_metadata",
   "source_path": "docs/mission_destination/stories/ST-21_assemble_metadata.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-21",
     "feature": "FT-10",
@@ -9486,7 +9486,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Assemble Profile Metadata\n\n## Statement\nAs a compliance or operations user, I want profile metadata to be assembled so that I can assess the quality and state of a client profile.\n\n## Description\nIn addition to core client data, the platform must derive and assemble metadata about each client profile.  \nProfile metadata may include indicators such as completeness, freshness, confidence, and references to lineage or evidence.\n\nThis metadata supports informed decision-making and operational oversight of client profiles.\n\n## Acceptance Criteria\n- **Given** a client profile exists  \n  **When** metadata assembly is performed  \n  **Then** profile metadata is calculated and associated with the profile\n\n- **Given** underlying client data changes  \n  **When** metadata is reassembled  \n  **Then** metadata reflects the updated profile state\n\n- **Given** metadata cannot be fully derived  \n  **When** assembly is attempted  \n  **Then** partial metadata is recorded with clear indicators"
 }
 
 
@@ -9495,7 +9495,7 @@ export default {
   "story_id": "ST-22",
   "slug": "ST-22_expose_lineage",
   "source_path": "docs/mission_destination/stories/ST-22_expose_lineage.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-22",
     "feature": "FT-11",
@@ -9517,7 +9517,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Expose Lineage\n\n## Statement\nAs a compliance or audit user, I want lineage information to be exposed so that downstream systems and users can understand how client data was derived.\n\n## Description\nThe platform must make data lineage information available through a controlled interface.  \nExposed lineage describes the origin of data, the transformations applied, and the processes involved in producing client profiles.\n\nExposing lineage enables transparency, auditability, and integration with downstream tools.\n\n## Acceptance Criteria\n- **Given** lineage information exists  \n  **When** lineage is requested  \n  **Then** the information is returned successfully\n\n- **Given** lineage is exposed  \n  **When** it is consumed  \n  **Then** it accurately reflects source systems and transformations\n\n- **Given** lineage is unavailable for a request  \n  **When** exposure is attempted  \n  **Then** this is indicated clearly"
 }
 
 
@@ -9526,7 +9526,7 @@ export default {
   "story_id": "ST-23",
   "slug": "ST-23_drill-down_lineage",
   "source_path": "docs/mission_destination/stories/ST-23_drill-down_lineage.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-23",
     "feature": "FT-11",
@@ -9548,7 +9548,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Drill Down Lineage\n\n## Statement\nAs a compliance or audit user, I want to drill down into lineage details so that I can inspect how specific data elements were produced.\n\n## Description\nHigh-level lineage views may not provide sufficient detail for investigation or audit purposes.  \nThe platform must support drilling down into lineage information, allowing users or systems to navigate from high-level lineage to detailed events and attributes.\n\nDrill-down capability enables deeper understanding of data provenance and processing history.\n\n## Acceptance Criteria\n- **Given** lineage information is available  \n  **When** a drill-down is requested  \n  **Then** more detailed lineage information is returned\n\n- **Given** detailed lineage is displayed  \n  **When** it is inspected  \n  **Then** it clearly shows contributing sources and transformations\n\n- **Given** no further detail exists  \n  **When** a drill-down is attempted  \n  **Then** this is communicated clearly"
 }
 
 
@@ -9557,7 +9557,7 @@ export default {
   "story_id": "ST-24",
   "slug": "ST-24_flag_conflicts",
   "source_path": "docs/mission_destination/stories/ST-24_flag_conflicts.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-24",
     "feature": "FT-12",
@@ -9579,7 +9579,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Flag Conflicts\n\n## Statement\nAs a compliance or operations user, I want data conflicts to be flagged so that inconsistencies in client information can be identified and addressed.\n\n## Description\nWhen client data from multiple sources is merged or assembled, conflicts may arise between attributes such as identifiers, names, or addresses.  \nThe platform must detect and flag these conflicts so that they are visible for review and resolution.\n\nFlagging conflicts supports data quality management and prevents silent inconsistencies in client profiles.\n\n## Acceptance Criteria\n- **Given** conflicting client attributes are detected  \n  **When** profile processing occurs  \n  **Then** the conflicts are flagged clearly\n\n- **Given** flagged conflicts exist  \n  **When** a client profile is reviewed  \n  **Then** the conflicts are visible to the user\n\n- **Given** no conflicts are present  \n  **When** processing occurs  \n  **Then** no conflict flags are created"
 }
 
 
@@ -9588,7 +9588,7 @@ export default {
   "story_id": "ST-25",
   "slug": "ST-25_show_merge_logic",
   "source_path": "docs/mission_destination/stories/ST-25_show_merge_logic.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-25",
     "feature": "FT-12",
@@ -9610,7 +9610,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Show Merge Logic\n\n## Statement\nAs a compliance or audit user, I want to understand how merge decisions were made so that client data consolidation is transparent.\n\n## Description\nWhen client data is merged, the platform applies rules and logic to determine which values are retained.  \nThe platform must expose the merge logic applied to client attributes so that users can understand why specific values were chosen.\n\nShowing merge logic supports auditability, trust, and investigation of client profile outcomes.\n\n## Acceptance Criteria\n- **Given** client attributes have been merged  \n  **When** merge logic is requested  \n  **Then** the applied rules and outcomes are displayed clearly\n\n- **Given** merge logic is displayed  \n  **When** it is reviewed  \n  **Then** it explains why specific values were retained\n\n- **Given** merge logic cannot be determined  \n  **When** it is requested  \n  **Then** this is indicated clearly"
 }
 
 
@@ -9619,7 +9619,7 @@ export default {
   "story_id": "ST-26",
   "slug": "ST-26_store_lineage_history",
   "source_path": "docs/mission_destination/stories/ST-26_store_lineage_history.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-26",
     "feature": "FT-13",
@@ -9641,7 +9641,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Store Lineage History\n\n## Statement\nAs a compliance or audit user, I want lineage history to be stored so that changes to client data can be traced over time.\n\n## Description\nClient data and profiles evolve as new data is ingested and processed.  \nThe platform must store lineage history so that past states and transformations of client data can be reviewed retrospectively.\n\nStoring lineage history enables audit, investigation, and historical analysis.\n\n## Acceptance Criteria\n- **Given** client data is processed  \n  **When** lineage events occur  \n  **Then** lineage history is stored persistently\n\n- **Given** lineage history exists  \n  **When** it is requested  \n  **Then** historical lineage events can be retrieved\n\n- **Given** lineage history storage fails  \n  **When** processing continues  \n  **Then** the failure is reported clearly"
 }
 
 
@@ -9650,7 +9650,7 @@ export default {
   "story_id": "ST-27",
   "slug": "ST-27_timestamp_lineage",
   "source_path": "docs/mission_destination/stories/ST-27_timestamp_lineage.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-27",
     "feature": "FT-13",
@@ -9672,7 +9672,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Timestamp Lineage\n\n## Statement\nAs a compliance or audit user, I want lineage events to be timestamped so that I can understand when client data changes occurred.\n\n## Description\nTo support accurate audit and investigation, lineage events must include timing information.  \nThe platform must record timestamps for lineage events, enabling users to understand the sequence and timing of data changes.\n\nTimestamped lineage supports chronological analysis of client data evolution.\n\n## Acceptance Criteria\n- **Given** lineage events are recorded  \n  **When** they are stored  \n  **Then** each event includes an accurate timestamp\n\n- **Given** timestamped lineage exists  \n  **When** it is reviewed  \n  **Then** events can be ordered chronologically\n\n- **Given** a timestamp cannot be recorded  \n  **When** an event occurs  \n  **Then** the issue is reported clearly"
 }
 
 
@@ -9681,7 +9681,7 @@ export default {
   "story_id": "ST-28",
   "slug": "ST-28_compute_freshness",
   "source_path": "docs/mission_destination/stories/ST-28_compute_freshness.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-28",
     "feature": "FT-14",
@@ -9703,7 +9703,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Compute Freshness\n\n## Statement\nAs a compliance or operations user, I want data freshness to be computed so that I can assess how up to date client information is.\n\n## Description\nClient data may become stale as time passes without updates from source systems.  \nThe platform must compute freshness indicators for client data based on timestamps, update frequency, or source characteristics.\n\nFreshness indicators support informed decision-making and data quality assessment.\n\n## Acceptance Criteria\n- **Given** client data exists  \n  **When** freshness computation is performed  \n  **Then** freshness indicators are calculated for relevant data\n\n- **Given** underlying data is updated  \n  **When** freshness is recomputed  \n  **Then** indicators reflect the latest state\n\n- **Given** freshness cannot be determined  \n  **When** computation is attempted  \n  **Then** this is indicated clearly"
 }
 
 
@@ -9712,7 +9712,7 @@ export default {
   "story_id": "ST-29",
   "slug": "ST-29_compute_completeness",
   "source_path": "docs/mission_destination/stories/ST-29_compute_completeness.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-29",
     "feature": "FT-14",
@@ -9734,7 +9734,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Compute Completeness\n\n## Statement\nAs a compliance or operations user, I want data completeness to be computed so that I can assess whether client profiles contain sufficient information.\n\n## Description\nClient profiles may be partially populated depending on available source data.  \nThe platform must compute completeness indicators that describe how fully populated a client profile is relative to expected attributes.\n\nCompleteness indicators support data quality monitoring and informed operational decision-making.\n\n## Acceptance Criteria\n- **Given** a client profile exists  \n  **When** completeness is computed  \n  **Then** completeness indicators are calculated for the profile\n\n- **Given** underlying client data changes  \n  **When** completeness is recomputed  \n  **Then** indicators reflect the updated profile state\n\n- **Given** completeness cannot be fully determined  \n  **When** computation is attempted  \n  **Then** partial completeness is recorded with clear indicators"
 }
 
 
@@ -9743,7 +9743,7 @@ export default {
   "story_id": "ST-30",
   "slug": "ST-30_audit_ingestion",
   "source_path": "docs/mission_destination/stories/ST-30_audit_ingestion.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-30",
     "feature": "FT-15",
@@ -9765,7 +9765,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Audit Ingestion\n\n## Statement\nAs a compliance or audit user, I want ingestion activity to be audited so that I can verify what data was ingested and when.\n\n## Description\nThe platform must record audit information for data ingestion activities.  \nAudit records should capture relevant details such as source system, timing, and outcomes of ingestion processes.\n\nAuditing ingestion supports regulatory compliance, investigation, and operational oversight.\n\n## Acceptance Criteria\n- **Given** data ingestion occurs  \n  **When** the process completes  \n  **Then** an audit record is created for the ingestion activity\n\n- **Given** ingestion audit records exist  \n  **When** they are requested  \n  **Then** they can be retrieved and reviewed\n\n- **Given** ingestion auditing fails  \n  **When** ingestion proceeds  \n  **Then** the failure is reported clearly"
 }
 
 
@@ -9774,7 +9774,7 @@ export default {
   "story_id": "ST-31",
   "slug": "ST-31_audit_merge",
   "source_path": "docs/mission_destination/stories/ST-31_audit_merge.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-31",
     "feature": "FT-15",
@@ -9796,7 +9796,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Audit Merge\n\n## Statement\nAs a compliance or audit user, I want merge activity to be audited so that I can understand how client records were consolidated.\n\n## Description\nWhen client records are merged, the platform must record audit information describing the merge activity.  \nAudit records should capture which records were merged, when the merge occurred, and the outcome.\n\nAuditing merge activity supports transparency, investigation, and regulatory compliance.\n\n## Acceptance Criteria\n- **Given** client records are merged  \n  **When** the merge completes  \n  **Then** an audit record is created for the merge activity\n\n- **Given** merge audit records exist  \n  **When** they are requested  \n  **Then** they can be retrieved and reviewed\n\n- **Given** merge auditing fails  \n  **When** merging proceeds  \n  **Then** the failure is reported clearly"
 }
 
 
@@ -9805,7 +9805,7 @@ export default {
   "story_id": "ST-32",
   "slug": "ST-32_search_api_basic",
   "source_path": "docs/mission_destination/stories/ST-32_search_api_basic.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-32",
     "feature": "FT-16",
@@ -9827,7 +9827,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Search API (Basic)\n\n## Statement\nAs an application or operations user, I want a basic search API so that client profiles can be retrieved programmatically.\n\n## Description\nThe platform must expose a basic search API that allows clients to be searched using common criteria.  \nThe API provides programmatic access to search capabilities and supports integration with downstream applications and user interfaces.\n\nThe basic search API focuses on core search functionality without advanced ranking or tuning.\n\n## Acceptance Criteria\n- **Given** client profiles exist  \n  **When** the basic search API is called with valid criteria  \n  **Then** matching client profiles are returned\n\n- **Given** no profiles match the criteria  \n  **When** the API is called  \n  **Then** an empty result set is returned\n\n- **Given** invalid search parameters are provided  \n  **When** the API is called  \n  **Then** a clear error response is returned"
 }
 
 
@@ -9836,7 +9836,7 @@ export default {
   "story_id": "ST-33",
   "slug": "ST-33_search_api_ranking",
   "source_path": "docs/mission_destination/stories/ST-33_search_api_ranking.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-33",
     "feature": "FT-16",
@@ -9858,7 +9858,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Search API (Ranking)\n\n## Statement\nAs an application or operations user, I want the search API to return ranked results so that the most relevant client profiles are prioritised.\n\n## Description\nBuilding on the basic search API, the platform must support ranked search results.  \nRanking logic orders results based on relevance criteria such as match strength, confidence, or completeness.\n\nRanked search improves usability and effectiveness for both users and integrated systems.\n\n## Acceptance Criteria\n- **Given** multiple search results are returned  \n  **When** ranked search is performed  \n  **Then** results are ordered by relevance\n\n- **Given** ranking criteria are applied  \n  **When** the search API is called  \n  **Then** results reflect the ranking logic\n\n- **Given** ranking cannot be applied  \n  **When** the API is called  \n  **Then** results are returned without ranking and the limitation is reported"
 }
 
 
@@ -9867,7 +9867,7 @@ export default {
   "story_id": "ST-34",
   "slug": "ST-34_profile_api_basic",
   "source_path": "docs/mission_destination/stories/ST-34_profile_api_basic.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-34",
     "feature": "FT-17",
@@ -9889,7 +9889,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Profile API (Basic)\n\n## Statement\nAs an application or operations user, I want a basic profile API so that consolidated client profiles can be retrieved programmatically.\n\n## Description\nThe platform must expose a basic profile API that allows authorised consumers to retrieve assembled client profiles.  \nThe API provides programmatic access to the platformâ€™s consolidated view of a client and supports integration with downstream systems and user interfaces.\n\nThe basic profile API focuses on core profile retrieval without advanced metadata or lineage detail.\n\n## Acceptance Criteria\n- **Given** a client profile exists  \n  **When** the basic profile API is called with a valid identifier  \n  **Then** the client profile is returned successfully\n\n- **Given** a requested profile does not exist  \n  **When** the API is called  \n  **Then** a clear â€œnot foundâ€ response is returned\n\n- **Given** invalid request parameters are provided  \n  **When** the API is called  \n  **Then** a clear error response is returned"
 }
 
 
@@ -9898,7 +9898,7 @@ export default {
   "story_id": "ST-35",
   "slug": "ST-35_profile_api_lineage",
   "source_path": "docs/mission_destination/stories/ST-35_profile_api_lineage.md",
-  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
   "front_matter": {
     "story_id": "ST-35",
     "feature": "FT-17",
@@ -9920,7 +9920,7 @@ export default {
     "analytics_adherence": "not_run",
     "last_updated": "<auto>"
   },
-  "body_markdown": ""
+  "body_markdown": "# Profile API (Lineage)\n\n## Statement\nAs a compliance or audit user, I want the profile API to expose lineage information so that I can understand how client profile data was derived.\n\n## Description\nIn addition to basic profile retrieval, the platform must support exposing lineage information through the profile API.  \nThis allows consumers to retrieve not only the client profile but also the associated lineage describing data origins and transformations.\n\nExposing lineage through the API supports transparency, auditability, and integration with governance tooling.\n\n## Acceptance Criteria\n- **Given** a client profile with recorded lineage exists  \n  **When** the profile API is called with lineage enabled  \n  **Then** the profile and associated lineage are returned\n\n- **Given** lineage information is requested  \n  **When** it is retrieved  \n  **Then** it accurately reflects data sources and processing steps\n\n- **Given** lineage is unavailable  \n  **When** the API is called  \n  **Then** this is indicated clearly in the response"
 }
 
 
@@ -21331,27 +21331,48 @@ analytics_adherence: not_run
 last_updated: 2025-12-21T16:19:34Z
 ---
 
+# Provide Basic Backend API Availability
+
+## Statement
+As a platform owner, I want a basic backend API to be available so that the system can support the incremental delivery of client data capabilities in a controlled and extensible way.
+
 ## Description
+This story establishes the foundational backend capability on which the entire platform depends. It confirms that the backend application is not merely runnable, but correctly structured to support enterprise-grade delivery across ingestion, processing, audit, and exposure use cases.
 
-As a developer,  
-I want the backend to expose a basic availability endpoint,  
-so that I can confirm the service is running and reachable.
+The backend will be implemented using a modern service architecture, with clear separation between routing, service logic, persistence, and configuration. Core infrastructure concerns such as application startup, dependency wiring, configuration loading, and error handling are to be validated.
 
-This story establishes the foundational API contract for the backend and enables fast automated verification that the service is alive.
+The backend exposes initial API endpoints to demonstrate:
+- request handling and routing
+- structured request/response models
+- consistent error behaviour
+- environment-driven configuration
+- health and readiness signalling
+
+Persistence wired using the real database layer, ensuring that subsequent stories operate against a genuine persistence mechanism rather than mocks or stubs. This confirms that the backend is capable of supporting real data flows, controlled schema evolution, and transactional behaviour.
+
+This story also validates that the backend can be:
+- started locally in a development environment
+- exercised via automated tests
+- extended incrementally by subsequent stories without rework
+
+All subsequent backend stories assume this capability as a prerequisite.
 
 ## Acceptance Criteria
+- **Given** the backend application is started locally or in a deployed environment  
+  **When** a basic API endpoint is invoked  
+  **Then** the backend responds successfully with a structured response
 
-- **AC1:** Backend can be started using the documented command (e.g. `uvicorn app_backend.main:app`).
-- **AC2:** A `/health` endpoint is available.
-- **AC3:** Calling `/health` returns HTTP **200**.
-- **AC4:** Response JSON contains at least `{ "status": "ok" }`.
-- **AC5:** A backend test exercises AC2â€“AC4.
-- **AC6:** Running the story test updates `testing_status:` to `pass` when successful.
+- **Given** the backend application is running  
+  **When** a health or readiness endpoint is accessed  
+  **Then** the application reports itself as available and correctly initialised
 
-## Implementation Notes
+- **Given** the backend configuration is invalid or incomplete  
+  **When** the application starts  
+  **Then** failures are surfaced clearly and prevent ambiguous or silent failure
 
-- Touchpoint: `app_backend/main.py`
-- This endpoint underpins availability checks for the entire platform and is required before any higher-level stories can be executed.
+- **Given** automated tests are executed  
+  **When** backend functionality is exercised  
+  **Then** the application behaves consistently across environments
 
 
 
@@ -21381,30 +21402,52 @@ analytics_adherence: not_run
 last_updated: 2025-12-21T16:51:47Z
 ---
 
+# Provide Frontend UI Shell
+
+## Statement
+As a platform owner, I want a frontend UI shell to be available so that delivered business functionality can be surfaced consistently and credibly as the platform evolves.
+
 ## Description
+This story establishes the foundational frontend capability required to present platform functionality to users in a coherent and extensible way. It confirms that the frontend is not merely a static page, but a properly structured application capable of supporting complex, data-driven user journeys.
 
-As a developer,  
-I want the frontend UI shell to be built and served by the backend,  
-so that I can confirm the Single Client View application is accessible as a SPA.
+The frontend UI shell has been implemented using a modern component-based framework, with:
+- a running application build and dev workflow
+- a consistent layout and visual structure
+- routing and navigation foundations
+- reusable UI components and styling conventions
 
-This story verifies that the built frontend exists and the backend correctly serves
-the index.html shell at the root path.
+The UI shell provides defined integration points for backend services and has been wired to consume real data where appropriate, rather than relying on mock or placeholder responses. This ensures that the frontend is validated against real backend behaviour from the outset.
+
+Core concerns such as:
+- application startup
+- dependency loading
+- error handling
+- environment configuration
+- visual consistency
+
+have been exercised and proven.
+
+This story also establishes the structural container into which future stories will be rendered, including MissionLog, evidence panels, lineage views, and client profile screens. As such, it acts as the visual and interaction baseline for all subsequent frontend work.
+
+All subsequent frontend stories assume the existence of this shell.
 
 ## Acceptance Criteria
+- **Given** the frontend application is started  
+  **When** a user accesses the application  
+  **Then** the UI shell loads successfully without errors
 
-- **AC1:** `npm run build` produces a frontend `dist/` folder.
-- **AC2:** Backend is configured to serve the frontend build output.
-- **AC3:** `GET /` returns HTTP **200**.
-- **AC4:** HTML contains `<div id="root">`.
-- **AC5:** HTML contains the expected page `<title>` from the built frontend.
-- **AC6:** A backend test verifies AC1â€“AC5.
-- **AC7:** Running the ST-00-FRONTEND-UI-SHELL tests sets `testing_status: pass`.
+- **Given** the UI shell is loaded  
+  **When** navigation and layout elements are displayed  
+  **Then** they provide a consistent structure for future feature integration
 
-## Implementation Notes
+- **Given** the frontend build or configuration is invalid  
+  **When** the application is started  
+  **Then** errors are surfaced clearly and prevent ambiguous failure
 
-- Frontend: `app_frontend/`
-- Backend serving logic: `app_backend/main.py`
-- Test: `tests/api/http/test_st_00_frontend_ui_shell.py`
+- **Given** the frontend is connected to backend services  
+  **When** real data is requested  
+  **Then** responses are handled and rendered correctly
+
 
 
 
@@ -21438,6 +21481,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Register CRM Source System
+
+## Statement
+As a data operations user, I want to register a CRM source system so that client data ingested from that system can be correctly identified, governed, and traced throughout the platform.
+
+## Description
+The platform must allow a CRM source system to be registered as an approved upstream data provider.  
+Registering a CRM source system establishes it as a recognised origin for client data and enables downstream ingestion, mapping, matching, and lineage tracking.
+
+The registration process captures the minimum information required to uniquely identify the CRM system and treat it as a governed source within the platform. Once registered, the CRM source system can be referenced consistently by ingestion and processing workflows.
+
+## Acceptance Criteria
+- **Given** a CRM source system has not previously been registered  
+  **When** a data operations user registers the CRM source system  
+  **Then** the system is stored as a recognised and active source
+
+- **Given** a CRM source system is registered  
+  **When** downstream processes reference the source  
+  **Then** the system is identifiable as the origin of ingested client data
+
+- **Given** an attempt is made to register a CRM source system with missing or invalid identifying information  
+  **When** the registration is submitted  
+  **Then** the registration is rejected with a clear validation error
 
 
 ===== FILE: docs\mission_destination\stories\ST-02_register_kyc_source.md =====
@@ -21467,6 +21533,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Register KYC Source System
+
+## Statement
+As a compliance operations user, I want to register a KYC source system so that client due-diligence data can be ingested and governed with clear provenance.
+
+## Description
+The platform must support the registration of KYC source systems as approved providers of compliance and due-diligence data.  
+Registering a KYC source system ensures that KYC data entering the platform can be traced back to its originating system and treated according to governance and compliance requirements.
+
+Once registered, the KYC source system can be referenced by ingestion, enrichment, and profile assembly processes.
+
+## Acceptance Criteria
+- **Given** a KYC source system has not previously been registered  
+  **When** a compliance operations user registers the KYC source system  
+  **Then** the system is stored as a recognised and active KYC data source
+
+- **Given** a KYC source system is registered  
+  **When** KYC data is ingested  
+  **Then** the data is associated with the registered source system
+
+- **Given** invalid or incomplete registration details are provided  
+  **When** the registration is attempted  
+  **Then** the registration is rejected with a clear error message
 
 
 ===== FILE: docs\mission_destination\stories\ST-03_map_identity_fields.md =====
@@ -21496,6 +21585,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: 2025-12-21T16:19:34Z
 ---
+# Map Identity Fields
+
+## Statement
+As a data operations user, I want to map identity fields so that equivalent client attributes from different source systems can be normalised and compared consistently.
+
+## Description
+Client identity data may be provided by multiple source systems using different field names and structures.  
+The platform must support mapping source-specific identity fields to a canonical representation so that identity information can be processed consistently across the platform.
+
+Mapped identity fields form the basis for downstream matching, profile assembly, and lineage reporting.
+
+## Acceptance Criteria
+- **Given** identity fields exist in a source system  
+  **When** identity field mappings are defined  
+  **Then** the fields are mapped to the platformâ€™s canonical identity model
+
+- **Given** identity mappings are defined  
+  **When** client data is ingested  
+  **Then** identity values are normalised according to the mappings
+
+- **Given** a required identity field is unmapped  
+  **When** identity processing is attempted  
+  **Then** the issue is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-04_map_identifiers.md =====
@@ -21524,6 +21636,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: 2025-12-21T16:19:34Z
 ---
+# Map Identifiers
+
+## Statement
+As a data operations user, I want to map client identifiers so that records referring to the same real-world entity can be reliably linked across systems.
+
+## Description
+Different source systems may represent client identifiers using different formats or naming conventions.  
+The platform must support mapping these identifiers to a canonical identifier model so that they can be compared and used reliably for matching and consolidation.
+
+Correct identifier mapping is essential for accurate client matching and profile assembly.
+
+## Acceptance Criteria
+- **Given** identifier fields exist in a source system  
+  **When** identifier mappings are defined  
+  **Then** identifiers are mapped to the canonical identifier model
+
+- **Given** identifier mappings are in place  
+  **When** client records are processed  
+  **Then** identifiers are available for matching logic
+
+- **Given** an identifier required for matching is missing or unmapped  
+  **When** matching is attempted  
+  **Then** the issue is surfaced clearly for investigation
 
 
 ===== FILE: docs\mission_destination\stories\ST-05_bulk_load_crm.md =====
@@ -21552,6 +21687,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: 2025-12-22T19:26:52Z
 ---
+# Ingest CRM Data
+
+## Statement
+As a data operations user, I want to bulk load CRM data so that existing client records can be ingested into the platform efficiently and consistently.
+
+## Description
+The platform must support bulk ingestion of client data from a registered CRM source system.  
+This capability enables an initial or repeat load of CRM records into the platform using a controlled and repeatable process.
+
+Bulk loading creates persisted client records that can subsequently be mapped, matched, and assembled into client profiles. The same ingestion logic must be usable for automated testing and operational execution.
+
+## Acceptance Criteria
+- **Given** a CRM source system is registered  
+  **When** a bulk load of CRM data is executed  
+  **Then** client records are ingested and persisted successfully
+
+- **Given** a bulk load is executed  
+  **When** individual records fail validation  
+  **Then** valid records are persisted and invalid records are reported clearly
+
+- **Given** the bulk load process completes  
+  **When** downstream processes run  
+  **Then** the ingested CRM records are available for mapping and matching
 
 
 ===== FILE: docs\mission_destination\stories\ST-06_bulk_load_kyc.md =====
@@ -21580,6 +21738,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Ingest KYC Data
+
+## Statement
+As a compliance operations user, I want KYC data to be ingested from approved source systems so that client due-diligence information is available for review and downstream processing.
+
+## Description
+The platform must support ingestion of KYC data from registered KYC source systems.  
+Ingested KYC data should be persisted in a controlled manner and associated with the originating source system to ensure provenance and auditability.
+
+Once ingested, KYC data can be used for client enrichment, profile assembly, and compliance review processes.
+
+## Acceptance Criteria
+- **Given** a KYC source system is registered  
+  **When** KYC data is ingested  
+  **Then** the data is persisted successfully and linked to the source system
+
+- **Given** ingested KYC data  
+  **When** downstream processing is performed  
+  **Then** the data is available for enrichment and profile assembly
+
+- **Given** invalid KYC records are encountered  
+  **When** ingestion is attempted  
+  **Then** valid records are stored and invalid records are reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-07_detect_upstream_deltas.md =====
@@ -21608,6 +21789,30 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Detect Upstream Deltas
+
+## Statement
+As a data operations user, I want the platform to detect upstream data changes so that only new or modified client records are processed incrementally.
+
+## Description
+Upstream source systems may deliver repeated data extracts containing a mixture of unchanged, new, updated, or removed records.  
+The platform must be able to compare incoming data against previously ingested data to detect meaningful deltas.
+
+Detecting upstream deltas enables efficient incremental processing and prevents unnecessary reprocessing of unchanged client records.
+
+## Acceptance Criteria
+- **Given** a previous ingestion has occurred  
+  **When** new data is received from the same source system  
+  **Then** the platform identifies new, changed, and unchanged records
+
+- **Given** upstream records have not changed  
+  **When** delta detection runs  
+  **Then** those records are marked as unchanged
+
+- **Given** records are new or updated  
+  **When** delta detection completes  
+  **Then** they are flagged for downstream processing
+
 
 
 ===== FILE: docs\mission_destination\stories\ST-08_apply_deltas.md =====
@@ -21636,6 +21841,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Apply Upstream Deltas
+
+## Statement
+As a data operations user, I want detected upstream deltas to be applied so that the platform state remains aligned with source system changes.
+
+## Description
+Once upstream deltas have been identified, the platform must apply those changes to its internal representation of client data.  
+Applying deltas ensures that new records are added, updated records are amended, and removed records are handled appropriately.
+
+This process keeps the platformâ€™s client data synchronised with upstream systems without requiring full reloads.
+
+## Acceptance Criteria
+- **Given** upstream deltas have been detected  
+  **When** delta application is executed  
+  **Then** new and updated records are applied to the platform state
+
+- **Given** records are marked as removed  
+  **When** deltas are applied  
+  **Then** the platform state reflects the removal according to defined rules
+
+- **Given** no deltas are detected  
+  **When** delta application runs  
+  **Then** no changes are applied
 
 
 ===== FILE: docs\mission_destination\stories\ST-09_match_by_tax_id.md =====
@@ -21664,6 +21892,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Match Clients by Tax Identifier
+
+## Statement
+As a compliance operations user, I want clients to be matched by tax identifier so that duplicate or related client records can be identified accurately.
+
+## Description
+Clients may appear in multiple source systems with different representations.  
+The platform must support matching client records using tax identifiers as a strong matching attribute.
+
+Successful matching enables consolidation of records that refer to the same real-world entity and reduces duplication in client profiles.
+
+## Acceptance Criteria
+- **Given** multiple client records exist  
+  **When** matching by tax identifier is performed  
+  **Then** records with the same tax identifier are identified as potential matches
+
+- **Given** a tax identifier match is identified  
+  **When** client profiles are assembled  
+  **Then** matched records are treated as referring to the same client
+
+- **Given** a tax identifier is missing or invalid  
+  **When** matching is attempted  
+  **Then** the limitation is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-10_match_by_registration_number.md =====
@@ -21692,6 +21943,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Match Clients by Registration Number
+
+## Statement
+As a compliance operations user, I want clients to be matched by registration number so that records referring to the same legal entity can be identified reliably.
+
+## Description
+Client records originating from different systems may refer to the same legal entity using a common registration number.  
+The platform must support matching client records based on registration number as a strong identifier.
+
+Matching by registration number complements other matching strategies and improves the accuracy of client consolidation.
+
+## Acceptance Criteria
+- **Given** multiple client records exist  
+  **When** matching by registration number is performed  
+  **Then** records with the same registration number are identified as potential matches
+
+- **Given** registration number matches are identified  
+  **When** downstream processing occurs  
+  **Then** those records are treated as referring to the same entity
+
+- **Given** a registration number is missing or invalid  
+  **When** matching is attempted  
+  **Then** the limitation is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-11_fuzzy_name_match.md =====
@@ -21720,6 +21994,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Drill Down Lineage
+
+## Statement
+As a compliance or audit user, I want to drill down into lineage details so that I can inspect how specific data elements were produced.
+
+## Description
+High-level lineage views may not provide sufficient detail for investigation or audit purposes.  
+The platform must support drilling down into lineage information, allowing users or systems to navigate from high-level lineage to detailed events and attributes.
+
+Drill-down capability enables deeper understanding of data provenance and processing history.
+
+## Acceptance Criteria
+- **Given** lineage information is available  
+  **When** a drill-down is requested  
+  **Then** more detailed lineage information is returned
+
+- **Given** detailed lineage is displayed  
+  **When** it is inspected  
+  **Then** it clearly shows contributing sources and transformations
+
+- **Given** no further detail exists  
+  **When** a drill-down is attempted  
+  **Then** this is communicated clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-12_attribute_confidence.md =====
@@ -21748,6 +22045,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Fuzzy Name Match
+
+## Statement
+As a compliance operations user, I want client records to be matched using fuzzy name matching so that potential duplicates can be identified even when names are not identical.
+
+## Description
+Client names may be represented inconsistently across source systems due to spelling variations, abbreviations, or formatting differences.  
+The platform must support fuzzy name matching to identify potential matches where exact matching is insufficient.
+
+Fuzzy name matching complements deterministic matching strategies and supports improved identification of related client records.
+
+## Acceptance Criteria
+- **Given** multiple client records exist with similar names  
+  **When** fuzzy name matching is performed  
+  **Then** records with similar names are identified as potential matches
+
+- **Given** fuzzy name matches are identified  
+  **When** downstream processing occurs  
+  **Then** the records are flagged for consolidation or further review
+
+- **Given** names are dissimilar beyond acceptable thresholds  
+  **When** fuzzy matching is attempted  
+  **Then** no match is identified
 
 
 ===== FILE: docs\mission_destination\stories\ST-13_merge_identity.md =====
@@ -21776,6 +22096,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Merge Identity
+
+## Statement
+As a compliance operations user, I want identity information to be merged so that client profiles reflect a single, coherent representation of the client.
+
+## Description
+When client records are identified as referring to the same real-world entity, identity attributes from those records must be merged.  
+The platform must combine identity information in a controlled manner, resolving conflicts according to defined rules.
+
+Merging identity information enables accurate and consistent client profiles.
+
+## Acceptance Criteria
+- **Given** client records are identified as matches  
+  **When** identity merge is performed  
+  **Then** identity attributes are combined into a single representation
+
+- **Given** conflicting identity attributes exist  
+  **When** a merge occurs  
+  **Then** conflicts are resolved according to defined rules
+
+- **Given** identity merge cannot be completed  
+  **When** the process runs  
+  **Then** the issue is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-14_merge_addresses.md =====
@@ -21804,6 +22147,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Merge Addresses
+
+## Statement
+As a compliance or operations user, I want client address information to be merged so that address data is consistent and complete within the client profile.
+
+## Description
+Clients may have multiple address records originating from different source systems.  
+The platform must merge address information when records are matched, ensuring that valid and relevant addresses are retained.
+
+Address merging supports accurate client profiling and downstream operational use.
+
+## Acceptance Criteria
+- **Given** matched client records contain address information  
+  **When** address merging is performed  
+  **Then** addresses are combined into a unified set
+
+- **Given** duplicate or conflicting addresses exist  
+  **When** merging occurs  
+  **Then** duplicates are handled and conflicts resolved appropriately
+
+- **Given** address data is incomplete  
+  **When** merging is attempted  
+  **Then** available address information is retained
 
 
 ===== FILE: docs\mission_destination\stories\ST-15_record_lineage.md =====
@@ -21832,6 +22198,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Record Lineage
+
+## Statement
+As a compliance or audit user, I want lineage to be recorded so that the origin and transformation of client data can be traced over time.
+
+## Description
+As client data is ingested, matched, merged, and assembled, the platform must record lineage information describing how the data was produced.  
+Recorded lineage provides the foundation for auditability, transparency, and trust in client profiles.
+
+Lineage records must be associated with the relevant data and processing events.
+
+## Acceptance Criteria
+- **Given** client data is processed  
+  **When** processing occurs  
+  **Then** lineage information is recorded for the relevant events
+
+- **Given** lineage has been recorded  
+  **When** it is queried  
+  **Then** it accurately reflects data origins and transformations
+
+- **Given** lineage recording fails  
+  **When** processing continues  
+  **Then** the failure is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-16_build_index.md =====
@@ -21860,6 +22249,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Build Index
+
+## Statement
+As an operations user, I want client data to be indexed so that client information can be searched and retrieved efficiently.
+
+## Description
+To support fast and reliable search, the platform must build and maintain indexes over relevant client data.  
+Indexes are derived from ingested and assembled client information and are optimised for common search and retrieval patterns.
+
+Indexing enables responsive search and supports downstream operational use of the platform.
+
+## Acceptance Criteria
+- **Given** client data exists  
+  **When** index building is executed  
+  **Then** search indexes are created successfully
+
+- **Given** client data changes  
+  **When** indexes are rebuilt or updated  
+  **Then** indexes reflect the latest data state
+
+- **Given** indexing fails  
+  **When** index construction is attempted  
+  **Then** the failure is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-17_normalise_search_fields.md =====
@@ -21888,6 +22300,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Normalise Search Fields
+
+## Statement
+As an operations user, I want search fields to be normalised so that client data can be searched consistently regardless of source formatting.
+
+## Description
+Client data may be represented differently across source systems, including variations in casing, formatting, and structure.  
+The platform must normalise search-relevant fields into a consistent representation suitable for indexing and querying.
+
+Normalised search fields improve search accuracy and user experience.
+
+## Acceptance Criteria
+- **Given** client data contains searchable attributes  
+  **When** normalisation is performed  
+  **Then** search fields are transformed into a consistent format
+
+- **Given** normalised search fields  
+  **When** indexing occurs  
+  **Then** the normalised values are used
+
+- **Given** a field cannot be normalised  
+  **When** processing occurs  
+  **Then** the limitation is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-18_fuzzy_search_queries.md =====
@@ -21916,6 +22351,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Fuzzy Search Queries
+
+## Statement
+As an operations or compliance user, I want to perform fuzzy search queries so that I can find clients even when search terms are approximate or incomplete.
+
+## Description
+Exact search queries may not always return relevant results due to spelling variations or incomplete information.  
+The platform must support fuzzy search queries that tolerate minor differences between search input and indexed data.
+
+Fuzzy search improves usability and helps users locate client profiles more effectively.
+
+## Acceptance Criteria
+- **Given** indexed client data exists  
+  **When** a fuzzy search query is performed  
+  **Then** relevant approximate matches are returned
+
+- **Given** multiple potential matches exist  
+  **When** fuzzy search is executed  
+  **Then** all relevant results are included
+
+- **Given** no close matches exist  
+  **When** a fuzzy search is performed  
+  **Then** no results are returned clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-19_search_ranking.md =====
@@ -21944,6 +22402,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Search Ranking
+
+## Statement
+As an operations user, I want search results to be ranked so that the most relevant client profiles appear first.
+
+## Description
+When multiple client profiles match a search query, the platform must rank results based on relevance.  
+Ranking may consider factors such as match strength, attribute confidence, and data completeness.
+
+Search ranking ensures that users can quickly identify the most likely relevant clients.
+
+## Acceptance Criteria
+- **Given** multiple search results are returned  
+  **When** ranking is applied  
+  **Then** results are ordered by relevance
+
+- **Given** ranking criteria change  
+  **When** search is performed  
+  **Then** result ordering reflects the updated criteria
+
+- **Given** ranking cannot be applied  
+  **When** search is executed  
+  **Then** results are returned without ranking and the issue is reported
 
 
 ===== FILE: docs\mission_destination\stories\ST-20_assemble_base_profile.md =====
@@ -22020,6 +22501,30 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Assemble Profile Metadata
+
+## Statement
+As a compliance or operations user, I want profile metadata to be assembled so that I can assess the quality and state of a client profile.
+
+## Description
+In addition to core client data, the platform must derive and assemble metadata about each client profile.  
+Profile metadata may include indicators such as completeness, freshness, confidence, and references to lineage or evidence.
+
+This metadata supports informed decision-making and operational oversight of client profiles.
+
+## Acceptance Criteria
+- **Given** a client profile exists  
+  **When** metadata assembly is performed  
+  **Then** profile metadata is calculated and associated with the profile
+
+- **Given** underlying client data changes  
+  **When** metadata is reassembled  
+  **Then** metadata reflects the updated profile state
+
+- **Given** metadata cannot be fully derived  
+  **When** assembly is attempted  
+  **Then** partial metadata is recorded with clear indicators
+
 
 
 ===== FILE: docs\mission_destination\stories\ST-22_expose_lineage.md =====
@@ -22048,6 +22553,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Expose Lineage
+
+## Statement
+As a compliance or audit user, I want lineage information to be exposed so that downstream systems and users can understand how client data was derived.
+
+## Description
+The platform must make data lineage information available through a controlled interface.  
+Exposed lineage describes the origin of data, the transformations applied, and the processes involved in producing client profiles.
+
+Exposing lineage enables transparency, auditability, and integration with downstream tools.
+
+## Acceptance Criteria
+- **Given** lineage information exists  
+  **When** lineage is requested  
+  **Then** the information is returned successfully
+
+- **Given** lineage is exposed  
+  **When** it is consumed  
+  **Then** it accurately reflects source systems and transformations
+
+- **Given** lineage is unavailable for a request  
+  **When** exposure is attempted  
+  **Then** this is indicated clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-23_drill-down_lineage.md =====
@@ -22076,6 +22604,30 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Drill Down Lineage
+
+## Statement
+As a compliance or audit user, I want to drill down into lineage details so that I can inspect how specific data elements were produced.
+
+## Description
+High-level lineage views may not provide sufficient detail for investigation or audit purposes.  
+The platform must support drilling down into lineage information, allowing users or systems to navigate from high-level lineage to detailed events and attributes.
+
+Drill-down capability enables deeper understanding of data provenance and processing history.
+
+## Acceptance Criteria
+- **Given** lineage information is available  
+  **When** a drill-down is requested  
+  **Then** more detailed lineage information is returned
+
+- **Given** detailed lineage is displayed  
+  **When** it is inspected  
+  **Then** it clearly shows contributing sources and transformations
+
+- **Given** no further detail exists  
+  **When** a drill-down is attempted  
+  **Then** this is communicated clearly
+
 
 
 ===== FILE: docs\mission_destination\stories\ST-24_flag_conflicts.md =====
@@ -22104,6 +22656,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Flag Conflicts
+
+## Statement
+As a compliance or operations user, I want data conflicts to be flagged so that inconsistencies in client information can be identified and addressed.
+
+## Description
+When client data from multiple sources is merged or assembled, conflicts may arise between attributes such as identifiers, names, or addresses.  
+The platform must detect and flag these conflicts so that they are visible for review and resolution.
+
+Flagging conflicts supports data quality management and prevents silent inconsistencies in client profiles.
+
+## Acceptance Criteria
+- **Given** conflicting client attributes are detected  
+  **When** profile processing occurs  
+  **Then** the conflicts are flagged clearly
+
+- **Given** flagged conflicts exist  
+  **When** a client profile is reviewed  
+  **Then** the conflicts are visible to the user
+
+- **Given** no conflicts are present  
+  **When** processing occurs  
+  **Then** no conflict flags are created
 
 
 ===== FILE: docs\mission_destination\stories\ST-25_show_merge_logic.md =====
@@ -22132,6 +22707,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Show Merge Logic
+
+## Statement
+As a compliance or audit user, I want to understand how merge decisions were made so that client data consolidation is transparent.
+
+## Description
+When client data is merged, the platform applies rules and logic to determine which values are retained.  
+The platform must expose the merge logic applied to client attributes so that users can understand why specific values were chosen.
+
+Showing merge logic supports auditability, trust, and investigation of client profile outcomes.
+
+## Acceptance Criteria
+- **Given** client attributes have been merged  
+  **When** merge logic is requested  
+  **Then** the applied rules and outcomes are displayed clearly
+
+- **Given** merge logic is displayed  
+  **When** it is reviewed  
+  **Then** it explains why specific values were retained
+
+- **Given** merge logic cannot be determined  
+  **When** it is requested  
+  **Then** this is indicated clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-26_store_lineage_history.md =====
@@ -22160,6 +22758,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Store Lineage History
+
+## Statement
+As a compliance or audit user, I want lineage history to be stored so that changes to client data can be traced over time.
+
+## Description
+Client data and profiles evolve as new data is ingested and processed.  
+The platform must store lineage history so that past states and transformations of client data can be reviewed retrospectively.
+
+Storing lineage history enables audit, investigation, and historical analysis.
+
+## Acceptance Criteria
+- **Given** client data is processed  
+  **When** lineage events occur  
+  **Then** lineage history is stored persistently
+
+- **Given** lineage history exists  
+  **When** it is requested  
+  **Then** historical lineage events can be retrieved
+
+- **Given** lineage history storage fails  
+  **When** processing continues  
+  **Then** the failure is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-27_timestamp_lineage.md =====
@@ -22188,6 +22809,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Timestamp Lineage
+
+## Statement
+As a compliance or audit user, I want lineage events to be timestamped so that I can understand when client data changes occurred.
+
+## Description
+To support accurate audit and investigation, lineage events must include timing information.  
+The platform must record timestamps for lineage events, enabling users to understand the sequence and timing of data changes.
+
+Timestamped lineage supports chronological analysis of client data evolution.
+
+## Acceptance Criteria
+- **Given** lineage events are recorded  
+  **When** they are stored  
+  **Then** each event includes an accurate timestamp
+
+- **Given** timestamped lineage exists  
+  **When** it is reviewed  
+  **Then** events can be ordered chronologically
+
+- **Given** a timestamp cannot be recorded  
+  **When** an event occurs  
+  **Then** the issue is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-28_compute_freshness.md =====
@@ -22216,6 +22860,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Compute Freshness
+
+## Statement
+As a compliance or operations user, I want data freshness to be computed so that I can assess how up to date client information is.
+
+## Description
+Client data may become stale as time passes without updates from source systems.  
+The platform must compute freshness indicators for client data based on timestamps, update frequency, or source characteristics.
+
+Freshness indicators support informed decision-making and data quality assessment.
+
+## Acceptance Criteria
+- **Given** client data exists  
+  **When** freshness computation is performed  
+  **Then** freshness indicators are calculated for relevant data
+
+- **Given** underlying data is updated  
+  **When** freshness is recomputed  
+  **Then** indicators reflect the latest state
+
+- **Given** freshness cannot be determined  
+  **When** computation is attempted  
+  **Then** this is indicated clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-29_compute_completeness.md =====
@@ -22244,6 +22911,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Compute Completeness
+
+## Statement
+As a compliance or operations user, I want data completeness to be computed so that I can assess whether client profiles contain sufficient information.
+
+## Description
+Client profiles may be partially populated depending on available source data.  
+The platform must compute completeness indicators that describe how fully populated a client profile is relative to expected attributes.
+
+Completeness indicators support data quality monitoring and informed operational decision-making.
+
+## Acceptance Criteria
+- **Given** a client profile exists  
+  **When** completeness is computed  
+  **Then** completeness indicators are calculated for the profile
+
+- **Given** underlying client data changes  
+  **When** completeness is recomputed  
+  **Then** indicators reflect the updated profile state
+
+- **Given** completeness cannot be fully determined  
+  **When** computation is attempted  
+  **Then** partial completeness is recorded with clear indicators
 
 
 ===== FILE: docs\mission_destination\stories\ST-30_audit_ingestion.md =====
@@ -22272,6 +22962,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Audit Ingestion
+
+## Statement
+As a compliance or audit user, I want ingestion activity to be audited so that I can verify what data was ingested and when.
+
+## Description
+The platform must record audit information for data ingestion activities.  
+Audit records should capture relevant details such as source system, timing, and outcomes of ingestion processes.
+
+Auditing ingestion supports regulatory compliance, investigation, and operational oversight.
+
+## Acceptance Criteria
+- **Given** data ingestion occurs  
+  **When** the process completes  
+  **Then** an audit record is created for the ingestion activity
+
+- **Given** ingestion audit records exist  
+  **When** they are requested  
+  **Then** they can be retrieved and reviewed
+
+- **Given** ingestion auditing fails  
+  **When** ingestion proceeds  
+  **Then** the failure is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-31_audit_merge.md =====
@@ -22300,6 +23013,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Audit Merge
+
+## Statement
+As a compliance or audit user, I want merge activity to be audited so that I can understand how client records were consolidated.
+
+## Description
+When client records are merged, the platform must record audit information describing the merge activity.  
+Audit records should capture which records were merged, when the merge occurred, and the outcome.
+
+Auditing merge activity supports transparency, investigation, and regulatory compliance.
+
+## Acceptance Criteria
+- **Given** client records are merged  
+  **When** the merge completes  
+  **Then** an audit record is created for the merge activity
+
+- **Given** merge audit records exist  
+  **When** they are requested  
+  **Then** they can be retrieved and reviewed
+
+- **Given** merge auditing fails  
+  **When** merging proceeds  
+  **Then** the failure is reported clearly
 
 
 ===== FILE: docs\mission_destination\stories\ST-32_search_api_basic.md =====
@@ -22328,6 +23064,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Search API (Basic)
+
+## Statement
+As an application or operations user, I want a basic search API so that client profiles can be retrieved programmatically.
+
+## Description
+The platform must expose a basic search API that allows clients to be searched using common criteria.  
+The API provides programmatic access to search capabilities and supports integration with downstream applications and user interfaces.
+
+The basic search API focuses on core search functionality without advanced ranking or tuning.
+
+## Acceptance Criteria
+- **Given** client profiles exist  
+  **When** the basic search API is called with valid criteria  
+  **Then** matching client profiles are returned
+
+- **Given** no profiles match the criteria  
+  **When** the API is called  
+  **Then** an empty result set is returned
+
+- **Given** invalid search parameters are provided  
+  **When** the API is called  
+  **Then** a clear error response is returned
 
 
 ===== FILE: docs\mission_destination\stories\ST-33_search_api_ranking.md =====
@@ -22356,6 +23115,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Search API (Ranking)
+
+## Statement
+As an application or operations user, I want the search API to return ranked results so that the most relevant client profiles are prioritised.
+
+## Description
+Building on the basic search API, the platform must support ranked search results.  
+Ranking logic orders results based on relevance criteria such as match strength, confidence, or completeness.
+
+Ranked search improves usability and effectiveness for both users and integrated systems.
+
+## Acceptance Criteria
+- **Given** multiple search results are returned  
+  **When** ranked search is performed  
+  **Then** results are ordered by relevance
+
+- **Given** ranking criteria are applied  
+  **When** the search API is called  
+  **Then** results reflect the ranking logic
+
+- **Given** ranking cannot be applied  
+  **When** the API is called  
+  **Then** results are returned without ranking and the limitation is reported
 
 
 ===== FILE: docs\mission_destination\stories\ST-34_profile_api_basic.md =====
@@ -22384,6 +23166,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Profile API (Basic)
+
+## Statement
+As an application or operations user, I want a basic profile API so that consolidated client profiles can be retrieved programmatically.
+
+## Description
+The platform must expose a basic profile API that allows authorised consumers to retrieve assembled client profiles.  
+The API provides programmatic access to the platformâ€™s consolidated view of a client and supports integration with downstream systems and user interfaces.
+
+The basic profile API focuses on core profile retrieval without advanced metadata or lineage detail.
+
+## Acceptance Criteria
+- **Given** a client profile exists  
+  **When** the basic profile API is called with a valid identifier  
+  **Then** the client profile is returned successfully
+
+- **Given** a requested profile does not exist  
+  **When** the API is called  
+  **Then** a clear â€œnot foundâ€ response is returned
+
+- **Given** invalid request parameters are provided  
+  **When** the API is called  
+  **Then** a clear error response is returned
 
 
 ===== FILE: docs\mission_destination\stories\ST-35_profile_api_lineage.md =====
@@ -22412,6 +23217,29 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Profile API (Lineage)
+
+## Statement
+As a compliance or audit user, I want the profile API to expose lineage information so that I can understand how client profile data was derived.
+
+## Description
+In addition to basic profile retrieval, the platform must support exposing lineage information through the profile API.  
+This allows consumers to retrieve not only the client profile but also the associated lineage describing data origins and transformations.
+
+Exposing lineage through the API supports transparency, auditability, and integration with governance tooling.
+
+## Acceptance Criteria
+- **Given** a client profile with recorded lineage exists  
+  **When** the profile API is called with lineage enabled  
+  **Then** the profile and associated lineage are returned
+
+- **Given** lineage information is requested  
+  **When** it is retrieved  
+  **Then** it accurately reflects data sources and processing steps
+
+- **Given** lineage is unavailable  
+  **When** the API is called  
+  **Then** this is indicated clearly in the response
 
 
 ===== FILE: docs\mission_destination\story_service_mapping.yaml =====
