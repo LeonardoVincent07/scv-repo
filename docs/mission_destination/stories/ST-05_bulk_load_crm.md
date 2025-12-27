@@ -13,7 +13,7 @@ overall_status: Complete
 testing_status: fail
 halo_adherence: pass
 guardrail_adherence: pass
-code_quality_adherence: pass
+code_quality_adherence: fail
 security_policy_adherence: pass
 
 policy_adherence: not_run

@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "story_id": "ST-00",
+    "dimension": "code_quality",
+    "published_at_utc": "2025-12-27T22:44:12Z",
+    "source_path": "evidence/lint/ST-00.json"
+  },
+  "payload": {
+    "story_id": "ST-00",
+    "targets": [
+      "app_backend/main.py"
+    ],
+    "passed": false,
+    "message": "Ruff reported 1 code-quality issue(s).",
+    "issues": [
+      {
+        "filename": "<repo>\\app_backend\\main.py",
+        "code": "F401",
+        "message": "`.schemas` imported but unused",
+        "location": {
+          "column": 23,
+          "row": 12
+        }
+      }
+    ]
+  }
+}

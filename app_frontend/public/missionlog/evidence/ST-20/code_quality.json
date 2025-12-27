@@ -1,9 +1,9 @@
 {
   "meta": {
     "story_id": "ST-20",
-    "dimension": "security",
+    "dimension": "code_quality",
     "published_at_utc": "2025-12-27T22:44:13Z",
-    "source_path": "evidence/security/ST-20.json"
+    "source_path": "evidence/lint/ST-20.json"
   },
   "payload": {
     "story_id": "ST-20",
@@ -12,7 +12,7 @@
       "src/domain/models/client_profile.py"
     ],
     "passed": true,
-    "message": "No medium/high security issues found by Bandit.",
+    "message": "No code-quality issues reported by Ruff.",
     "issues": []
   }
 }
