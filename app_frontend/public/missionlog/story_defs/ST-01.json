@@ -1,0 +1,29 @@
+{
+  "story_id": "ST-01",
+  "slug": "ST-01_register_crm_source",
+  "source_path": "docs/mission_destination/stories/ST-01_register_crm_source.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-01",
+    "feature": "FT-01",
+    "name": "Register CRM source",
+    "description": "Register CRM system as ingestible source.\n",
+    "acceptance_criteria": [
+      "Connection succeeds",
+      "Schema retrieved"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Register CRM Source System\n\n## Statement\nAs a data operations user, I want to register a CRM source system so that client data ingested from that system can be correctly identified, governed, and traced throughout the platform.\n\n## Description\nThe platform must allow a CRM source system to be registered as an approved upstream data provider.  \nRegistering a CRM source system establishes it as a recognised origin for client data and enables downstream ingestion, mapping, matching, and lineage tracking.\n\nThe registration process captures the minimum information required to uniquely identify the CRM system and treat it as a governed source within the platform. Once registered, the CRM source system can be referenced consistently by ingestion and processing workflows.\n\n## Acceptance Criteria\n- **Given** a CRM source system has not previously been registered  \n  **When** a data operations user registers the CRM source system  \n  **Then** the system is stored as a recognised and active source\n\n- **Given** a CRM source system is registered  \n  **When** downstream processes reference the source  \n  **Then** the system is identifiable as the origin of ingested client data\n\n- **Given** an attempt is made to register a CRM source system with missing or invalid identifying information  \n  **When** the registration is submitted  \n  **Then** the registration is rejected with a clear validation error"
+}

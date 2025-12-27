@@ -23,3 +23,26 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: 2025-12-21T16:19:34Z
 ---
+# Map Identifiers
+
+## Statement
+As a data operations user, I want to map client identifiers so that records referring to the same real-world entity can be reliably linked across systems.
+
+## Description
+Different source systems may represent client identifiers using different formats or naming conventions.  
+The platform must support mapping these identifiers to a canonical identifier model so that they can be compared and used reliably for matching and consolidation.
+
+Correct identifier mapping is essential for accurate client matching and profile assembly.
+
+## Acceptance Criteria
+- **Given** identifier fields exist in a source system  
+  **When** identifier mappings are defined  
+  **Then** identifiers are mapped to the canonical identifier model
+
+- **Given** identifier mappings are in place  
+  **When** client records are processed  
+  **Then** identifiers are available for matching logic
+
+- **Given** an identifier required for matching is missing or unmapped  
+  **When** matching is attempted  
+  **Then** the issue is surfaced clearly for investigation

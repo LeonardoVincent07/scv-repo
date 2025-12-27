@@ -23,3 +23,26 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Ingest KYC Data
+
+## Statement
+As a compliance operations user, I want KYC data to be ingested from approved source systems so that client due-diligence information is available for review and downstream processing.
+
+## Description
+The platform must support ingestion of KYC data from registered KYC source systems.  
+Ingested KYC data should be persisted in a controlled manner and associated with the originating source system to ensure provenance and auditability.
+
+Once ingested, KYC data can be used for client enrichment, profile assembly, and compliance review processes.
+
+## Acceptance Criteria
+- **Given** a KYC source system is registered  
+  **When** KYC data is ingested  
+  **Then** the data is persisted successfully and linked to the source system
+
+- **Given** ingested KYC data  
+  **When** downstream processing is performed  
+  **Then** the data is available for enrichment and profile assembly
+
+- **Given** invalid KYC records are encountered  
+  **When** ingestion is attempted  
+  **Then** valid records are stored and invalid records are reported clearly

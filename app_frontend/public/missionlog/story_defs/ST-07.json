@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-07",
+  "slug": "ST-07_detect_upstream_deltas",
+  "source_path": "docs/mission_destination/stories/ST-07_detect_upstream_deltas.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-07",
+    "feature": "FT-04",
+    "name": "Detect upstream deltas",
+    "description": "Detect deltas.\n",
+    "acceptance_criteria": [
+      "Changes detected"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Detect Upstream Deltas\n\n## Statement\nAs a data operations user, I want the platform to detect upstream data changes so that only new or modified client records are processed incrementally.\n\n## Description\nUpstream source systems may deliver repeated data extracts containing a mixture of unchanged, new, updated, or removed records.  \nThe platform must be able to compare incoming data against previously ingested data to detect meaningful deltas.\n\nDetecting upstream deltas enables efficient incremental processing and prevents unnecessary reprocessing of unchanged client records.\n\n## Acceptance Criteria\n- **Given** a previous ingestion has occurred  \n  **When** new data is received from the same source system  \n  **Then** the platform identifies new, changed, and unchanged records\n\n- **Given** upstream records have not changed  \n  **When** delta detection runs  \n  **Then** those records are marked as unchanged\n\n- **Given** records are new or updated  \n  **When** delta detection completes  \n  **Then** they are flagged for downstream processing"
+}

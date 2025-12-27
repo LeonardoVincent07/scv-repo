@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-28",
+  "slug": "ST-28_compute_freshness",
+  "source_path": "docs/mission_destination/stories/ST-28_compute_freshness.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-28",
+    "feature": "FT-14",
+    "name": "Compute freshness",
+    "description": "Freshness score.\n",
+    "acceptance_criteria": [
+      "Score correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Compute Freshness\n\n## Statement\nAs a compliance or operations user, I want data freshness to be computed so that I can assess how up to date client information is.\n\n## Description\nClient data may become stale as time passes without updates from source systems.  \nThe platform must compute freshness indicators for client data based on timestamps, update frequency, or source characteristics.\n\nFreshness indicators support informed decision-making and data quality assessment.\n\n## Acceptance Criteria\n- **Given** client data exists  \n  **When** freshness computation is performed  \n  **Then** freshness indicators are calculated for relevant data\n\n- **Given** underlying data is updated  \n  **When** freshness is recomputed  \n  **Then** indicators reflect the latest state\n\n- **Given** freshness cannot be determined  \n  **When** computation is attempted  \n  **Then** this is indicated clearly"
+}

@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-25",
+  "slug": "ST-25_show_merge_logic",
+  "source_path": "docs/mission_destination/stories/ST-25_show_merge_logic.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-25",
+    "feature": "FT-12",
+    "name": "Show merge logic",
+    "description": "Show logic.\n",
+    "acceptance_criteria": [
+      "Logic displayed"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Show Merge Logic\n\n## Statement\nAs a compliance or audit user, I want to understand how merge decisions were made so that client data consolidation is transparent.\n\n## Description\nWhen client data is merged, the platform applies rules and logic to determine which values are retained.  \nThe platform must expose the merge logic applied to client attributes so that users can understand why specific values were chosen.\n\nShowing merge logic supports auditability, trust, and investigation of client profile outcomes.\n\n## Acceptance Criteria\n- **Given** client attributes have been merged  \n  **When** merge logic is requested  \n  **Then** the applied rules and outcomes are displayed clearly\n\n- **Given** merge logic is displayed  \n  **When** it is reviewed  \n  **Then** it explains why specific values were retained\n\n- **Given** merge logic cannot be determined  \n  **When** it is requested  \n  **Then** this is indicated clearly"
+}

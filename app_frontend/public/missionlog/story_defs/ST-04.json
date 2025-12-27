@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-04",
+  "slug": "ST-04_map_identifiers",
+  "source_path": "docs/mission_destination/stories/ST-04_map_identifiers.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-04",
+    "feature": "FT-02",
+    "name": "Map identifiers",
+    "description": "Map identifiers.\n",
+    "acceptance_criteria": [
+      "ID mapping valid"
+    ],
+    "overall_status": "In Progress",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "fail",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-21T16:19:34+00:00"
+  },
+  "body_markdown": "# Map Identifiers\n\n## Statement\nAs a data operations user, I want to map client identifiers so that records referring to the same real-world entity can be reliably linked across systems.\n\n## Description\nDifferent source systems may represent client identifiers using different formats or naming conventions.  \nThe platform must support mapping these identifiers to a canonical identifier model so that they can be compared and used reliably for matching and consolidation.\n\nCorrect identifier mapping is essential for accurate client matching and profile assembly.\n\n## Acceptance Criteria\n- **Given** identifier fields exist in a source system  \n  **When** identifier mappings are defined  \n  **Then** identifiers are mapped to the canonical identifier model\n\n- **Given** identifier mappings are in place  \n  **When** client records are processed  \n  **Then** identifiers are available for matching logic\n\n- **Given** an identifier required for matching is missing or unmapped  \n  **When** matching is attempted  \n  **Then** the issue is surfaced clearly for investigation"
+}

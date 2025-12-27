@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-14",
+  "slug": "ST-14_merge_addresses",
+  "source_path": "docs/mission_destination/stories/ST-14_merge_addresses.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-14",
+    "feature": "FT-07",
+    "name": "Merge addresses",
+    "description": "Merge address attributes.\n",
+    "acceptance_criteria": [
+      "Address selected"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Merge Addresses\n\n## Statement\nAs a compliance or operations user, I want client address information to be merged so that address data is consistent and complete within the client profile.\n\n## Description\nClients may have multiple address records originating from different source systems.  \nThe platform must merge address information when records are matched, ensuring that valid and relevant addresses are retained.\n\nAddress merging supports accurate client profiling and downstream operational use.\n\n## Acceptance Criteria\n- **Given** matched client records contain address information  \n  **When** address merging is performed  \n  **Then** addresses are combined into a unified set\n\n- **Given** duplicate or conflicting addresses exist  \n  **When** merging occurs  \n  **Then** duplicates are handled and conflicts resolved appropriately\n\n- **Given** address data is incomplete  \n  **When** merging is attempted  \n  **Then** available address information is retained"
+}

@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // Status normalisation function
 function normaliseStatus(status) {
@@ -107,8 +109,49 @@ function EvidenceModal({ open, onClose, title, subtitle, loading, error, data })
   );
 }
 
-// Story definition modal (connectivity wired later)
-function StoryDefinitionModal({ open, onClose, title, subtitle }) {
+// Story definition modal (now loads exported JSON and renders markdown)
+function StoryDefinitionModal({ open, onClose, storyId, storyName }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [doc, setDoc] = useState(null);
+
+  useEffect(() => {
+    if (!open || !storyId) return;
+
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError("");
+      setDoc(null);
+
+      const url = `/missionlog/story_defs/${encodeURIComponent(storyId)}.json`;
+
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(
+            `Story definition not found (HTTP ${res.status}). Expected: ${url}`
+          );
+        }
+        const json = await res.json();
+        if (!cancelled) setDoc(json);
+      } catch (e) {
+        if (!cancelled) {
+          setError(e?.message || "Could not load story definition.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, storyId]);
+
   if (!open) return null;
 
   return (
@@ -121,17 +164,17 @@ function StoryDefinitionModal({ open, onClose, title, subtitle }) {
       />
 
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-3xl bg-white rounded-halo shadow-lg border border-gray-200">
+        <div className="w-full max-w-4xl bg-white rounded-halo shadow-lg border border-gray-200">
           <div className="flex items-start justify-between p-4 border-b border-gray-200">
             <div>
               <h3
                 style={{ fontFamily: "Fjalla One" }}
                 className="text-lg text-gray-900 tracking-wide"
               >
-                {title}
+                {storyId} · Story Definition
               </h3>
-              {subtitle && (
-                <p className="text-sm font-body text-gray-600 mt-1">{subtitle}</p>
+              {storyName && (
+                <p className="text-sm font-body text-gray-600 mt-1">{storyName}</p>
               )}
             </div>
 
@@ -145,16 +188,58 @@ function StoryDefinitionModal({ open, onClose, title, subtitle }) {
           </div>
 
           <div className="p-4">
-            <p className="text-sm font-body text-gray-700">
-              Story definition will be loaded from the Story markdown file in the
-              next step.
-            </p>
-
-            <div className="mt-3 bg-gray-50 border border-gray-200 rounded-md p-3">
-              <p className="text-xs font-body text-gray-500">
-                Placeholder: story markdown connectivity not yet implemented.
+            {loading && (
+              <p className="text-sm font-body text-gray-500">
+                Loading story definition…
               </p>
-            </div>
+            )}
+
+            {!loading && error && (
+              <p className="text-sm font-body text-red-600">{error}</p>
+            )}
+
+            {!loading && !error && doc && (
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-4">
+                <div className="bg-gray-50 border border-gray-200 rounded-md p-4 overflow-auto max-h-[65vh]">
+                  <article className="prose prose-sm max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {doc.body_markdown || ""}
+                    </ReactMarkdown>
+                  </article>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-md p-4 overflow-auto max-h-[65vh]">
+                  <p className="text-xs font-body text-gray-500 mb-2">Front matter</p>
+                  <pre className="text-xs font-mono text-gray-800 whitespace-pre-wrap">
+                    {JSON.stringify(doc.front_matter || {}, null, 2)}
+                  </pre>
+
+                  <p className="text-xs font-body text-gray-400 mt-3">
+                    Source:{" "}
+                    <span className="font-mono">
+                      {doc.source_path || "(unknown)"}
+                    </span>
+                  </p>
+                  <p className="text-xs font-body text-gray-400 mt-1">
+                    Exported:{" "}
+                    <span className="font-mono">
+                      {doc.exported_at_utc || "(unknown)"}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!loading && !error && !doc && (
+              <p className="text-sm font-body text-gray-500">
+                No story definition data available.
+              </p>
+            )}
+
+            <p className="text-xs font-body text-gray-400 mt-3">
+              Definition is generated from story markdown files (re-run the export
+              script to refresh).
+            </p>
           </div>
         </div>
       </div>
@@ -456,7 +541,6 @@ export default function MissionLogPanel({ setActiveView }) {
   };
 
   // ---------- Status column alignment ----------
-  // One fixed status column width for epic/feature/story to guarantee same X-position
   const ROW_GRID = "grid grid-cols-[1fr_7rem] items-start gap-3"; // 7rem ~ w-28
 
   return (
@@ -583,7 +667,6 @@ export default function MissionLogPanel({ setActiveView }) {
               key={epic.epic_id}
               className="bg-gray-50 rounded-lg border border-gray-200 p-4"
             >
-              {/* CHANGED: grid row to align status chips vertically across epic/feature/story */}
               <div className={`${ROW_GRID} mb-3`}>
                 <p className="font-heading text-sm text-gray-900">
                   Epic {epic.epic_id}: {epic.name}
@@ -604,8 +687,8 @@ export default function MissionLogPanel({ setActiveView }) {
                     key={feature.feature_id}
                     className="bg-white rounded-md border border-gray-200 p-4"
                   >
-                    {/* CHANGED: grid row to align status chips vertically */}
-                    <div className={`${ROW_GRID}`}>
+                    {/* CHANGED: bleed header row to outer edges to align status with Epic */}
+                    <div className={`${ROW_GRID} -mx-4 px-4`}>
                       <p className="font-heading text-sm text-gray-900">
                         Feature {feature.feature_id}: {feature.name}
                       </p>
@@ -625,8 +708,8 @@ export default function MissionLogPanel({ setActiveView }) {
                           key={story.story_id}
                           className="bg-gray-50 rounded-md border border-gray-200 p-3"
                         >
-                          {/* CHANGED: grid row to align story status chip to same X-position */}
-                          <div className={`${ROW_GRID}`}>
+                          {/* CHANGED: bleed header row to outer edges to align status with Epic/Feature */}
+                          <div className={`${ROW_GRID} -mx-3 px-3`}>
                             <button
                               type="button"
                               onClick={() => openStoryDefinition(story)}
@@ -687,12 +770,14 @@ export default function MissionLogPanel({ setActiveView }) {
       <StoryDefinitionModal
         open={storyDefOpen}
         onClose={closeStoryDefinition}
-        title={`${storyDefMeta.storyId} · Story Definition`}
-        subtitle={storyDefMeta.storyName}
+        storyId={storyDefMeta.storyId}
+        storyName={storyDefMeta.storyName}
       />
     </section>
   );
 }
+
+
 
 
 

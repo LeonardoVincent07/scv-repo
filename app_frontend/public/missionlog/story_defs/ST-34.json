@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-34",
+  "slug": "ST-34_profile_api_basic",
+  "source_path": "docs/mission_destination/stories/ST-34_profile_api_basic.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-34",
+    "feature": "FT-17",
+    "name": "Profile API basic",
+    "description": "Profile endpoint.\n",
+    "acceptance_criteria": [
+      "Profile returned"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Profile API (Basic)\n\n## Statement\nAs an application or operations user, I want a basic profile API so that consolidated client profiles can be retrieved programmatically.\n\n## Description\nThe platform must expose a basic profile API that allows authorised consumers to retrieve assembled client profiles.  \nThe API provides programmatic access to the platform’s consolidated view of a client and supports integration with downstream systems and user interfaces.\n\nThe basic profile API focuses on core profile retrieval without advanced metadata or lineage detail.\n\n## Acceptance Criteria\n- **Given** a client profile exists  \n  **When** the basic profile API is called with a valid identifier  \n  **Then** the client profile is returned successfully\n\n- **Given** a requested profile does not exist  \n  **When** the API is called  \n  **Then** a clear “not found” response is returned\n\n- **Given** invalid request parameters are provided  \n  **When** the API is called  \n  **Then** a clear error response is returned"
+}

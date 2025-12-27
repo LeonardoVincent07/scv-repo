@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-21",
+  "slug": "ST-21_assemble_metadata",
+  "source_path": "docs/mission_destination/stories/ST-21_assemble_metadata.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-21",
+    "feature": "FT-10",
+    "name": "Assemble metadata",
+    "description": "Assemble metadata.\n",
+    "acceptance_criteria": [
+      "Metadata added"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Assemble Profile Metadata\n\n## Statement\nAs a compliance or operations user, I want profile metadata to be assembled so that I can assess the quality and state of a client profile.\n\n## Description\nIn addition to core client data, the platform must derive and assemble metadata about each client profile.  \nProfile metadata may include indicators such as completeness, freshness, confidence, and references to lineage or evidence.\n\nThis metadata supports informed decision-making and operational oversight of client profiles.\n\n## Acceptance Criteria\n- **Given** a client profile exists  \n  **When** metadata assembly is performed  \n  **Then** profile metadata is calculated and associated with the profile\n\n- **Given** underlying client data changes  \n  **When** metadata is reassembled  \n  **Then** metadata reflects the updated profile state\n\n- **Given** metadata cannot be fully derived  \n  **When** assembly is attempted  \n  **Then** partial metadata is recorded with clear indicators"
+}

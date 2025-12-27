@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-18",
+  "slug": "ST-18_fuzzy_search_queries",
+  "source_path": "docs/mission_destination/stories/ST-18_fuzzy_search_queries.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-18",
+    "feature": "FT-09",
+    "name": "Fuzzy search queries",
+    "description": "Fuzzy queries.\n",
+    "acceptance_criteria": [
+      "Ranked results"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Fuzzy Search Queries\n\n## Statement\nAs an operations or compliance user, I want to perform fuzzy search queries so that I can find clients even when search terms are approximate or incomplete.\n\n## Description\nExact search queries may not always return relevant results due to spelling variations or incomplete information.  \nThe platform must support fuzzy search queries that tolerate minor differences between search input and indexed data.\n\nFuzzy search improves usability and helps users locate client profiles more effectively.\n\n## Acceptance Criteria\n- **Given** indexed client data exists  \n  **When** a fuzzy search query is performed  \n  **Then** relevant approximate matches are returned\n\n- **Given** multiple potential matches exist  \n  **When** fuzzy search is executed  \n  **Then** all relevant results are included\n\n- **Given** no close matches exist  \n  **When** a fuzzy search is performed  \n  **Then** no results are returned clearly"
+}

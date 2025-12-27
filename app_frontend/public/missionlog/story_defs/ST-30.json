@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-30",
+  "slug": "ST-30_audit_ingestion",
+  "source_path": "docs/mission_destination/stories/ST-30_audit_ingestion.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-30",
+    "feature": "FT-15",
+    "name": "Audit ingestion",
+    "description": "Audit ingestion.\n",
+    "acceptance_criteria": [
+      "Audit entries"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Audit Ingestion\n\n## Statement\nAs a compliance or audit user, I want ingestion activity to be audited so that I can verify what data was ingested and when.\n\n## Description\nThe platform must record audit information for data ingestion activities.  \nAudit records should capture relevant details such as source system, timing, and outcomes of ingestion processes.\n\nAuditing ingestion supports regulatory compliance, investigation, and operational oversight.\n\n## Acceptance Criteria\n- **Given** data ingestion occurs  \n  **When** the process completes  \n  **Then** an audit record is created for the ingestion activity\n\n- **Given** ingestion audit records exist  \n  **When** they are requested  \n  **Then** they can be retrieved and reviewed\n\n- **Given** ingestion auditing fails  \n  **When** ingestion proceeds  \n  **Then** the failure is reported clearly"
+}

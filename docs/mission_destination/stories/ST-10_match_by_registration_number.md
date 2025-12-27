@@ -23,3 +23,26 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Match Clients by Registration Number
+
+## Statement
+As a compliance operations user, I want clients to be matched by registration number so that records referring to the same legal entity can be identified reliably.
+
+## Description
+Client records originating from different systems may refer to the same legal entity using a common registration number.  
+The platform must support matching client records based on registration number as a strong identifier.
+
+Matching by registration number complements other matching strategies and improves the accuracy of client consolidation.
+
+## Acceptance Criteria
+- **Given** multiple client records exist  
+  **When** matching by registration number is performed  
+  **Then** records with the same registration number are identified as potential matches
+
+- **Given** registration number matches are identified  
+  **When** downstream processing occurs  
+  **Then** those records are treated as referring to the same entity
+
+- **Given** a registration number is missing or invalid  
+  **When** matching is attempted  
+  **Then** the limitation is reported clearly

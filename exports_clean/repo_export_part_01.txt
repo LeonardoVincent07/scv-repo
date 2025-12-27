@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-25 07:14:16Z
+Generated: 2025-12-27 17:41:00Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -3071,7 +3071,9 @@ export default defineConfig([
   },
   "dependencies": {
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -3103,7 +3105,9 @@ export default defineConfig([
       "version": "0.0.0",
       "dependencies": {
         "react": "^19.2.0",
-        "react-dom": "^19.2.0"
+        "react-dom": "^19.2.0",
+        "react-markdown": "^10.1.0",
+        "remark-gfm": "^4.0.1"
       },
       "devDependencies": {
         "@eslint/js": "^9.39.1",
@@ -4718,12 +4722,38 @@ export default defineConfig([
         "@babel/types": "^7.28.2"
       }
     },
+    "node_modules/@types/debug": {
+      "version": "4.1.12",
+      "resolved": "https://registry.npmjs.org/@types/debug/-/debug-4.1.12.tgz",
+      "integrity": "sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/ms": "*"
+      }
+    },
     "node_modules/@types/estree": {
       "version": "1.0.8",
       "resolved": "https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz",
       "integrity": "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==",
-      "dev": true,
       "license": "MIT"
+    },
+    "node_modules/@types/estree-jsx": {
+      "version": "1.0.5",
+      "resolved": "https://registry.npmjs.org/@types/estree-jsx/-/estree-jsx-1.0.5.tgz",
+      "integrity": "sha512-52CcUVNFyfb1A2ALocQw/Dd1BQFNmSdkuC3BkZ6iqhdMfQz7JWOFRuJFloOzjk+6WijU56m9oKXFAXc7o3Towg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/estree": "*"
+      }
+    },
+    "node_modules/@types/hast": {
+      "version": "3.0.4",
+      "resolved": "https://registry.npmjs.org/@types/hast/-/hast-3.0.4.tgz",
+      "integrity": "sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "*"
+      }
     },
     "node_modules/@types/json-schema": {
       "version": "7.0.15",
@@ -4732,11 +4762,25 @@ export default defineConfig([
       "dev": true,
       "license": "MIT"
     },
+    "node_modules/@types/mdast": {
+      "version": "4.0.4",
+      "resolved": "https://registry.npmjs.org/@types/mdast/-/mdast-4.0.4.tgz",
+      "integrity": "sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "*"
+      }
+    },
+    "node_modules/@types/ms": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/@types/ms/-/ms-2.1.0.tgz",
+      "integrity": "sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==",
+      "license": "MIT"
+    },
     "node_modules/@types/react": {
       "version": "19.2.7",
       "resolved": "https://registry.npmjs.org/@types/react/-/react-19.2.7.tgz",
       "integrity": "sha512-MWtvHrGZLFttgeEj28VXHxpmwYbor/ATPYbBfSFZEIRK0ecCFLl2Qo55z52Hss+UV9CRN7trSeq1zbgx7YDWWg==",
-      "dev": true,
       "license": "MIT",
       "peer": true,
       "dependencies": {
@@ -4752,6 +4796,18 @@ export default defineConfig([
       "peerDependencies": {
         "@types/react": "^19.2.0"
       }
+    },
+    "node_modules/@types/unist": {
+      "version": "3.0.3",
+      "resolved": "https://registry.npmjs.org/@types/unist/-/unist-3.0.3.tgz",
+      "integrity": "sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==",
+      "license": "MIT"
+    },
+    "node_modules/@ungap/structured-clone": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.3.0.tgz",
+      "integrity": "sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==",
+      "license": "ISC"
     },
     "node_modules/@vitejs/plugin-react": {
       "version": "5.1.1",
@@ -4876,6 +4932,16 @@ export default defineConfig([
         "postcss": "^8.1.0"
       }
     },
+    "node_modules/bail": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/bail/-/bail-2.0.2.tgz",
+      "integrity": "sha512-0xO6mYd7JB2YesxDKplafRpsiOzPt9V02ddPCLbY1xYGPOX24NTyN50qnUxgCPcSoYMhKpAuBTjQoRZCAkUDRw==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
     "node_modules/balanced-match": {
       "version": "1.0.2",
       "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz",
@@ -4970,6 +5036,16 @@ export default defineConfig([
       ],
       "license": "CC-BY-4.0"
     },
+    "node_modules/ccount": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/ccount/-/ccount-2.0.1.tgz",
+      "integrity": "sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
     "node_modules/chalk": {
       "version": "4.1.2",
       "resolved": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz",
@@ -4985,6 +5061,46 @@ export default defineConfig([
       },
       "funding": {
         "url": "https://github.com/chalk/chalk?sponsor=1"
+      }
+    },
+    "node_modules/character-entities": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/character-entities/-/character-entities-2.0.2.tgz",
+      "integrity": "sha512-shx7oQ0Awen/BRIdkjkvz54PnEEI/EjwXDSIZp86/KKdbafHh1Df/RYGBhn4hbe2+uKC9FnT5UCEdyPz3ai9hQ==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/character-entities-html4": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/character-entities-html4/-/character-entities-html4-2.1.0.tgz",
+      "integrity": "sha512-1v7fgQRj6hnSwFpq1Eu0ynr/CDEw0rXo2B61qXrLNdHZmPKgb7fqS1a2JwF0rISo9q77jDI8VMEHoApn8qDoZA==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/character-entities-legacy": {
+      "version": "3.0.0",
+      "resolved": "https://registry.npmjs.org/character-entities-legacy/-/character-entities-legacy-3.0.0.tgz",
+      "integrity": "sha512-RpPp0asT/6ufRm//AJVwpViZbGM/MkjQFxJccQRHmISF/22NBtsHqAWmL+/pmkPWoIUJdWyeVleTl1wydHATVQ==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/character-reference-invalid": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/character-reference-invalid/-/character-reference-invalid-2.0.1.tgz",
+      "integrity": "sha512-iBZ4F4wRbyORVsu0jPV7gXkOsGYjGHPmAyv+HiHG8gi5PtC9KI2j1+v8/tlibRvjoWX027ypmG/n0HtO5t7unw==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
       }
     },
     "node_modules/color-convert": {
@@ -5006,6 +5122,16 @@ export default defineConfig([
       "integrity": "sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==",
       "dev": true,
       "license": "MIT"
+    },
+    "node_modules/comma-separated-tokens": {
+      "version": "2.0.3",
+      "resolved": "https://registry.npmjs.org/comma-separated-tokens/-/comma-separated-tokens-2.0.3.tgz",
+      "integrity": "sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
     },
     "node_modules/concat-map": {
       "version": "0.0.1",
@@ -5040,14 +5166,12 @@ export default defineConfig([
       "version": "3.2.3",
       "resolved": "https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz",
       "integrity": "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==",
-      "dev": true,
       "license": "MIT"
     },
     "node_modules/debug": {
       "version": "4.4.3",
       "resolved": "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz",
       "integrity": "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==",
-      "dev": true,
       "license": "MIT",
       "dependencies": {
         "ms": "^2.1.3"
@@ -5061,12 +5185,34 @@ export default defineConfig([
         }
       }
     },
+    "node_modules/decode-named-character-reference": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/decode-named-character-reference/-/decode-named-character-reference-1.2.0.tgz",
+      "integrity": "sha512-c6fcElNV6ShtZXmsgNgFFV5tVX2PaV4g+MOAkb8eXHvn6sryJBrZa9r0zV6+dtTyoCKxtDy5tyQ5ZwQuidtd+Q==",
+      "license": "MIT",
+      "dependencies": {
+        "character-entities": "^2.0.0"
+      },
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
     "node_modules/deep-is": {
       "version": "0.1.4",
       "resolved": "https://registry.npmjs.org/deep-is/-/deep-is-0.1.4.tgz",
       "integrity": "sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==",
       "dev": true,
       "license": "MIT"
+    },
+    "node_modules/dequal": {
+      "version": "2.0.3",
+      "resolved": "https://registry.npmjs.org/dequal/-/dequal-2.0.3.tgz",
+      "integrity": "sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6"
+      }
     },
     "node_modules/detect-libc": {
       "version": "2.1.2",
@@ -5076,6 +5222,19 @@ export default defineConfig([
       "license": "Apache-2.0",
       "engines": {
         "node": ">=8"
+      }
+    },
+    "node_modules/devlop": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/devlop/-/devlop-1.1.0.tgz",
+      "integrity": "sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==",
+      "license": "MIT",
+      "dependencies": {
+        "dequal": "^2.0.0"
+      },
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
       }
     },
     "node_modules/electron-to-chromium": {
@@ -5356,6 +5515,16 @@ export default defineConfig([
         "node": ">=4.0"
       }
     },
+    "node_modules/estree-util-is-identifier-name": {
+      "version": "3.0.0",
+      "resolved": "https://registry.npmjs.org/estree-util-is-identifier-name/-/estree-util-is-identifier-name-3.0.0.tgz",
+      "integrity": "sha512-hFtqIDZTIUZ9BXLb8y4pYGyk6+wekIivNVTcmvk8NoOh+VeRn5y6cEHzbURrWbfp1fIqdVipilzj+lfaadNZmg==",
+      "license": "MIT",
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
     "node_modules/esutils": {
       "version": "2.0.3",
       "resolved": "https://registry.npmjs.org/esutils/-/esutils-2.0.3.tgz",
@@ -5365,6 +5534,12 @@ export default defineConfig([
       "engines": {
         "node": ">=0.10.0"
       }
+    },
+    "node_modules/extend": {
+      "version": "3.0.2",
+      "resolved": "https://registry.npmjs.org/extend/-/extend-3.0.2.tgz",
+      "integrity": "sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==",
+      "license": "MIT"
     },
     "node_modules/fast-deep-equal": {
       "version": "3.1.3",
@@ -5538,6 +5713,46 @@ export default defineConfig([
         "node": ">=8"
       }
     },
+    "node_modules/hast-util-to-jsx-runtime": {
+      "version": "2.3.6",
+      "resolved": "https://registry.npmjs.org/hast-util-to-jsx-runtime/-/hast-util-to-jsx-runtime-2.3.6.tgz",
+      "integrity": "sha512-zl6s8LwNyo1P9uw+XJGvZtdFF1GdAkOg8ujOw+4Pyb76874fLps4ueHXDhXWdk6YHQ6OgUtinliG7RsYvCbbBg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/estree": "^1.0.0",
+        "@types/hast": "^3.0.0",
+        "@types/unist": "^3.0.0",
+        "comma-separated-tokens": "^2.0.0",
+        "devlop": "^1.0.0",
+        "estree-util-is-identifier-name": "^3.0.0",
+        "hast-util-whitespace": "^3.0.0",
+        "mdast-util-mdx-expression": "^2.0.0",
+        "mdast-util-mdx-jsx": "^3.0.0",
+        "mdast-util-mdxjs-esm": "^2.0.0",
+        "property-information": "^7.0.0",
+        "space-separated-tokens": "^2.0.0",
+        "style-to-js": "^1.0.0",
+        "unist-util-position": "^5.0.0",
+        "vfile-message": "^4.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/hast-util-whitespace": {
+      "version": "3.0.0",
+      "resolved": "https://registry.npmjs.org/hast-util-whitespace/-/hast-util-whitespace-3.0.0.tgz",
+      "integrity": "sha512-88JUN06ipLwsnv+dVn+OIYOvAuvBMy/Qoi6O7mQHxdPXpjy+Cd6xRkWwux7DKO+4sYILtLBRIKgsdpS2gQc7qw==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/hast": "^3.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
     "node_modules/hermes-estree": {
       "version": "0.25.1",
       "resolved": "https://registry.npmjs.org/hermes-estree/-/hermes-estree-0.25.1.tgz",
@@ -5553,6 +5768,16 @@ export default defineConfig([
       "license": "MIT",
       "dependencies": {
         "hermes-estree": "0.25.1"
+      }
+    },
+    "node_modules/html-url-attributes": {
+      "version": "3.0.1",
+      "resolved": "https://registry.npmjs.org/html-url-attributes/-/html-url-attributes-3.0.1.tgz",
+      "integrity": "sha512-ol6UPyBWqsrO6EJySPz2O7ZSr856WDrEzM5zMqp+FJJLGMW35cLYmmZnl0vztAZxRUoNZJFTCohfjuIJ8I4QBQ==",
+      "license": "MIT",
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
       }
     },
     "node_modules/ignore": {
@@ -5592,6 +5817,46 @@ export default defineConfig([
         "node": ">=0.8.19"
       }
     },
+    "node_modules/inline-style-parser": {
+      "version": "0.2.7",
+      "resolved": "https://registry.npmjs.org/inline-style-parser/-/inline-style-parser-0.2.7.tgz",
+      "integrity": "sha512-Nb2ctOyNR8DqQoR0OwRG95uNWIC0C1lCgf5Naz5H6Ji72KZ8OcFZLz2P5sNgwlyoJ8Yif11oMuYs5pBQa86csA==",
+      "license": "MIT"
+    },
+    "node_modules/is-alphabetical": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/is-alphabetical/-/is-alphabetical-2.0.1.tgz",
+      "integrity": "sha512-FWyyY60MeTNyeSRpkM2Iry0G9hpr7/9kD40mD/cGQEuilcZYS4okz8SN2Q6rLCJ8gbCt6fN+rC+6tMGS99LaxQ==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/is-alphanumerical": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/is-alphanumerical/-/is-alphanumerical-2.0.1.tgz",
+      "integrity": "sha512-hmbYhX/9MUMF5uh7tOXyK/n0ZvWpad5caBA17GsC6vyuCqaWliRG5K1qS9inmUhEMaOBIW7/whAnSwveW/LtZw==",
+      "license": "MIT",
+      "dependencies": {
+        "is-alphabetical": "^2.0.0",
+        "is-decimal": "^2.0.0"
+      },
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/is-decimal": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/is-decimal/-/is-decimal-2.0.1.tgz",
+      "integrity": "sha512-AAB9hiomQs5DXWcRB1rqsxGUstbRroFOPPVAomNk/3XHR5JyEZChOyTWe2oayKnsSsr/kcGqF+z6yuH6HHpN0A==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
     "node_modules/is-extglob": {
       "version": "2.1.1",
       "resolved": "https://registry.npmjs.org/is-extglob/-/is-extglob-2.1.1.tgz",
@@ -5613,6 +5878,28 @@ export default defineConfig([
       },
       "engines": {
         "node": ">=0.10.0"
+      }
+    },
+    "node_modules/is-hexadecimal": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/is-hexadecimal/-/is-hexadecimal-2.0.1.tgz",
+      "integrity": "sha512-DgZQp241c8oO6cA1SbTEWiXeoxV42vlcJxgH+B3hi1AiqqKruZR3ZGF8In3fj4+/y/7rHvlOZLZtgJ/4ttYGZg==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/is-plain-obj": {
+      "version": "4.1.0",
+      "resolved": "https://registry.npmjs.org/is-plain-obj/-/is-plain-obj-4.1.0.tgz",
+      "integrity": "sha512-+Pgi+vMuUNkJyExiMBt5IlFoMyKnr5zhJ4Uspz58WOhBF5QoIZkFyNHIbBAtHwzVAgk5RtndVNsDRN61/mmDqg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/sindresorhus"
       }
     },
     "node_modules/isexe": {
@@ -6007,6 +6294,16 @@ export default defineConfig([
       "dev": true,
       "license": "MIT"
     },
+    "node_modules/longest-streak": {
+      "version": "3.1.0",
+      "resolved": "https://registry.npmjs.org/longest-streak/-/longest-streak-3.1.0.tgz",
+      "integrity": "sha512-9Ri+o0JYgehTaVBBDoMqIl8GXtbWg711O3srftcHhZ0dqnETqLaoIK0x17fUw9rFSlK/0NlsKe0Ahhyl5pXE2g==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
     "node_modules/lru-cache": {
       "version": "5.1.1",
       "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-5.1.1.tgz",
@@ -6027,6 +6324,861 @@ export default defineConfig([
         "@jridgewell/sourcemap-codec": "^1.5.5"
       }
     },
+    "node_modules/markdown-table": {
+      "version": "3.0.4",
+      "resolved": "https://registry.npmjs.org/markdown-table/-/markdown-table-3.0.4.tgz",
+      "integrity": "sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/mdast-util-find-and-replace": {
+      "version": "3.0.2",
+      "resolved": "https://registry.npmjs.org/mdast-util-find-and-replace/-/mdast-util-find-and-replace-3.0.2.tgz",
+      "integrity": "sha512-Tmd1Vg/m3Xz43afeNxDIhWRtFZgM2VLyaf4vSTYwudTyeuTneoL3qtWMA5jeLyz/O1vDJmmV4QuScFCA2tBPwg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "escape-string-regexp": "^5.0.0",
+        "unist-util-is": "^6.0.0",
+        "unist-util-visit-parents": "^6.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-find-and-replace/node_modules/escape-string-regexp": {
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/escape-string-regexp/-/escape-string-regexp-5.0.0.tgz",
+      "integrity": "sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/sindresorhus"
+      }
+    },
+    "node_modules/mdast-util-from-markdown": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/mdast-util-from-markdown/-/mdast-util-from-markdown-2.0.2.tgz",
+      "integrity": "sha512-uZhTV/8NBuw0WHkPTrCqDOl0zVe1BIng5ZtHoDk49ME1qqcjYmmLmOf0gELgcRMxN4w2iuIeVso5/6QymSrgmA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "@types/unist": "^3.0.0",
+        "decode-named-character-reference": "^1.0.0",
+        "devlop": "^1.0.0",
+        "mdast-util-to-string": "^4.0.0",
+        "micromark": "^4.0.0",
+        "micromark-util-decode-numeric-character-reference": "^2.0.0",
+        "micromark-util-decode-string": "^2.0.0",
+        "micromark-util-normalize-identifier": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0",
+        "unist-util-stringify-position": "^4.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-gfm": {
+      "version": "3.1.0",
+      "resolved": "https://registry.npmjs.org/mdast-util-gfm/-/mdast-util-gfm-3.1.0.tgz",
+      "integrity": "sha512-0ulfdQOM3ysHhCJ1p06l0b0VKlhU0wuQs3thxZQagjcjPrlFRqY215uZGHHJan9GEAXd9MbfPjFJz+qMkVR6zQ==",
+      "license": "MIT",
+      "dependencies": {
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-gfm-autolink-literal": "^2.0.0",
+        "mdast-util-gfm-footnote": "^2.0.0",
+        "mdast-util-gfm-strikethrough": "^2.0.0",
+        "mdast-util-gfm-table": "^2.0.0",
+        "mdast-util-gfm-task-list-item": "^2.0.0",
+        "mdast-util-to-markdown": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-gfm-autolink-literal": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/mdast-util-gfm-autolink-literal/-/mdast-util-gfm-autolink-literal-2.0.1.tgz",
+      "integrity": "sha512-5HVP2MKaP6L+G6YaxPNjuL0BPrq9orG3TsrZ9YXbA3vDw/ACI4MEsnoDpn6ZNm7GnZgtAcONJyPhOP8tNJQavQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "ccount": "^2.0.0",
+        "devlop": "^1.0.0",
+        "mdast-util-find-and-replace": "^3.0.0",
+        "micromark-util-character": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-gfm-footnote": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/mdast-util-gfm-footnote/-/mdast-util-gfm-footnote-2.1.0.tgz",
+      "integrity": "sha512-sqpDWlsHn7Ac9GNZQMeUzPQSMzR6Wv0WKRNvQRg0KqHh02fpTz69Qc1QSseNX29bhz1ROIyNyxExfawVKTm1GQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "devlop": "^1.1.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-to-markdown": "^2.0.0",
+        "micromark-util-normalize-identifier": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-gfm-strikethrough": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/mdast-util-gfm-strikethrough/-/mdast-util-gfm-strikethrough-2.0.0.tgz",
+      "integrity": "sha512-mKKb915TF+OC5ptj5bJ7WFRPdYtuHv0yTRxK2tJvi+BDqbkiG7h7u/9SI89nRAYcmap2xHQL9D+QG/6wSrTtXg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-to-markdown": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-gfm-table": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/mdast-util-gfm-table/-/mdast-util-gfm-table-2.0.0.tgz",
+      "integrity": "sha512-78UEvebzz/rJIxLvE7ZtDd/vIQ0RHv+3Mh5DR96p7cS7HsBhYIICDBCu8csTNWNO6tBWfqXPWekRuj2FNOGOZg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "devlop": "^1.0.0",
+        "markdown-table": "^3.0.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-to-markdown": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-gfm-task-list-item": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/mdast-util-gfm-task-list-item/-/mdast-util-gfm-task-list-item-2.0.0.tgz",
+      "integrity": "sha512-IrtvNvjxC1o06taBAVJznEnkiHxLFTzgonUdy8hzFVeDun0uTjxxrRGVaNFqkU1wJR3RBPEfsxmU6jDWPofrTQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "devlop": "^1.0.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-to-markdown": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-mdx-expression": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/mdast-util-mdx-expression/-/mdast-util-mdx-expression-2.0.1.tgz",
+      "integrity": "sha512-J6f+9hUp+ldTZqKRSg7Vw5V6MqjATc+3E4gf3CFNcuZNWD8XdyI6zQ8GqH7f8169MM6P7hMBRDVGnn7oHB9kXQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/estree-jsx": "^1.0.0",
+        "@types/hast": "^3.0.0",
+        "@types/mdast": "^4.0.0",
+        "devlop": "^1.0.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-to-markdown": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-mdx-jsx": {
+      "version": "3.2.0",
+      "resolved": "https://registry.npmjs.org/mdast-util-mdx-jsx/-/mdast-util-mdx-jsx-3.2.0.tgz",
+      "integrity": "sha512-lj/z8v0r6ZtsN/cGNNtemmmfoLAFZnjMbNyLzBafjzikOM+glrjNHPlf6lQDOTccj9n5b0PPihEBbhneMyGs1Q==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/estree-jsx": "^1.0.0",
+        "@types/hast": "^3.0.0",
+        "@types/mdast": "^4.0.0",
+        "@types/unist": "^3.0.0",
+        "ccount": "^2.0.0",
+        "devlop": "^1.1.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-to-markdown": "^2.0.0",
+        "parse-entities": "^4.0.0",
+        "stringify-entities": "^4.0.0",
+        "unist-util-stringify-position": "^4.0.0",
+        "vfile-message": "^4.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-mdxjs-esm": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/mdast-util-mdxjs-esm/-/mdast-util-mdxjs-esm-2.0.1.tgz",
+      "integrity": "sha512-EcmOpxsZ96CvlP03NghtH1EsLtr0n9Tm4lPUJUBccV9RwUOneqSycg19n5HGzCf+10LozMRSObtVr3ee1WoHtg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/estree-jsx": "^1.0.0",
+        "@types/hast": "^3.0.0",
+        "@types/mdast": "^4.0.0",
+        "devlop": "^1.0.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-to-markdown": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-phrasing": {
+      "version": "4.1.0",
+      "resolved": "https://registry.npmjs.org/mdast-util-phrasing/-/mdast-util-phrasing-4.1.0.tgz",
+      "integrity": "sha512-TqICwyvJJpBwvGAMZjj4J2n0X8QWp21b9l0o7eXyVJ25YNWYbJDVIyD1bZXE6WtV6RmKJVYmQAKWa0zWOABz2w==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "unist-util-is": "^6.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-to-hast": {
+      "version": "13.2.1",
+      "resolved": "https://registry.npmjs.org/mdast-util-to-hast/-/mdast-util-to-hast-13.2.1.tgz",
+      "integrity": "sha512-cctsq2wp5vTsLIcaymblUriiTcZd0CwWtCbLvrOzYCDZoWyMNV8sZ7krj09FSnsiJi3WVsHLM4k6Dq/yaPyCXA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/hast": "^3.0.0",
+        "@types/mdast": "^4.0.0",
+        "@ungap/structured-clone": "^1.0.0",
+        "devlop": "^1.0.0",
+        "micromark-util-sanitize-uri": "^2.0.0",
+        "trim-lines": "^3.0.0",
+        "unist-util-position": "^5.0.0",
+        "unist-util-visit": "^5.0.0",
+        "vfile": "^6.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-to-markdown": {
+      "version": "2.1.2",
+      "resolved": "https://registry.npmjs.org/mdast-util-to-markdown/-/mdast-util-to-markdown-2.1.2.tgz",
+      "integrity": "sha512-xj68wMTvGXVOKonmog6LwyJKrYXZPvlwabaryTjLh9LuvovB/KAH+kvi8Gjj+7rJjsFi23nkUxRQv1KqSroMqA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "@types/unist": "^3.0.0",
+        "longest-streak": "^3.0.0",
+        "mdast-util-phrasing": "^4.0.0",
+        "mdast-util-to-string": "^4.0.0",
+        "micromark-util-classify-character": "^2.0.0",
+        "micromark-util-decode-string": "^2.0.0",
+        "unist-util-visit": "^5.0.0",
+        "zwitch": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/mdast-util-to-string": {
+      "version": "4.0.0",
+      "resolved": "https://registry.npmjs.org/mdast-util-to-string/-/mdast-util-to-string-4.0.0.tgz",
+      "integrity": "sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/micromark": {
+      "version": "4.0.2",
+      "resolved": "https://registry.npmjs.org/micromark/-/micromark-4.0.2.tgz",
+      "integrity": "sha512-zpe98Q6kvavpCr1NPVSCMebCKfD7CA2NqZ+rykeNhONIJBpc1tFKt9hucLGwha3jNTNI8lHpctWJWoimVF4PfA==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "@types/debug": "^4.0.0",
+        "debug": "^4.0.0",
+        "decode-named-character-reference": "^1.0.0",
+        "devlop": "^1.0.0",
+        "micromark-core-commonmark": "^2.0.0",
+        "micromark-factory-space": "^2.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-chunked": "^2.0.0",
+        "micromark-util-combine-extensions": "^2.0.0",
+        "micromark-util-decode-numeric-character-reference": "^2.0.0",
+        "micromark-util-encode": "^2.0.0",
+        "micromark-util-normalize-identifier": "^2.0.0",
+        "micromark-util-resolve-all": "^2.0.0",
+        "micromark-util-sanitize-uri": "^2.0.0",
+        "micromark-util-subtokenize": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-core-commonmark": {
+      "version": "2.0.3",
+      "resolved": "https://registry.npmjs.org/micromark-core-commonmark/-/micromark-core-commonmark-2.0.3.tgz",
+      "integrity": "sha512-RDBrHEMSxVFLg6xvnXmb1Ayr2WzLAWjeSATAoxwKYJV94TeNavgoIdA0a9ytzDSVzBy2YKFK+emCPOEibLeCrg==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "decode-named-character-reference": "^1.0.0",
+        "devlop": "^1.0.0",
+        "micromark-factory-destination": "^2.0.0",
+        "micromark-factory-label": "^2.0.0",
+        "micromark-factory-space": "^2.0.0",
+        "micromark-factory-title": "^2.0.0",
+        "micromark-factory-whitespace": "^2.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-chunked": "^2.0.0",
+        "micromark-util-classify-character": "^2.0.0",
+        "micromark-util-html-tag-name": "^2.0.0",
+        "micromark-util-normalize-identifier": "^2.0.0",
+        "micromark-util-resolve-all": "^2.0.0",
+        "micromark-util-subtokenize": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-extension-gfm": {
+      "version": "3.0.0",
+      "resolved": "https://registry.npmjs.org/micromark-extension-gfm/-/micromark-extension-gfm-3.0.0.tgz",
+      "integrity": "sha512-vsKArQsicm7t0z2GugkCKtZehqUm31oeGBV/KVSorWSy8ZlNAv7ytjFhvaryUiCUJYqs+NoE6AFhpQvBTM6Q4w==",
+      "license": "MIT",
+      "dependencies": {
+        "micromark-extension-gfm-autolink-literal": "^2.0.0",
+        "micromark-extension-gfm-footnote": "^2.0.0",
+        "micromark-extension-gfm-strikethrough": "^2.0.0",
+        "micromark-extension-gfm-table": "^2.0.0",
+        "micromark-extension-gfm-tagfilter": "^2.0.0",
+        "micromark-extension-gfm-task-list-item": "^2.0.0",
+        "micromark-util-combine-extensions": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/micromark-extension-gfm-autolink-literal": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/micromark-extension-gfm-autolink-literal/-/micromark-extension-gfm-autolink-literal-2.1.0.tgz",
+      "integrity": "sha512-oOg7knzhicgQ3t4QCjCWgTmfNhvQbDDnJeVu9v81r7NltNCVmhPy1fJRX27pISafdjL+SVc4d3l48Gb6pbRypw==",
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-sanitize-uri": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/micromark-extension-gfm-footnote": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/micromark-extension-gfm-footnote/-/micromark-extension-gfm-footnote-2.1.0.tgz",
+      "integrity": "sha512-/yPhxI1ntnDNsiHtzLKYnE3vf9JZ6cAisqVDauhp4CEHxlb4uoOTxOCJ+9s51bIB8U1N1FJ1RXOKTIlD5B/gqw==",
+      "license": "MIT",
+      "dependencies": {
+        "devlop": "^1.0.0",
+        "micromark-core-commonmark": "^2.0.0",
+        "micromark-factory-space": "^2.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-normalize-identifier": "^2.0.0",
+        "micromark-util-sanitize-uri": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/micromark-extension-gfm-strikethrough": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/micromark-extension-gfm-strikethrough/-/micromark-extension-gfm-strikethrough-2.1.0.tgz",
+      "integrity": "sha512-ADVjpOOkjz1hhkZLlBiYA9cR2Anf8F4HqZUO6e5eDcPQd0Txw5fxLzzxnEkSkfnD0wziSGiv7sYhk/ktvbf1uw==",
+      "license": "MIT",
+      "dependencies": {
+        "devlop": "^1.0.0",
+        "micromark-util-chunked": "^2.0.0",
+        "micromark-util-classify-character": "^2.0.0",
+        "micromark-util-resolve-all": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/micromark-extension-gfm-table": {
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/micromark-extension-gfm-table/-/micromark-extension-gfm-table-2.1.1.tgz",
+      "integrity": "sha512-t2OU/dXXioARrC6yWfJ4hqB7rct14e8f7m0cbI5hUmDyyIlwv5vEtooptH8INkbLzOatzKuVbQmAYcbWoyz6Dg==",
+      "license": "MIT",
+      "dependencies": {
+        "devlop": "^1.0.0",
+        "micromark-factory-space": "^2.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/micromark-extension-gfm-tagfilter": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/micromark-extension-gfm-tagfilter/-/micromark-extension-gfm-tagfilter-2.0.0.tgz",
+      "integrity": "sha512-xHlTOmuCSotIA8TW1mDIM6X2O1SiX5P9IuDtqGonFhEK0qgRI4yeC6vMxEV2dgyr2TiD+2PQ10o+cOhdVAcwfg==",
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-types": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/micromark-extension-gfm-task-list-item": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/micromark-extension-gfm-task-list-item/-/micromark-extension-gfm-task-list-item-2.1.0.tgz",
+      "integrity": "sha512-qIBZhqxqI6fjLDYFTBIa4eivDMnP+OZqsNwmQ3xNLE4Cxwc+zfQEfbs6tzAo2Hjq+bh6q5F+Z8/cksrLFYWQQw==",
+      "license": "MIT",
+      "dependencies": {
+        "devlop": "^1.0.0",
+        "micromark-factory-space": "^2.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/micromark-factory-destination": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-factory-destination/-/micromark-factory-destination-2.0.1.tgz",
+      "integrity": "sha512-Xe6rDdJlkmbFRExpTOmRj9N3MaWmbAgdpSrBQvCFqhezUn4AHqJHbaEnfbVYYiexVSs//tqOdY/DxhjdCiJnIA==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-factory-label": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-factory-label/-/micromark-factory-label-2.0.1.tgz",
+      "integrity": "sha512-VFMekyQExqIW7xIChcXn4ok29YE3rnuyveW3wZQWWqF4Nv9Wk5rgJ99KzPvHjkmPXF93FXIbBp6YdW3t71/7Vg==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "devlop": "^1.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-factory-space": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-factory-space/-/micromark-factory-space-2.0.1.tgz",
+      "integrity": "sha512-zRkxjtBxxLd2Sc0d+fbnEunsTj46SWXgXciZmHq0kDYGnck/ZSGj9/wULTV95uoeYiK5hRXP2mJ98Uo4cq/LQg==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-factory-title": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-factory-title/-/micromark-factory-title-2.0.1.tgz",
+      "integrity": "sha512-5bZ+3CjhAd9eChYTHsjy6TGxpOFSKgKKJPJxr293jTbfry2KDoWkhBb6TcPVB4NmzaPhMs1Frm9AZH7OD4Cjzw==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-factory-space": "^2.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-factory-whitespace": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-factory-whitespace/-/micromark-factory-whitespace-2.0.1.tgz",
+      "integrity": "sha512-Ob0nuZ3PKt/n0hORHyvoD9uZhr+Za8sFoP+OnMcnWK5lngSzALgQYKMr9RJVOWLqQYuyn6ulqGWSXdwf6F80lQ==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-factory-space": "^2.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-character": {
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-character/-/micromark-util-character-2.1.1.tgz",
+      "integrity": "sha512-wv8tdUTJ3thSFFFJKtpYKOYiGP2+v96Hvk4Tu8KpCAsTMs6yi+nVmGh1syvSCsaxz45J6Jbw+9DD6g97+NV67Q==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-chunked": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-chunked/-/micromark-util-chunked-2.0.1.tgz",
+      "integrity": "sha512-QUNFEOPELfmvv+4xiNg2sRYeS/P84pTW0TCgP5zc9FpXetHY0ab7SxKyAQCNCc1eK0459uoLI1y5oO5Vc1dbhA==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-symbol": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-classify-character": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-classify-character/-/micromark-util-classify-character-2.0.1.tgz",
+      "integrity": "sha512-K0kHzM6afW/MbeWYWLjoHQv1sgg2Q9EccHEDzSkxiP/EaagNzCm7T/WMKZ3rjMbvIpvBiZgwR3dKMygtA4mG1Q==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-combine-extensions": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-combine-extensions/-/micromark-util-combine-extensions-2.0.1.tgz",
+      "integrity": "sha512-OnAnH8Ujmy59JcyZw8JSbK9cGpdVY44NKgSM7E9Eh7DiLS2E9RNQf0dONaGDzEG9yjEl5hcqeIsj4hfRkLH/Bg==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-chunked": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-decode-numeric-character-reference": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/micromark-util-decode-numeric-character-reference/-/micromark-util-decode-numeric-character-reference-2.0.2.tgz",
+      "integrity": "sha512-ccUbYk6CwVdkmCQMyr64dXz42EfHGkPQlBj5p7YVGzq8I7CtjXZJrubAYezf7Rp+bjPseiROqe7G6foFd+lEuw==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-symbol": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-decode-string": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-decode-string/-/micromark-util-decode-string-2.0.1.tgz",
+      "integrity": "sha512-nDV/77Fj6eH1ynwscYTOsbK7rR//Uj0bZXBwJZRfaLEJ1iGBR6kIfNmlNqaqJf649EP0F3NWNdeJi03elllNUQ==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "decode-named-character-reference": "^1.0.0",
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-decode-numeric-character-reference": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-encode": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-encode/-/micromark-util-encode-2.0.1.tgz",
+      "integrity": "sha512-c3cVx2y4KqUnwopcO9b/SCdo2O67LwJJ/UyqGfbigahfegL9myoEFoDYZgkT7f36T0bLrM9hZTAaAyH+PCAXjw==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT"
+    },
+    "node_modules/micromark-util-html-tag-name": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-html-tag-name/-/micromark-util-html-tag-name-2.0.1.tgz",
+      "integrity": "sha512-2cNEiYDhCWKI+Gs9T0Tiysk136SnR13hhO8yW6BGNyhOC4qYFnwF1nKfD3HFAIXA5c45RrIG1ub11GiXeYd1xA==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT"
+    },
+    "node_modules/micromark-util-normalize-identifier": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-normalize-identifier/-/micromark-util-normalize-identifier-2.0.1.tgz",
+      "integrity": "sha512-sxPqmo70LyARJs0w2UclACPUUEqltCkJ6PhKdMIDuJ3gSf/Q+/GIe3WKl0Ijb/GyH9lOpUkRAO2wp0GVkLvS9Q==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-symbol": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-resolve-all": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-resolve-all/-/micromark-util-resolve-all-2.0.1.tgz",
+      "integrity": "sha512-VdQyxFWFT2/FGJgwQnJYbe1jjQoNTS4RjglmSjTUlpUMa95Htx9NHeYW4rGDJzbjvCsl9eLjMQwGeElsqmzcHg==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-sanitize-uri": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-sanitize-uri/-/micromark-util-sanitize-uri-2.0.1.tgz",
+      "integrity": "sha512-9N9IomZ/YuGGZZmQec1MbgxtlgougxTodVwDzzEouPKo3qFWvymFHWcnDi2vzV1ff6kas9ucW+o3yzJK9YB1AQ==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "micromark-util-character": "^2.0.0",
+        "micromark-util-encode": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-subtokenize": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/micromark-util-subtokenize/-/micromark-util-subtokenize-2.1.0.tgz",
+      "integrity": "sha512-XQLu552iSctvnEcgXw6+Sx75GflAPNED1qx7eBJ+wydBb2KCbRZe+NwvIEEMM83uml1+2WSXpBAcp9IUCgCYWA==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "devlop": "^1.0.0",
+        "micromark-util-chunked": "^2.0.0",
+        "micromark-util-symbol": "^2.0.0",
+        "micromark-util-types": "^2.0.0"
+      }
+    },
+    "node_modules/micromark-util-symbol": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/micromark-util-symbol/-/micromark-util-symbol-2.0.1.tgz",
+      "integrity": "sha512-vs5t8Apaud9N28kgCrRUdEed4UJ+wWNvicHLPxCa9ENlYuAY31M0ETy5y1vA33YoNPDFTghEbnh6efaE8h4x0Q==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT"
+    },
+    "node_modules/micromark-util-types": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/micromark-util-types/-/micromark-util-types-2.0.2.tgz",
+      "integrity": "sha512-Yw0ECSpJoViF1qTU4DC6NwtC4aWGt1EkzaQB8KPPyCRR8z9TWeV0HbEFGTO+ZY1wB22zmxnJqhPyTpOVCpeHTA==",
+      "funding": [
+        {
+          "type": "GitHub Sponsors",
+          "url": "https://github.com/sponsors/unifiedjs"
+        },
+        {
+          "type": "OpenCollective",
+          "url": "https://opencollective.com/unified"
+        }
+      ],
+      "license": "MIT"
+    },
     "node_modules/minimatch": {
       "version": "3.1.2",
       "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz",
@@ -6044,7 +7196,6 @@ export default defineConfig([
       "version": "2.1.3",
       "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
       "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
-      "dev": true,
       "license": "MIT"
     },
     "node_modules/nanoid": {
@@ -6153,6 +7304,31 @@ export default defineConfig([
         "node": ">=6"
       }
     },
+    "node_modules/parse-entities": {
+      "version": "4.0.2",
+      "resolved": "https://registry.npmjs.org/parse-entities/-/parse-entities-4.0.2.tgz",
+      "integrity": "sha512-GG2AQYWoLgL877gQIKeRPGO1xF9+eG1ujIb5soS5gPvLQ1y2o8FL90w2QWNdf9I361Mpp7726c+lj3U0qK1uGw==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^2.0.0",
+        "character-entities-legacy": "^3.0.0",
+        "character-reference-invalid": "^2.0.0",
+        "decode-named-character-reference": "^1.0.0",
+        "is-alphanumerical": "^2.0.0",
+        "is-decimal": "^2.0.0",
+        "is-hexadecimal": "^2.0.0"
+      },
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/parse-entities/node_modules/@types/unist": {
+      "version": "2.0.11",
+      "resolved": "https://registry.npmjs.org/@types/unist/-/unist-2.0.11.tgz",
+      "integrity": "sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==",
+      "license": "MIT"
+    },
     "node_modules/path-exists": {
       "version": "4.0.0",
       "resolved": "https://registry.npmjs.org/path-exists/-/path-exists-4.0.0.tgz",
@@ -6241,6 +7417,16 @@ export default defineConfig([
         "node": ">= 0.8.0"
       }
     },
+    "node_modules/property-information": {
+      "version": "7.1.0",
+      "resolved": "https://registry.npmjs.org/property-information/-/property-information-7.1.0.tgz",
+      "integrity": "sha512-TwEZ+X+yCJmYfL7TPUOcvBZ4QfoT5YenQiJuX//0th53DE6w0xxLEtfK3iyryQFddXuvkIk51EEgrJQ0WJkOmQ==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
     "node_modules/punycode": {
       "version": "2.3.1",
       "resolved": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz",
@@ -6273,6 +7459,33 @@ export default defineConfig([
         "react": "^19.2.0"
       }
     },
+    "node_modules/react-markdown": {
+      "version": "10.1.0",
+      "resolved": "https://registry.npmjs.org/react-markdown/-/react-markdown-10.1.0.tgz",
+      "integrity": "sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/hast": "^3.0.0",
+        "@types/mdast": "^4.0.0",
+        "devlop": "^1.0.0",
+        "hast-util-to-jsx-runtime": "^2.0.0",
+        "html-url-attributes": "^3.0.0",
+        "mdast-util-to-hast": "^13.0.0",
+        "remark-parse": "^11.0.0",
+        "remark-rehype": "^11.0.0",
+        "unified": "^11.0.0",
+        "unist-util-visit": "^5.0.0",
+        "vfile": "^6.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      },
+      "peerDependencies": {
+        "@types/react": ">=18",
+        "react": ">=18"
+      }
+    },
     "node_modules/react-refresh": {
       "version": "0.18.0",
       "resolved": "https://registry.npmjs.org/react-refresh/-/react-refresh-0.18.0.tgz",
@@ -6281,6 +7494,72 @@ export default defineConfig([
       "license": "MIT",
       "engines": {
         "node": ">=0.10.0"
+      }
+    },
+    "node_modules/remark-gfm": {
+      "version": "4.0.1",
+      "resolved": "https://registry.npmjs.org/remark-gfm/-/remark-gfm-4.0.1.tgz",
+      "integrity": "sha512-1quofZ2RQ9EWdeN34S79+KExV1764+wCUGop5CPL1WGdD0ocPpu91lzPGbwWMECpEpd42kJGQwzRfyov9j4yNg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "mdast-util-gfm": "^3.0.0",
+        "micromark-extension-gfm": "^3.0.0",
+        "remark-parse": "^11.0.0",
+        "remark-stringify": "^11.0.0",
+        "unified": "^11.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/remark-parse": {
+      "version": "11.0.0",
+      "resolved": "https://registry.npmjs.org/remark-parse/-/remark-parse-11.0.0.tgz",
+      "integrity": "sha512-FCxlKLNGknS5ba/1lmpYijMUzX2esxW5xQqjWxw2eHFfS2MSdaHVINFmhjo+qN1WhZhNimq0dZATN9pH0IDrpA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "micromark-util-types": "^2.0.0",
+        "unified": "^11.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/remark-rehype": {
+      "version": "11.1.2",
+      "resolved": "https://registry.npmjs.org/remark-rehype/-/remark-rehype-11.1.2.tgz",
+      "integrity": "sha512-Dh7l57ianaEoIpzbp0PC9UKAdCSVklD8E5Rpw7ETfbTl3FqcOOgq5q2LVDhgGCkaBv7p24JXikPdvhhmHvKMsw==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/hast": "^3.0.0",
+        "@types/mdast": "^4.0.0",
+        "mdast-util-to-hast": "^13.0.0",
+        "unified": "^11.0.0",
+        "vfile": "^6.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/remark-stringify": {
+      "version": "11.0.0",
+      "resolved": "https://registry.npmjs.org/remark-stringify/-/remark-stringify-11.0.0.tgz",
+      "integrity": "sha512-1OSmLd3awB/t8qdoEOMazZkNsfVTeY4fTsgzcQFdXNq8ToTN4ZGwrMnlda4K6smTFKD+GRV6O48i6Z4iKgPPpw==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/mdast": "^4.0.0",
+        "mdast-util-to-markdown": "^2.0.0",
+        "unified": "^11.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
       }
     },
     "node_modules/resolve-from": {
@@ -6398,6 +7677,30 @@ export default defineConfig([
         "node": ">=0.10.0"
       }
     },
+    "node_modules/space-separated-tokens": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/space-separated-tokens/-/space-separated-tokens-2.0.2.tgz",
+      "integrity": "sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/stringify-entities": {
+      "version": "4.0.4",
+      "resolved": "https://registry.npmjs.org/stringify-entities/-/stringify-entities-4.0.4.tgz",
+      "integrity": "sha512-IwfBptatlO+QCJUo19AqvrPNqlVMpW9YEL2LIVY+Rpv2qsjCGxaDLNRgeGsQWJhfItebuJhsGSLjaBbNSQ+ieg==",
+      "license": "MIT",
+      "dependencies": {
+        "character-entities-html4": "^2.0.0",
+        "character-entities-legacy": "^3.0.0"
+      },
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
     "node_modules/strip-json-comments": {
       "version": "3.1.1",
       "resolved": "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-3.1.1.tgz",
@@ -6409,6 +7712,24 @@ export default defineConfig([
       },
       "funding": {
         "url": "https://github.com/sponsors/sindresorhus"
+      }
+    },
+    "node_modules/style-to-js": {
+      "version": "1.1.21",
+      "resolved": "https://registry.npmjs.org/style-to-js/-/style-to-js-1.1.21.tgz",
+      "integrity": "sha512-RjQetxJrrUJLQPHbLku6U/ocGtzyjbJMP9lCNK7Ag0CNh690nSH8woqWH9u16nMjYBAok+i7JO1NP2pOy8IsPQ==",
+      "license": "MIT",
+      "dependencies": {
+        "style-to-object": "1.0.14"
+      }
+    },
+    "node_modules/style-to-object": {
+      "version": "1.0.14",
+      "resolved": "https://registry.npmjs.org/style-to-object/-/style-to-object-1.0.14.tgz",
+      "integrity": "sha512-LIN7rULI0jBscWQYaSswptyderlarFkjQ+t79nzty8tcIAceVomEVlLzH5VP4Cmsv6MtKhs7qaAiwlcp+Mgaxw==",
+      "license": "MIT",
+      "dependencies": {
+        "inline-style-parser": "0.2.7"
       }
     },
     "node_modules/supports-color": {
@@ -6462,6 +7783,26 @@ export default defineConfig([
         "url": "https://github.com/sponsors/SuperchupuDev"
       }
     },
+    "node_modules/trim-lines": {
+      "version": "3.0.1",
+      "resolved": "https://registry.npmjs.org/trim-lines/-/trim-lines-3.0.1.tgz",
+      "integrity": "sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
+    "node_modules/trough": {
+      "version": "2.2.0",
+      "resolved": "https://registry.npmjs.org/trough/-/trough-2.2.0.tgz",
+      "integrity": "sha512-tmMpK00BjZiUyVyvrBK7knerNgmgvcV/KLVyuma/SC+TQN167GrMRciANTz09+k3zW8L8t60jWO1GpfkZdjTaw==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
+      }
+    },
     "node_modules/type-check": {
       "version": "0.4.0",
       "resolved": "https://registry.npmjs.org/type-check/-/type-check-0.4.0.tgz",
@@ -6473,6 +7814,93 @@ export default defineConfig([
       },
       "engines": {
         "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/unified": {
+      "version": "11.0.5",
+      "resolved": "https://registry.npmjs.org/unified/-/unified-11.0.5.tgz",
+      "integrity": "sha512-xKvGhPWw3k84Qjh8bI3ZeJjqnyadK+GEFtazSfZv/rKeTkTjOJho6mFqh2SM96iIcZokxiOpg78GazTSg8+KHA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^3.0.0",
+        "bail": "^2.0.0",
+        "devlop": "^1.0.0",
+        "extend": "^3.0.0",
+        "is-plain-obj": "^4.0.0",
+        "trough": "^2.0.0",
+        "vfile": "^6.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/unist-util-is": {
+      "version": "6.0.1",
+      "resolved": "https://registry.npmjs.org/unist-util-is/-/unist-util-is-6.0.1.tgz",
+      "integrity": "sha512-LsiILbtBETkDz8I9p1dQ0uyRUWuaQzd/cuEeS1hoRSyW5E5XGmTzlwY1OrNzzakGowI9Dr/I8HVaw4hTtnxy8g==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^3.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/unist-util-position": {
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/unist-util-position/-/unist-util-position-5.0.0.tgz",
+      "integrity": "sha512-fucsC7HjXvkB5R3kTCO7kUjRdrS0BJt3M/FPxmHMBOm8JQi2BsHAHFsy27E0EolP8rp0NzXsJ+jNPyDWvOJZPA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^3.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/unist-util-stringify-position": {
+      "version": "4.0.0",
+      "resolved": "https://registry.npmjs.org/unist-util-stringify-position/-/unist-util-stringify-position-4.0.0.tgz",
+      "integrity": "sha512-0ASV06AAoKCDkS2+xw5RXJywruurpbC4JZSm7nr7MOt1ojAzvyyaO+UxZf18j8FCF6kmzCZKcAgN/yu2gm2XgQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^3.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/unist-util-visit": {
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/unist-util-visit/-/unist-util-visit-5.0.0.tgz",
+      "integrity": "sha512-MR04uvD+07cwl/yhVuVWAtw+3GOR/knlL55Nd/wAdblk27GCVt3lqpTivy/tkJcZoNPzTwS1Y+KMojlLDhoTzg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^3.0.0",
+        "unist-util-is": "^6.0.0",
+        "unist-util-visit-parents": "^6.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/unist-util-visit-parents": {
+      "version": "6.0.2",
+      "resolved": "https://registry.npmjs.org/unist-util-visit-parents/-/unist-util-visit-parents-6.0.2.tgz",
+      "integrity": "sha512-goh1s1TBrqSqukSc8wrjwWhL0hiJxgA8m4kFxGlQ+8FYQ3C/m11FcTs4YYem7V664AhHVvgoQLk890Ssdsr2IQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^3.0.0",
+        "unist-util-is": "^6.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
       }
     },
     "node_modules/update-browserslist-db": {
@@ -6514,6 +7942,34 @@ export default defineConfig([
       "license": "BSD-2-Clause",
       "dependencies": {
         "punycode": "^2.1.0"
+      }
+    },
+    "node_modules/vfile": {
+      "version": "6.0.3",
+      "resolved": "https://registry.npmjs.org/vfile/-/vfile-6.0.3.tgz",
+      "integrity": "sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^3.0.0",
+        "vfile-message": "^4.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
+      }
+    },
+    "node_modules/vfile-message": {
+      "version": "4.0.3",
+      "resolved": "https://registry.npmjs.org/vfile-message/-/vfile-message-4.0.3.tgz",
+      "integrity": "sha512-QTHzsGd1EhbZs4AsQ20JX1rC3cOlt/IWJruk893DfLRr57lcnOeMaWG4K0JrRta4mIJZKth2Au3mM3u03/JWKw==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/unist": "^3.0.0",
+        "unist-util-stringify-position": "^4.0.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/unified"
       }
     },
     "node_modules/vite": {
@@ -6660,6 +8116,16 @@ export default defineConfig([
       },
       "peerDependencies": {
         "zod": "^3.25.0 || ^4.0.0"
+      }
+    },
+    "node_modules/zwitch": {
+      "version": "2.0.4",
+      "resolved": "https://registry.npmjs.org/zwitch/-/zwitch-2.0.4.tgz",
+      "integrity": "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==",
+      "license": "MIT",
+      "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/wooorm"
       }
     }
   }
@@ -7300,6 +8766,1163 @@ export default {
     }
   ]
 }
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-00.json =====
+{
+  "story_id": "ST-00",
+  "slug": "ST-00-backend-api-availability",
+  "source_path": "docs/mission_destination/stories/ST-00-backend-api-availability.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-00",
+    "slug": "st-00-backend-api-availability",
+    "name": "Provide Basic Backend API Availability",
+    "epic": "E00",
+    "feature": "FT-00-BE",
+    "testing_status": "pass",
+    "halo_adherence": "pass",
+    "guardrail_adherence": "pass",
+    "code_quality_adherence": "fail",
+    "security_policy_adherence": "pass",
+    "overall_status": "In Progress",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-21T16:19:34+00:00"
+  },
+  "body_markdown": "## Description\n\nAs a developer,  \nI want the backend to expose a basic availability endpoint,  \nso that I can confirm the service is running and reachable.\n\nThis story establishes the foundational API contract for the backend and enables fast automated verification that the service is alive.\n\n## Acceptance Criteria\n\n- **AC1:** Backend can be started using the documented command (e.g. `uvicorn app_backend.main:app`).\n- **AC2:** A `/health` endpoint is available.\n- **AC3:** Calling `/health` returns HTTP **200**.\n- **AC4:** Response JSON contains at least `{ \"status\": \"ok\" }`.\n- **AC5:** A backend test exercises AC2â€“AC4.\n- **AC6:** Running the story test updates `testing_status:` to `pass` when successful.\n\n## Implementation Notes\n\n- Touchpoint: `app_backend/main.py`\n- This endpoint underpins availability checks for the entire platform and is required before any higher-level stories can be executed."
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-00-FRONTEND-UI-SHELL.json =====
+{
+  "story_id": "ST-00-FRONTEND-UI-SHELL",
+  "slug": "ST-00-frontend-ui-shell",
+  "source_path": "docs/mission_destination/stories/ST-00-frontend-ui-shell.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-00-FRONTEND-UI-SHELL",
+    "slug": "st-00-frontend-ui-shell",
+    "name": "Provide Frontend UI Shell Availability",
+    "epic": "E00-UI",
+    "feature": "FT-00-UI",
+    "testing_status": "pass",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "fail",
+    "security_policy_adherence": "not_run",
+    "overall_status": "In Progress",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-21T16:51:47+00:00"
+  },
+  "body_markdown": "## Description\n\nAs a developer,  \nI want the frontend UI shell to be built and served by the backend,  \nso that I can confirm the Single Client View application is accessible as a SPA.\n\nThis story verifies that the built frontend exists and the backend correctly serves\nthe index.html shell at the root path.\n\n## Acceptance Criteria\n\n- **AC1:** `npm run build` produces a frontend `dist/` folder.\n- **AC2:** Backend is configured to serve the frontend build output.\n- **AC3:** `GET /` returns HTTP **200**.\n- **AC4:** HTML contains `<div id=\"root\">`.\n- **AC5:** HTML contains the expected page `<title>` from the built frontend.\n- **AC6:** A backend test verifies AC1â€“AC5.\n- **AC7:** Running the ST-00-FRONTEND-UI-SHELL tests sets `testing_status: pass`.\n\n## Implementation Notes\n\n- Frontend: `app_frontend/`\n- Backend serving logic: `app_backend/main.py`\n- Test: `tests/api/http/test_st_00_frontend_ui_shell.py`"
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-01.json =====
+{
+  "story_id": "ST-01",
+  "slug": "ST-01_register_crm_source",
+  "source_path": "docs/mission_destination/stories/ST-01_register_crm_source.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-01",
+    "feature": "FT-01",
+    "name": "Register CRM source",
+    "description": "Register CRM system as ingestible source.\n",
+    "acceptance_criteria": [
+      "Connection succeeds",
+      "Schema retrieved"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-02.json =====
+{
+  "story_id": "ST-02",
+  "slug": "ST-02_register_kyc_source",
+  "source_path": "docs/mission_destination/stories/ST-02_register_kyc_source.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-02",
+    "feature": "FT-01",
+    "name": "Register KYC source",
+    "description": "Register KYC system.\n",
+    "acceptance_criteria": [
+      "Connection ok",
+      "Schema ok"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-03.json =====
+{
+  "story_id": "ST-03",
+  "slug": "ST-03_map_identity_fields",
+  "source_path": "docs/mission_destination/stories/ST-03_map_identity_fields.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-03",
+    "feature": "FT-02",
+    "name": "Map identity fields",
+    "description": "Map core identity fields.\n",
+    "acceptance_criteria": [
+      "Fields mapped",
+      "Types correct"
+    ],
+    "overall_status": "In Progress",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "fail",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-21T16:19:34+00:00"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-04.json =====
+{
+  "story_id": "ST-04",
+  "slug": "ST-04_map_identifiers",
+  "source_path": "docs/mission_destination/stories/ST-04_map_identifiers.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-04",
+    "feature": "FT-02",
+    "name": "Map identifiers",
+    "description": "Map identifiers.\n",
+    "acceptance_criteria": [
+      "ID mapping valid"
+    ],
+    "overall_status": "In Progress",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "fail",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-21T16:19:34+00:00"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-05.json =====
+{
+  "story_id": "ST-05",
+  "slug": "ST-05_bulk_load_crm",
+  "source_path": "docs/mission_destination/stories/ST-05_bulk_load_crm.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-05",
+    "feature": "FT-03",
+    "name": "Bulk load CRM",
+    "description": "Initial CRM load.\n",
+    "acceptance_criteria": [
+      "Records loaded"
+    ],
+    "overall_status": "Complete",
+    "testing_status": "pass",
+    "halo_adherence": "pass",
+    "guardrail_adherence": "pass",
+    "code_quality_adherence": "pass",
+    "security_policy_adherence": "pass",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-22T19:26:52+00:00"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-06.json =====
+{
+  "story_id": "ST-06",
+  "slug": "ST-06_bulk_load_kyc",
+  "source_path": "docs/mission_destination/stories/ST-06_bulk_load_kyc.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-06",
+    "feature": "FT-03",
+    "name": "Bulk load KYC",
+    "description": "Initial KYC load.\n",
+    "acceptance_criteria": [
+      "Records loaded"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-07.json =====
+{
+  "story_id": "ST-07",
+  "slug": "ST-07_detect_upstream_deltas",
+  "source_path": "docs/mission_destination/stories/ST-07_detect_upstream_deltas.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-07",
+    "feature": "FT-04",
+    "name": "Detect upstream deltas",
+    "description": "Detect deltas.\n",
+    "acceptance_criteria": [
+      "Changes detected"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-08.json =====
+{
+  "story_id": "ST-08",
+  "slug": "ST-08_apply_deltas",
+  "source_path": "docs/mission_destination/stories/ST-08_apply_deltas.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-08",
+    "feature": "FT-04",
+    "name": "Apply deltas",
+    "description": "Apply detected deltas.\n",
+    "acceptance_criteria": [
+      "Deltas applied"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-09.json =====
+{
+  "story_id": "ST-09",
+  "slug": "ST-09_match_by_tax_id",
+  "source_path": "docs/mission_destination/stories/ST-09_match_by_tax_id.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-09",
+    "feature": "FT-05",
+    "name": "Match by tax ID",
+    "description": "Exact match by tax ID.\n",
+    "acceptance_criteria": [
+      "Matches correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-10.json =====
+{
+  "story_id": "ST-10",
+  "slug": "ST-10_match_by_registration_number",
+  "source_path": "docs/mission_destination/stories/ST-10_match_by_registration_number.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-10",
+    "feature": "FT-05",
+    "name": "Match by registration number",
+    "description": "Exact match.\n",
+    "acceptance_criteria": [
+      "Matches correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-11.json =====
+{
+  "story_id": "ST-11",
+  "slug": "ST-11_fuzzy_name_match",
+  "source_path": "docs/mission_destination/stories/ST-11_fuzzy_name_match.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-11",
+    "feature": "FT-06",
+    "name": "Fuzzy name match",
+    "description": "Implement fuzzy name.\n",
+    "acceptance_criteria": [
+      "Similarity score valid"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-12.json =====
+{
+  "story_id": "ST-12",
+  "slug": "ST-12_attribute_confidence",
+  "source_path": "docs/mission_destination/stories/ST-12_attribute_confidence.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-12",
+    "feature": "FT-06",
+    "name": "Attribute confidence",
+    "description": "Compute confidence.\n",
+    "acceptance_criteria": [
+      "Confidence computed"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-13.json =====
+{
+  "story_id": "ST-13",
+  "slug": "ST-13_merge_identity",
+  "source_path": "docs/mission_destination/stories/ST-13_merge_identity.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-13",
+    "feature": "FT-07",
+    "name": "Merge identity",
+    "description": "Merge identity attributes.\n",
+    "acceptance_criteria": [
+      "Conflicts resolved"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-14.json =====
+{
+  "story_id": "ST-14",
+  "slug": "ST-14_merge_addresses",
+  "source_path": "docs/mission_destination/stories/ST-14_merge_addresses.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-14",
+    "feature": "FT-07",
+    "name": "Merge addresses",
+    "description": "Merge address attributes.\n",
+    "acceptance_criteria": [
+      "Address selected"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-15.json =====
+{
+  "story_id": "ST-15",
+  "slug": "ST-15_record_lineage",
+  "source_path": "docs/mission_destination/stories/ST-15_record_lineage.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-15",
+    "feature": "FT-07",
+    "name": "Record lineage",
+    "description": "Lineage for merges.\n",
+    "acceptance_criteria": [
+      "Lineage stored"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-16.json =====
+{
+  "story_id": "ST-16",
+  "slug": "ST-16_build_index",
+  "source_path": "docs/mission_destination/stories/ST-16_build_index.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-16",
+    "feature": "FT-08",
+    "name": "Build index",
+    "description": "Build search index.\n",
+    "acceptance_criteria": [
+      "Index built"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-17.json =====
+{
+  "story_id": "ST-17",
+  "slug": "ST-17_normalise_search_fields",
+  "source_path": "docs/mission_destination/stories/ST-17_normalise_search_fields.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-17",
+    "feature": "FT-08",
+    "name": "Normalise search fields",
+    "description": "Normalise fields.\n",
+    "acceptance_criteria": [
+      "Fields normalised"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-18.json =====
+{
+  "story_id": "ST-18",
+  "slug": "ST-18_fuzzy_search_queries",
+  "source_path": "docs/mission_destination/stories/ST-18_fuzzy_search_queries.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-18",
+    "feature": "FT-09",
+    "name": "Fuzzy search queries",
+    "description": "Fuzzy queries.\n",
+    "acceptance_criteria": [
+      "Ranked results"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-19.json =====
+{
+  "story_id": "ST-19",
+  "slug": "ST-19_search_ranking",
+  "source_path": "docs/mission_destination/stories/ST-19_search_ranking.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-19",
+    "feature": "FT-09",
+    "name": "Search ranking",
+    "description": "Ranking logic.\n",
+    "acceptance_criteria": [
+      "Correct ordering"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-20.json =====
+{
+  "story_id": "ST-20",
+  "slug": "ST-20_assemble_base_profile",
+  "source_path": "docs/mission_destination/stories/ST-20_assemble_base_profile.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-20",
+    "feature": "FT-10",
+    "name": "Assemble base profile",
+    "overall_status": "Complete",
+    "testing_status": "pass",
+    "halo_adherence": "pass",
+    "guardrail_adherence": "pass",
+    "code_quality_adherence": "pass",
+    "security_policy_adherence": "pass",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "description": "Assemble a canonical client base profile by reading existing client data\nfrom the persistent database and returning it in the shape defined by the\nInitial Logical Data Model.\n\nThis story covers read-only assembly of core client attributes only.\nNo matching, merging, enrichment, lineage computation, or quality scoring\nis performed as part of this story.\n",
+    "acceptance_criteria": [
+      "A client profile can be retrieved using an existing internal client identifier",
+      "The returned profile conforms to the ClientProfile structure defined in the Initial Logical Data Model",
+      "Core profile fields (e.g. name, email, country, identifiers, addresses) are populated from persisted data where available",
+      "The profile assembly is deterministic and repeatable for the same input",
+      "No matching, merging, enrichment, lineage, or quality logic is applied"
+    ],
+    "guardrails": {
+      "G03": {
+        "ldm_contract": "ldm://client_profile/1.0.0",
+        "artifact": "client_profile",
+        "mode": "strict"
+      }
+    },
+    "last_updated": "2025-12-21T21:26:23+00:00"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-21.json =====
+{
+  "story_id": "ST-21",
+  "slug": "ST-21_assemble_metadata",
+  "source_path": "docs/mission_destination/stories/ST-21_assemble_metadata.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-21",
+    "feature": "FT-10",
+    "name": "Assemble metadata",
+    "description": "Assemble metadata.\n",
+    "acceptance_criteria": [
+      "Metadata added"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-22.json =====
+{
+  "story_id": "ST-22",
+  "slug": "ST-22_expose_lineage",
+  "source_path": "docs/mission_destination/stories/ST-22_expose_lineage.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-22",
+    "feature": "FT-11",
+    "name": "Expose lineage",
+    "description": "Lineage display.\n",
+    "acceptance_criteria": [
+      "Lineage visible"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-23.json =====
+{
+  "story_id": "ST-23",
+  "slug": "ST-23_drill-down_lineage",
+  "source_path": "docs/mission_destination/stories/ST-23_drill-down_lineage.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-23",
+    "feature": "FT-11",
+    "name": "Drill-down lineage",
+    "description": "Drill-down.\n",
+    "acceptance_criteria": [
+      "Source-level detail"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-24.json =====
+{
+  "story_id": "ST-24",
+  "slug": "ST-24_flag_conflicts",
+  "source_path": "docs/mission_destination/stories/ST-24_flag_conflicts.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-24",
+    "feature": "FT-12",
+    "name": "Flag conflicts",
+    "description": "Conflict flags.\n",
+    "acceptance_criteria": [
+      "Flags correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-25.json =====
+{
+  "story_id": "ST-25",
+  "slug": "ST-25_show_merge_logic",
+  "source_path": "docs/mission_destination/stories/ST-25_show_merge_logic.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-25",
+    "feature": "FT-12",
+    "name": "Show merge logic",
+    "description": "Show logic.\n",
+    "acceptance_criteria": [
+      "Logic displayed"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-26.json =====
+{
+  "story_id": "ST-26",
+  "slug": "ST-26_store_lineage_history",
+  "source_path": "docs/mission_destination/stories/ST-26_store_lineage_history.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-26",
+    "feature": "FT-13",
+    "name": "Store lineage history",
+    "description": "Store history.\n",
+    "acceptance_criteria": [
+      "History stored"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-27.json =====
+{
+  "story_id": "ST-27",
+  "slug": "ST-27_timestamp_lineage",
+  "source_path": "docs/mission_destination/stories/ST-27_timestamp_lineage.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-27",
+    "feature": "FT-13",
+    "name": "Timestamp lineage",
+    "description": "Timestamp entries.\n",
+    "acceptance_criteria": [
+      "Timestamps correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-28.json =====
+{
+  "story_id": "ST-28",
+  "slug": "ST-28_compute_freshness",
+  "source_path": "docs/mission_destination/stories/ST-28_compute_freshness.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-28",
+    "feature": "FT-14",
+    "name": "Compute freshness",
+    "description": "Freshness score.\n",
+    "acceptance_criteria": [
+      "Score correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-29.json =====
+{
+  "story_id": "ST-29",
+  "slug": "ST-29_compute_completeness",
+  "source_path": "docs/mission_destination/stories/ST-29_compute_completeness.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-29",
+    "feature": "FT-14",
+    "name": "Compute completeness",
+    "description": "Completeness.\n",
+    "acceptance_criteria": [
+      "Completeness correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-30.json =====
+{
+  "story_id": "ST-30",
+  "slug": "ST-30_audit_ingestion",
+  "source_path": "docs/mission_destination/stories/ST-30_audit_ingestion.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-30",
+    "feature": "FT-15",
+    "name": "Audit ingestion",
+    "description": "Audit ingestion.\n",
+    "acceptance_criteria": [
+      "Audit entries"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-31.json =====
+{
+  "story_id": "ST-31",
+  "slug": "ST-31_audit_merge",
+  "source_path": "docs/mission_destination/stories/ST-31_audit_merge.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-31",
+    "feature": "FT-15",
+    "name": "Audit merge",
+    "description": "Audit merge.\n",
+    "acceptance_criteria": [
+      "Audit recorded"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-32.json =====
+{
+  "story_id": "ST-32",
+  "slug": "ST-32_search_api_basic",
+  "source_path": "docs/mission_destination/stories/ST-32_search_api_basic.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-32",
+    "feature": "FT-16",
+    "name": "Search API basic",
+    "description": "Search endpoint.\n",
+    "acceptance_criteria": [
+      "JSON response"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-33.json =====
+{
+  "story_id": "ST-33",
+  "slug": "ST-33_search_api_ranking",
+  "source_path": "docs/mission_destination/stories/ST-33_search_api_ranking.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-33",
+    "feature": "FT-16",
+    "name": "Search API ranking",
+    "description": "Ranking via API.\n",
+    "acceptance_criteria": [
+      "Ranked results"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-34.json =====
+{
+  "story_id": "ST-34",
+  "slug": "ST-34_profile_api_basic",
+  "source_path": "docs/mission_destination/stories/ST-34_profile_api_basic.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-34",
+    "feature": "FT-17",
+    "name": "Profile API basic",
+    "description": "Profile endpoint.\n",
+    "acceptance_criteria": [
+      "Profile returned"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
+
+===== FILE: app_frontend\public\missionlog\story_defs\ST-35.json =====
+{
+  "story_id": "ST-35",
+  "slug": "ST-35_profile_api_lineage",
+  "source_path": "docs/mission_destination/stories/ST-35_profile_api_lineage.md",
+  "exported_at_utc": "2025-12-25T22:11:28Z",
+  "front_matter": {
+    "story_id": "ST-35",
+    "feature": "FT-17",
+    "name": "Profile API lineage",
+    "description": "Lineage in API.\n",
+    "acceptance_criteria": [
+      "Lineage included"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": ""
+}
+
 
 ===== FILE: app_frontend\public\MissionSmith-M7-SingleClientView.html =====
 <!DOCTYPE html>
@@ -13611,51 +16234,284 @@ export default function MissionAtlasTechnologyBOMPanel() {
 
 
 ===== FILE: app_frontend\src\MissionLogPanel.jsx =====
-import React, { useEffect, useState } from "react";
-
-// Status categories for easy reference (currently not used directly but kept for clarity)
-const STATUS_MAP = {
-  Complete: "Complete",
-  "In Progress": "In Progress",
-  Planned: "Planned",
-};
+import React, { useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // Status normalisation function
 function normaliseStatus(status) {
-  return status ? status.toUpperCase() : "UNKNOWN";
+  return status ? String(status).toUpperCase() : "UNKNOWN";
 }
 
-// Status Chip (adjusted for consistent look)
-function StatusChip({ label, status, extraClass }) {
-  let statusClass = "bg-gray-100"; // Default to grey for N/A statuses
+// Status Chip (fixed width + no wrap)
+function StatusChip({ label, status, extraClass = "", onClick }) {
+  let statusClass = "bg-gray-200"; // Default grey
 
-  // Define specific color mappings for statuses
   if (status === "Complete" || status === "pass") {
-    statusClass = "bg-green-100"; // Green for complete / passed
+    statusClass = "bg-green-100";
   } else if (status === "In Progress" || status === "fail") {
-    statusClass = "bg-yellow-100"; // Yellow for in progress / failed
+    statusClass = "bg-yellow-100";
   } else if (status === "Planned" || status === "not_run") {
-    statusClass = "bg-blue-100"; // Blue for planned / not_run
+    statusClass = "bg-blue-100";
   } else if (status === "N/A") {
-    statusClass = "bg-gray-200"; // Grey color for N/A statuses
+    statusClass = "bg-gray-200";
   }
 
+  const isClickable = typeof onClick === "function";
+
+  const classes = [
+    "inline-flex items-center justify-center",
+    "px-2.5 py-0.5 rounded-full",
+    "text-xs font-body text-gray-900",
+    "w-20",
+    "text-center",
+    "whitespace-nowrap",
+    statusClass,
+    isClickable ? "cursor-pointer hover:shadow-sm" : "cursor-default",
+    extraClass,
+  ].join(" ");
+
+  if (!isClickable) return <span className={classes}>{label}</span>;
+
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-body ${statusClass} ${
-        extraClass || ""
-      }`}
-    >
+    <button type="button" onClick={onClick} className={classes} title={label}>
       {label}
-    </span>
+    </button>
   );
 }
 
-// MissionLog Panel with Key, alignment, and Back button
+// Evidence modal
+function EvidenceModal({ open, onClose, title, subtitle, loading, error, data }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        role="button"
+        tabIndex={0}
+      />
+
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl bg-white rounded-halo shadow-lg border border-gray-200">
+          <div className="flex items-start justify-between p-4 border-b border-gray-200">
+            <div>
+              <h3
+                style={{ fontFamily: "Fjalla One" }}
+                className="text-lg text-gray-900 tracking-wide"
+              >
+                {title}
+              </h3>
+              {subtitle && (
+                <p className="text-sm font-body text-gray-600 mt-1">{subtitle}</p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-body hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="p-4">
+            {loading && (
+              <p className="text-sm font-body text-gray-500">Loading evidenceâ€¦</p>
+            )}
+
+            {!loading && error && (
+              <p className="text-sm font-body text-red-600">{error}</p>
+            )}
+
+            {!loading && !error && (
+              <div className="bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-[60vh]">
+                <pre className="text-xs font-mono text-gray-800 whitespace-pre-wrap">
+                  {JSON.stringify(data, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            <p className="text-xs font-body text-gray-400 mt-3">
+              Evidence is expected at{" "}
+              <code>/missionlog/evidence/&lt;story_id&gt;/&lt;dimension&gt;.json</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Story definition modal (now loads exported JSON and renders markdown)
+function StoryDefinitionModal({ open, onClose, storyId, storyName }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [doc, setDoc] = useState(null);
+
+  useEffect(() => {
+    if (!open || !storyId) return;
+
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError("");
+      setDoc(null);
+
+      const url = `/missionlog/story_defs/${encodeURIComponent(storyId)}.json`;
+
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(
+            `Story definition not found (HTTP ${res.status}). Expected: ${url}`
+          );
+        }
+        const json = await res.json();
+        if (!cancelled) setDoc(json);
+      } catch (e) {
+        if (!cancelled) {
+          setError(e?.message || "Could not load story definition.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, storyId]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        role="button"
+        tabIndex={0}
+      />
+
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-4xl bg-white rounded-halo shadow-lg border border-gray-200">
+          <div className="flex items-start justify-between p-4 border-b border-gray-200">
+            <div>
+              <h3
+                style={{ fontFamily: "Fjalla One" }}
+                className="text-lg text-gray-900 tracking-wide"
+              >
+                {storyId} Â· Story Definition
+              </h3>
+              {storyName && (
+                <p className="text-sm font-body text-gray-600 mt-1">{storyName}</p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-body hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="p-4">
+            {loading && (
+              <p className="text-sm font-body text-gray-500">
+                Loading story definitionâ€¦
+              </p>
+            )}
+
+            {!loading && error && (
+              <p className="text-sm font-body text-red-600">{error}</p>
+            )}
+
+            {!loading && !error && doc && (
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-4">
+                <div className="bg-gray-50 border border-gray-200 rounded-md p-4 overflow-auto max-h-[65vh]">
+                  <article className="prose prose-sm max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {doc.body_markdown || ""}
+                    </ReactMarkdown>
+                  </article>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-md p-4 overflow-auto max-h-[65vh]">
+                  <p className="text-xs font-body text-gray-500 mb-2">Front matter</p>
+                  <pre className="text-xs font-mono text-gray-800 whitespace-pre-wrap">
+                    {JSON.stringify(doc.front_matter || {}, null, 2)}
+                  </pre>
+
+                  <p className="text-xs font-body text-gray-400 mt-3">
+                    Source:{" "}
+                    <span className="font-mono">
+                      {doc.source_path || "(unknown)"}
+                    </span>
+                  </p>
+                  <p className="text-xs font-body text-gray-400 mt-1">
+                    Exported:{" "}
+                    <span className="font-mono">
+                      {doc.exported_at_utc || "(unknown)"}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!loading && !error && !doc && (
+              <p className="text-sm font-body text-gray-500">
+                No story definition data available.
+              </p>
+            )}
+
+            <p className="text-xs font-body text-gray-400 mt-3">
+              Definition is generated from story markdown files (re-run the export
+              script to refresh).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MissionLogPanel({ setActiveView }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Evidence modal state
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [evidenceLoading, setEvidenceLoading] = useState(false);
+  const [evidenceError, setEvidenceError] = useState("");
+  const [evidenceData, setEvidenceData] = useState(null);
+  const [evidenceMeta, setEvidenceMeta] = useState({
+    storyId: "",
+    storyName: "",
+    dimensionKey: "",
+    dimensionLabel: "",
+    status: "",
+  });
+
+  // Story definition modal state
+  const [storyDefOpen, setStoryDefOpen] = useState(false);
+  const [storyDefMeta, setStoryDefMeta] = useState({
+    storyId: "",
+    storyName: "",
+  });
+
+  // Filters (multi-select)
+  const [selectedEpics, setSelectedEpics] = useState([]);
+  const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [selectedStories, setSelectedStories] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -13665,9 +16521,7 @@ export default function MissionLogPanel({ setActiveView }) {
         const res = await fetch("/missionlog/status_snapshot.json", {
           cache: "no-store",
         });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (!cancelled) {
           setData(json);
@@ -13675,13 +16529,9 @@ export default function MissionLogPanel({ setActiveView }) {
         }
       } catch (err) {
         console.error("Failed to load MissionLog status snapshot", err);
-        if (!cancelled) {
-          setError("Could not load latest status snapshot.");
-        }
+        if (!cancelled) setError("Could not load latest status snapshot.");
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -13693,18 +16543,244 @@ export default function MissionLogPanel({ setActiveView }) {
 
   const epics = data?.epics || [];
 
-  // Handle Back button
+  // Fixed badge spec (exact order)
+  const BADGES = useMemo(
+    () => [
+      { label: "Testing", key: "testing_status", mvp: true, evidenceDim: "testing" },
+      { label: "Halo", key: "halo_adherence", mvp: true, evidenceDim: "halo" },
+      { label: "Guardrails", key: "guardrail_adherence", mvp: true, evidenceDim: "guardrails" },
+      { label: "Quality", key: "code_quality_adherence", mvp: true, evidenceDim: "code_quality" },
+      { label: "Security", key: "security_policy_adherence", mvp: true, evidenceDim: "security" },
+
+      { label: "Policy", key: "policy_adherence", mvp: false, evidenceDim: "policy" },
+      { label: "Tech Trace", key: "technology_lineage_adherence", mvp: false, evidenceDim: "tech_lineage" },
+      { label: "Lineage", key: "business_data_lineage_adherence", mvp: false, evidenceDim: "business_lineage" },
+      { label: "Self-Heal", key: "self_healing_adherence", mvp: false, evidenceDim: "self_healing" },
+      { label: "Analytics", key: "analytics_adherence", mvp: false, evidenceDim: "analytics" },
+    ],
+    []
+  );
+
   const handleBack = () => {
-    if (typeof setActiveView === "function") {
-      setActiveView("scv");
-    } else {
-      window.location.reload();
-    }
+    if (typeof setActiveView === "function") setActiveView("scv");
+    else window.location.reload();
   };
+
+  async function openEvidence(story, badge) {
+    const raw = story?.[badge.key];
+    const statusVal = badge.mvp ? (raw || "not_run") : "N/A";
+    if (statusVal !== "pass" && statusVal !== "fail") return;
+
+    const storyId = story.story_id;
+    const storyName = story.name;
+
+    setEvidenceMeta({
+      storyId,
+      storyName,
+      dimensionKey: badge.key,
+      dimensionLabel: badge.label,
+      status: statusVal,
+    });
+
+    setEvidenceOpen(true);
+    setEvidenceLoading(true);
+    setEvidenceError("");
+    setEvidenceData(null);
+
+    const url = `/missionlog/evidence/${encodeURIComponent(
+      storyId
+    )}/${encodeURIComponent(badge.evidenceDim)}.json`;
+
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok)
+        throw new Error(`Evidence not found (HTTP ${res.status}). Expected: ${url}`);
+      const json = await res.json();
+      setEvidenceData(json);
+    } catch (err) {
+      setEvidenceError(
+        err?.message || "Could not load evidence for this badge (file missing or invalid JSON)."
+      );
+    } finally {
+      setEvidenceLoading(false);
+    }
+  }
+
+  const closeEvidence = () => {
+    setEvidenceOpen(false);
+    setEvidenceLoading(false);
+    setEvidenceError("");
+    setEvidenceData(null);
+  };
+
+  const openStoryDefinition = (story) => {
+    setStoryDefMeta({ storyId: story.story_id, storyName: story.name });
+    setStoryDefOpen(true);
+  };
+
+  const closeStoryDefinition = () => {
+    setStoryDefOpen(false);
+  };
+
+  // ---------- Filter indexes + expansion rules ----------
+
+  const index = useMemo(() => {
+    const epicsById = new Map();
+    const featuresById = new Map();
+    const storiesById = new Map();
+    const featureToEpic = new Map();
+    const storyToFeature = new Map();
+    const epicToFeatures = new Map();
+    const featureToStories = new Map();
+
+    for (const e of epics) {
+      epicsById.set(e.epic_id, e);
+      epicToFeatures.set(e.epic_id, []);
+      for (const f of e.features || []) {
+        featuresById.set(f.feature_id, f);
+        featureToEpic.set(f.feature_id, e.epic_id);
+        epicToFeatures.get(e.epic_id).push(f.feature_id);
+
+        featureToStories.set(f.feature_id, []);
+        for (const s of f.stories || []) {
+          storiesById.set(s.story_id, s);
+          storyToFeature.set(s.story_id, f.feature_id);
+          featureToStories.get(f.feature_id).push(s.story_id);
+        }
+      }
+    }
+
+    return {
+      epicsById,
+      featuresById,
+      storiesById,
+      featureToEpic,
+      storyToFeature,
+      epicToFeatures,
+      featureToStories,
+    };
+  }, [epics]);
+
+  const options = useMemo(() => {
+    const epicOpts = epics.map((e) => ({
+      id: e.epic_id,
+      label: `${e.epic_id}: ${e.name}`,
+    }));
+
+    const featureOpts = [];
+    const storyOpts = [];
+
+    for (const e of epics) {
+      for (const f of e.features || []) {
+        featureOpts.push({
+          id: f.feature_id,
+          label: `${f.feature_id}: ${f.name}`,
+        });
+        for (const s of f.stories || []) {
+          storyOpts.push({
+            id: s.story_id,
+            label: `${s.story_id}: ${s.name}`,
+          });
+        }
+      }
+    }
+
+    return { epicOpts, featureOpts, storyOpts };
+  }, [epics]);
+
+  const visibleSets = useMemo(() => {
+    const anySelected =
+      selectedEpics.length > 0 ||
+      selectedFeatures.length > 0 ||
+      selectedStories.length > 0;
+
+    if (!anySelected) {
+      return {
+        anySelected: false,
+        visibleEpicIds: null,
+        visibleFeatureIds: null,
+        visibleStoryIds: null,
+      };
+    }
+
+    const visibleEpicIds = new Set();
+    const visibleFeatureIds = new Set();
+    const visibleStoryIds = new Set();
+
+    // 1) Expand epics -> all features + all stories
+    for (const epicId of selectedEpics) {
+      visibleEpicIds.add(epicId);
+      const feats = index.epicToFeatures.get(epicId) || [];
+      for (const fid of feats) {
+        visibleFeatureIds.add(fid);
+        const stories = index.featureToStories.get(fid) || [];
+        for (const sid of stories) visibleStoryIds.add(sid);
+      }
+    }
+
+    // 2) Expand features -> parent epic + all stories
+    for (const featureId of selectedFeatures) {
+      visibleFeatureIds.add(featureId);
+      const epicId = index.featureToEpic.get(featureId);
+      if (epicId) visibleEpicIds.add(epicId);
+
+      const stories = index.featureToStories.get(featureId) || [];
+      for (const sid of stories) visibleStoryIds.add(sid);
+    }
+
+    // 3) Expand stories -> parent feature + parent epic (only that story)
+    for (const storyId of selectedStories) {
+      visibleStoryIds.add(storyId);
+      const featureId = index.storyToFeature.get(storyId);
+      if (featureId) {
+        visibleFeatureIds.add(featureId);
+        const epicId = index.featureToEpic.get(featureId);
+        if (epicId) visibleEpicIds.add(epicId);
+      }
+    }
+
+    return {
+      anySelected: true,
+      visibleEpicIds,
+      visibleFeatureIds,
+      visibleStoryIds,
+    };
+  }, [selectedEpics, selectedFeatures, selectedStories, index]);
+
+  const filteredEpics = useMemo(() => {
+    if (!visibleSets.anySelected) return epics;
+
+    return epics
+      .filter((e) => visibleSets.visibleEpicIds.has(e.epic_id))
+      .map((e) => ({
+        ...e,
+        features: (e.features || [])
+          .filter((f) => visibleSets.visibleFeatureIds.has(f.feature_id))
+          .map((f) => ({
+            ...f,
+            stories: (f.stories || []).filter((s) =>
+              visibleSets.visibleStoryIds.has(s.story_id)
+            ),
+          })),
+      }));
+  }, [epics, visibleSets]);
+
+  const clearFilters = () => {
+    setSelectedEpics([]);
+    setSelectedFeatures([]);
+    setSelectedStories([]);
+  };
+
+  const onMultiSelectChange = (setter) => (e) => {
+    const vals = Array.from(e.target.selectedOptions).map((o) => o.value);
+    setter(vals);
+  };
+
+  // ---------- Status column alignment ----------
+  const ROW_GRID = "grid grid-cols-[1fr_7rem] items-start gap-3"; // 7rem ~ w-28
 
   return (
     <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
-      {/* Back to Single Client View button */}
       <div className="flex justify-between mb-4">
         <h2
           style={{ fontFamily: "Fjalla One" }}
@@ -13722,174 +16798,226 @@ export default function MissionLogPanel({ setActiveView }) {
         </button>
       </div>
 
-      {/* Key/Legend for Statuses */}
       <div className="mb-4 p-3 bg-gray-50 rounded-md text-sm font-body text-gray-800">
         <strong>Status Key:</strong>
         <div className="flex flex-wrap gap-3 mt-2">
-          <StatusChip label="Complete" status="Complete" />
-          <StatusChip label="In Progress" status="In Progress" />
-          <StatusChip label="Planned" status="Planned" />
+          <StatusChip label="Complete" status="pass" />
+          <StatusChip label="In Progress" status="fail" />
+          <StatusChip label="Planned" status="not_run" />
           <StatusChip label="N/A" status="N/A" />
         </div>
       </div>
 
+      {/* NEW: Filters */}
+      <div className="mb-4 p-4 bg-white rounded-md border border-gray-200">
+        <div className="flex items-start justify-between gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+            <div>
+              <label className="block text-xs font-body text-gray-700 mb-1">
+                Filter Epics
+              </label>
+              <select
+                multiple
+                value={selectedEpics}
+                onChange={onMultiSelectChange(setSelectedEpics)}
+                className="w-full text-sm font-body border border-gray-300 rounded-md p-2 bg-white"
+                size={Math.min(6, Math.max(3, options.epicOpts.length))}
+              >
+                {options.epicOpts.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-body text-gray-700 mb-1">
+                Filter Features
+              </label>
+              <select
+                multiple
+                value={selectedFeatures}
+                onChange={onMultiSelectChange(setSelectedFeatures)}
+                className="w-full text-sm font-body border border-gray-300 rounded-md p-2 bg-white"
+                size={Math.min(6, Math.max(3, options.featureOpts.length))}
+              >
+                {options.featureOpts.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-body text-gray-700 mb-1">
+                Filter Stories
+              </label>
+              <select
+                multiple
+                value={selectedStories}
+                onChange={onMultiSelectChange(setSelectedStories)}
+                className="w-full text-sm font-body border border-gray-300 rounded-md p-2 bg-white"
+                size={Math.min(6, Math.max(3, options.storyOpts.length))}
+              >
+                {options.storyOpts.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-body hover:bg-gray-50"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <p className="text-xs font-body text-gray-500 mt-3">
+          Select any combination. Stories show their parent Feature and Epic.
+          Features show their Epic and all Stories. Epics show all Features and
+          Stories.
+        </p>
+      </div>
+
       {loading && (
-        <p className="text-sm font-body text-gray-500">
-          Loading latest status snapshotâ€¦
-        </p>
+        <p className="text-sm font-body text-gray-500">Loading latest status snapshotâ€¦</p>
+      )}
+      {!loading && error && <p className="text-sm font-body text-red-600 mb-2">{error}</p>}
+      {!loading && !error && filteredEpics.length === 0 && (
+        <p className="text-sm font-body text-gray-500">No status data available.</p>
       )}
 
-      {!loading && error && (
-        <p className="text-sm font-body text-red-600 mb-2">{error}</p>
-      )}
-
-      {!loading && !error && epics.length === 0 && (
-        <p className="text-sm font-body text-gray-500">
-          No status data available.
-        </p>
-      )}
-
-      {/* MissionLog Data */}
-      {!loading && !error && epics.length > 0 && (
+      {!loading && !error && filteredEpics.length > 0 && (
         <div className="space-y-6">
-          {epics.map((epic) => (
+          {filteredEpics.map((epic) => (
             <div
               key={epic.epic_id}
               className="bg-gray-50 rounded-lg border border-gray-200 p-4"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="font-heading text-sm text-gray-900">
-                    Epic {epic.epic_id}: {epic.name}
-                  </p>
+              <div className={`${ROW_GRID} mb-3`}>
+                <p className="font-heading text-sm text-gray-900">
+                  Epic {epic.epic_id}: {epic.name}
+                </p>
+
+                <div className="flex justify-end">
+                  <StatusChip
+                    label={normaliseStatus(epic.overall_status)}
+                    status={epic.overall_status}
+                    extraClass="w-28"
+                  />
                 </div>
-                {/* Epic status chip â€“ same size styling as feature-level */}
-                <StatusChip
-                  label={normaliseStatus(epic.overall_status)}
-                  status={epic.overall_status}
-                  extraClass="ml-auto px-3 py-1 text-xs"
-                />
               </div>
 
               <div className="space-y-4">
-                {epic.features.map((feature) => {
-                  const stories = feature.stories || [];
-                  const totalStories = stories.length;
-                  const completedStories = stories.filter(
-                    (s) => normaliseStatus(s.overall_status) === "COMPLETE"
-                  ).length;
+                {(epic.features || []).map((feature) => (
+                  <div
+                    key={feature.feature_id}
+                    className="bg-white rounded-md border border-gray-200 p-4"
+                  >
+                    {/* CHANGED: bleed header row to outer edges to align status with Epic */}
+                    <div className={`${ROW_GRID} -mx-4 px-4`}>
+                      <p className="font-heading text-sm text-gray-900">
+                        Feature {feature.feature_id}: {feature.name}
+                      </p>
 
-                  return (
-                    <div
-                      key={feature.feature_id}
-                      className="bg-white rounded-md border border-gray-200 p-3"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="font-heading text-sm text-gray-900">
-                            Feature {feature.feature_id}: {feature.name}
-                          </p>
-                          <p className="text-xs font-body text-gray-500">
-                            {completedStories}/{totalStories} stories complete
-                          </p>
-                        </div>
-                        {/* Feature status chip â€“ same size styling as epic-level */}
+                      <div className="flex justify-end">
                         <StatusChip
                           label={normaliseStatus(feature.overall_status)}
                           status={feature.overall_status}
-                          extraClass="ml-auto px-3 py-1 text-xs"
+                          extraClass="w-28"
                         />
                       </div>
-
-                      <div className="space-y-1.5">
-                        {stories.map((story) => {
-                          return (
-                            <div
-                              key={story.story_id}
-                              className="flex items-center justify-between"
-                            >
-                              <div className="flex-1">
-                                <p className="text-sm font-body text-gray-700">
-                                  {story.name}
-                                </p>
-                              </div>
-
-                              {/* Render badges for each story */}
-                              <div className="flex space-x-2">
-                                {story.testing_status && (
-                                  <StatusChip
-                                    label="Testing"
-                                    status={story.testing_status}
-                                  />
-                                )}
-                                {story.halo_adherence && (
-                                  <StatusChip
-                                    label="Halo"
-                                    status={story.halo_adherence}
-                                  />
-                                )}
-                                {story.guardrail_adherence && (
-                                  <StatusChip
-                                    label="Guardrails"
-                                    status={story.guardrail_adherence}
-                                  />
-                                )}
-                                {story.code_quality_adherence && (
-                                  <StatusChip
-                                    label="Code Quality"
-                                    status={story.code_quality_adherence}
-                                  />
-                                )}
-                                {story.security_adherence && (
-                                  <StatusChip
-                                    label="Security"
-                                    status={story.security_adherence}
-                                  />
-                                )}
-                                {/* Default to "N/A" for the following statuses if they don't exist */}
-                                {!story.policy_adherence && (
-                                  <StatusChip
-                                    label="Policy Adherence"
-                                    status="N/A"
-                                  />
-                                )}
-                                {!story.technology_lineage && (
-                                  <StatusChip
-                                    label="Technology Lineage"
-                                    status="N/A"
-                                  />
-                                )}
-                                {!story.business_data_lineage && (
-                                  <StatusChip
-                                    label="Business Data Lineage"
-                                    status="N/A"
-                                  />
-                                )}
-                                {!story.self_healing_adherence && (
-                                  <StatusChip
-                                    label="Self-healing Adherence"
-                                    status="N/A"
-                                  />
-                                )}
-                                {!story.analytics && (
-                                  <StatusChip label="Analytics" status="N/A" />
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
-                  );
-                })}
+
+                    <div className="mt-3 space-y-2">
+                      {(feature.stories || []).map((story) => (
+                        <div
+                          key={story.story_id}
+                          className="bg-gray-50 rounded-md border border-gray-200 p-3"
+                        >
+                          {/* CHANGED: bleed header row to outer edges to align status with Epic/Feature */}
+                          <div className={`${ROW_GRID} -mx-3 px-3`}>
+                            <button
+                              type="button"
+                              onClick={() => openStoryDefinition(story)}
+                              className="text-sm font-body text-gray-900 truncate min-w-0 text-left rounded-md px-2 py-1 -ml-2 hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#1A9988]"
+                              title="View story definition"
+                            >
+                              <span className="font-semibold">{story.story_id}</span> Â· {story.name}
+                            </button>
+
+                            <div className="flex justify-end">
+                              <StatusChip
+                                label={normaliseStatus(story.overall_status)}
+                                status={story.overall_status}
+                                extraClass="w-28"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="mt-2 overflow-x-auto">
+                            <div className="flex flex-nowrap gap-2 justify-start">
+                              {BADGES.map((b) => {
+                                const raw = story?.[b.key];
+                                const statusVal = b.mvp ? (raw || "not_run") : "N/A";
+                                const clickable = statusVal === "pass" || statusVal === "fail";
+
+                                return (
+                                  <StatusChip
+                                    key={`${story.story_id}-${b.key}`}
+                                    label={b.label}
+                                    status={statusVal}
+                                    onClick={clickable ? () => openEvidence(story, b) : undefined}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <EvidenceModal
+        open={evidenceOpen}
+        onClose={closeEvidence}
+        title={`${evidenceMeta.storyId} Â· ${evidenceMeta.dimensionLabel} Evidence`}
+        subtitle={`${evidenceMeta.storyName} Â· Status: ${evidenceMeta.status}`}
+        loading={evidenceLoading}
+        error={evidenceError}
+        data={evidenceData}
+      />
+
+      <StoryDefinitionModal
+        open={storyDefOpen}
+        onClose={closeStoryDefinition}
+        storyId={storyDefMeta.storyId}
+        storyName={storyDefMeta.storyName}
+      />
     </section>
   );
 }
+
+
+
+
+
+
 
 
 
@@ -22559,6 +25687,222 @@ Write-Host ("Done. Created {0} part(s) in {1}" -f $partIndex, $OutDir) -Foregrou
 
 
 
+
+
+
+===== FILE: tools\extract_MissionLog_story_defs.py =====
+#!/usr/bin/env python3
+"""
+Export story markdown files into UI-consumable JSON for MissionLog.
+
+Can be run from:
+- repo root
+- tools/ directory
+
+Repo layout assumed:
+  repo_root/
+    docs/mission_destination/stories/
+    app_frontend/public/missionlog/story_defs/
+    tools/extract_MissionLog_story_defs.py
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from dataclasses import dataclass
+from datetime import datetime, timezone, date
+from pathlib import Path
+from typing import Any, Dict, Tuple
+
+import yaml
+
+
+# -----------------------------
+# Repo root detection
+# -----------------------------
+
+def detect_repo_root() -> Path:
+  """
+  Detect repo root as the parent of the 'tools' directory.
+  This allows the script to be run from anywhere.
+  """
+  here = Path(__file__).resolve()
+  if here.parent.name != "tools":
+    raise RuntimeError(
+      f"Expected script to live in a 'tools' directory, but found: {here}"
+    )
+  return here.parent.parent
+
+
+REPO_ROOT = detect_repo_root()
+
+
+# -----------------------------
+# JSON safety helpers
+# -----------------------------
+
+def json_safe(value):
+  """
+  Recursively convert values to JSON-serialisable forms.
+  - datetime/date -> ISO 8601 string
+  """
+  if isinstance(value, datetime):
+    return value.replace(microsecond=0).isoformat()
+  if isinstance(value, date):
+    return value.isoformat()
+  if isinstance(value, dict):
+    return {k: json_safe(v) for k, v in value.items()}
+  if isinstance(value, list):
+    return [json_safe(v) for v in value]
+  return value
+
+
+# -----------------------------
+# Data model
+# -----------------------------
+
+@dataclass(frozen=True)
+class StoryDoc:
+  story_id: str
+  slug: str
+  source_path: str
+  front_matter: Dict[str, Any]
+  body_markdown: str
+  exported_at_utc: str
+
+
+FRONT_MATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n(.*)$", re.DOTALL)
+
+
+# -----------------------------
+# Parsing helpers
+# -----------------------------
+
+def parse_story_markdown(md_text: str) -> Tuple[Dict[str, Any], str]:
+  """
+  Returns (front_matter_dict, body_markdown).
+  If no front matter, returns ({}, full_text).
+  """
+  m = FRONT_MATTER_RE.match(md_text.strip() + "\n")
+  if not m:
+    return {}, md_text.strip()
+
+  fm_raw = m.group(1)
+  body = m.group(2).strip()
+
+  front_matter = yaml.safe_load(fm_raw) or {}
+  if not isinstance(front_matter, dict):
+    raise ValueError("Front matter must be a YAML mapping/dict.")
+
+  return front_matter, body
+
+
+def infer_story_id(front_matter: Dict[str, Any], filename: str) -> str:
+  for key in ("story_id", "id", "story"):
+    if key in front_matter and front_matter[key]:
+      return str(front_matter[key]).strip()
+
+  m = re.match(r"^(ST-\d+)", filename, re.IGNORECASE)
+  if m:
+    return m.group(1).upper()
+
+  raise ValueError(f"Could not infer story_id from front matter or filename: {filename}")
+
+
+def slugify_filename(story_path: Path) -> str:
+  return story_path.stem
+
+
+def utc_now_iso() -> str:
+  return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+# -----------------------------
+# Build + write
+# -----------------------------
+
+def build_story_doc(story_path: Path) -> StoryDoc:
+  raw = story_path.read_text(encoding="utf-8")
+  fm, body = parse_story_markdown(raw)
+  story_id = infer_story_id(fm, story_path.name)
+
+  return StoryDoc(
+    story_id=story_id,
+    slug=slugify_filename(story_path),
+    source_path=str(story_path.relative_to(REPO_ROOT)).replace("\\", "/"),
+    front_matter=fm,
+    body_markdown=body,
+    exported_at_utc=utc_now_iso(),
+  )
+
+
+def write_story_doc(out_dir: Path, doc: StoryDoc) -> Path:
+  out_dir.mkdir(parents=True, exist_ok=True)
+  out_path = out_dir / f"{doc.story_id}.json"
+
+  payload = {
+    "story_id": doc.story_id,
+    "slug": doc.slug,
+    "source_path": doc.source_path,
+    "exported_at_utc": doc.exported_at_utc,
+    "front_matter": json_safe(doc.front_matter),
+    "body_markdown": doc.body_markdown,
+  }
+
+  out_path.write_text(
+    json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+    encoding="utf-8",
+  )
+
+  return out_path
+
+
+# -----------------------------
+# Main
+# -----------------------------
+
+def main() -> int:
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--stories_dir",
+    default="docs/mission_destination/stories",
+    help="Directory containing story markdown files (relative to repo root).",
+  )
+  parser.add_argument(
+    "--out_dir",
+    default="app_frontend/public/missionlog/story_defs",
+    help="Output directory for per-story JSON files (relative to repo root).",
+  )
+  args = parser.parse_args()
+
+  stories_dir = (REPO_ROOT / args.stories_dir).resolve()
+  out_dir = (REPO_ROOT / args.out_dir).resolve()
+
+  if not stories_dir.exists():
+    raise SystemExit(f"Stories dir not found: {stories_dir}")
+
+  md_files = sorted(stories_dir.glob("ST-*.md"))
+  if not md_files:
+    print(f"No story files found under {stories_dir}")
+    return 0
+
+  written = 0
+  for p in md_files:
+    try:
+      doc = build_story_doc(p)
+      write_story_doc(out_dir, doc)
+      written += 1
+    except Exception as e:
+      print(f"[ERROR] {p.name}: {e}")
+
+  print(f"Exported {written} story definition file(s) to {out_dir}")
+  return 0
+
+
+if __name__ == "__main__":
+  raise SystemExit(main())
 
 
 

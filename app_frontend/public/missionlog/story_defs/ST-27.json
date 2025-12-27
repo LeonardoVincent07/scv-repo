@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-27",
+  "slug": "ST-27_timestamp_lineage",
+  "source_path": "docs/mission_destination/stories/ST-27_timestamp_lineage.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-27",
+    "feature": "FT-13",
+    "name": "Timestamp lineage",
+    "description": "Timestamp entries.\n",
+    "acceptance_criteria": [
+      "Timestamps correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Timestamp Lineage\n\n## Statement\nAs a compliance or audit user, I want lineage events to be timestamped so that I can understand when client data changes occurred.\n\n## Description\nTo support accurate audit and investigation, lineage events must include timing information.  \nThe platform must record timestamps for lineage events, enabling users to understand the sequence and timing of data changes.\n\nTimestamped lineage supports chronological analysis of client data evolution.\n\n## Acceptance Criteria\n- **Given** lineage events are recorded  \n  **When** they are stored  \n  **Then** each event includes an accurate timestamp\n\n- **Given** timestamped lineage exists  \n  **When** it is reviewed  \n  **Then** events can be ordered chronologically\n\n- **Given** a timestamp cannot be recorded  \n  **When** an event occurs  \n  **Then** the issue is reported clearly"
+}

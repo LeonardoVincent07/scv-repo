@@ -24,3 +24,26 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: 2025-12-21T16:19:34Z
 ---
+# Map Identity Fields
+
+## Statement
+As a data operations user, I want to map identity fields so that equivalent client attributes from different source systems can be normalised and compared consistently.
+
+## Description
+Client identity data may be provided by multiple source systems using different field names and structures.  
+The platform must support mapping source-specific identity fields to a canonical representation so that identity information can be processed consistently across the platform.
+
+Mapped identity fields form the basis for downstream matching, profile assembly, and lineage reporting.
+
+## Acceptance Criteria
+- **Given** identity fields exist in a source system  
+  **When** identity field mappings are defined  
+  **Then** the fields are mapped to the platform’s canonical identity model
+
+- **Given** identity mappings are defined  
+  **When** client data is ingested  
+  **Then** identity values are normalised according to the mappings
+
+- **Given** a required identity field is unmapped  
+  **When** identity processing is attempted  
+  **Then** the issue is reported clearly

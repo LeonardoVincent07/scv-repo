@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-24",
+  "slug": "ST-24_flag_conflicts",
+  "source_path": "docs/mission_destination/stories/ST-24_flag_conflicts.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-24",
+    "feature": "FT-12",
+    "name": "Flag conflicts",
+    "description": "Conflict flags.\n",
+    "acceptance_criteria": [
+      "Flags correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Flag Conflicts\n\n## Statement\nAs a compliance or operations user, I want data conflicts to be flagged so that inconsistencies in client information can be identified and addressed.\n\n## Description\nWhen client data from multiple sources is merged or assembled, conflicts may arise between attributes such as identifiers, names, or addresses.  \nThe platform must detect and flag these conflicts so that they are visible for review and resolution.\n\nFlagging conflicts supports data quality management and prevents silent inconsistencies in client profiles.\n\n## Acceptance Criteria\n- **Given** conflicting client attributes are detected  \n  **When** profile processing occurs  \n  **Then** the conflicts are flagged clearly\n\n- **Given** flagged conflicts exist  \n  **When** a client profile is reviewed  \n  **Then** the conflicts are visible to the user\n\n- **Given** no conflicts are present  \n  **When** processing occurs  \n  **Then** no conflict flags are created"
+}

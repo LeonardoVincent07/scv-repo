@@ -1,0 +1,29 @@
+{
+  "story_id": "ST-02",
+  "slug": "ST-02_register_kyc_source",
+  "source_path": "docs/mission_destination/stories/ST-02_register_kyc_source.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-02",
+    "feature": "FT-01",
+    "name": "Register KYC source",
+    "description": "Register KYC system.\n",
+    "acceptance_criteria": [
+      "Connection ok",
+      "Schema ok"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Register KYC Source System\n\n## Statement\nAs a compliance operations user, I want to register a KYC source system so that client due-diligence data can be ingested and governed with clear provenance.\n\n## Description\nThe platform must support the registration of KYC source systems as approved providers of compliance and due-diligence data.  \nRegistering a KYC source system ensures that KYC data entering the platform can be traced back to its originating system and treated according to governance and compliance requirements.\n\nOnce registered, the KYC source system can be referenced by ingestion, enrichment, and profile assembly processes.\n\n## Acceptance Criteria\n- **Given** a KYC source system has not previously been registered  \n  **When** a compliance operations user registers the KYC source system  \n  **Then** the system is stored as a recognised and active KYC data source\n\n- **Given** a KYC source system is registered  \n  **When** KYC data is ingested  \n  **Then** the data is associated with the registered source system\n\n- **Given** invalid or incomplete registration details are provided  \n  **When** the registration is attempted  \n  **Then** the registration is rejected with a clear error message"
+}

@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-06",
+  "slug": "ST-06_bulk_load_kyc",
+  "source_path": "docs/mission_destination/stories/ST-06_bulk_load_kyc.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-06",
+    "feature": "FT-03",
+    "name": "Bulk load KYC",
+    "description": "Initial KYC load.\n",
+    "acceptance_criteria": [
+      "Records loaded"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Ingest KYC Data\n\n## Statement\nAs a compliance operations user, I want KYC data to be ingested from approved source systems so that client due-diligence information is available for review and downstream processing.\n\n## Description\nThe platform must support ingestion of KYC data from registered KYC source systems.  \nIngested KYC data should be persisted in a controlled manner and associated with the originating source system to ensure provenance and auditability.\n\nOnce ingested, KYC data can be used for client enrichment, profile assembly, and compliance review processes.\n\n## Acceptance Criteria\n- **Given** a KYC source system is registered  \n  **When** KYC data is ingested  \n  **Then** the data is persisted successfully and linked to the source system\n\n- **Given** ingested KYC data  \n  **When** downstream processing is performed  \n  **Then** the data is available for enrichment and profile assembly\n\n- **Given** invalid KYC records are encountered  \n  **When** ingestion is attempted  \n  **Then** valid records are stored and invalid records are reported clearly"
+}

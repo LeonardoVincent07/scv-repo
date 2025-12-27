@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-05",
+  "slug": "ST-05_bulk_load_crm",
+  "source_path": "docs/mission_destination/stories/ST-05_bulk_load_crm.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-05",
+    "feature": "FT-03",
+    "name": "Bulk load CRM",
+    "description": "Initial CRM load.\n",
+    "acceptance_criteria": [
+      "Records loaded"
+    ],
+    "overall_status": "Complete",
+    "testing_status": "pass",
+    "halo_adherence": "pass",
+    "guardrail_adherence": "pass",
+    "code_quality_adherence": "pass",
+    "security_policy_adherence": "pass",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-22T19:26:52+00:00"
+  },
+  "body_markdown": "# Ingest CRM Data\n\n## Statement\nAs a data operations user, I want to bulk load CRM data so that existing client records can be ingested into the platform efficiently and consistently.\n\n## Description\nThe platform must support bulk ingestion of client data from a registered CRM source system.  \nThis capability enables an initial or repeat load of CRM records into the platform using a controlled and repeatable process.\n\nBulk loading creates persisted client records that can subsequently be mapped, matched, and assembled into client profiles. The same ingestion logic must be usable for automated testing and operational execution.\n\n## Acceptance Criteria\n- **Given** a CRM source system is registered  \n  **When** a bulk load of CRM data is executed  \n  **Then** client records are ingested and persisted successfully\n\n- **Given** a bulk load is executed  \n  **When** individual records fail validation  \n  **Then** valid records are persisted and invalid records are reported clearly\n\n- **Given** the bulk load process completes  \n  **When** downstream processes run  \n  **Then** the ingested CRM records are available for mapping and matching"
+}

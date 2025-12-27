@@ -23,3 +23,26 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Store Lineage History
+
+## Statement
+As a compliance or audit user, I want lineage history to be stored so that changes to client data can be traced over time.
+
+## Description
+Client data and profiles evolve as new data is ingested and processed.  
+The platform must store lineage history so that past states and transformations of client data can be reviewed retrospectively.
+
+Storing lineage history enables audit, investigation, and historical analysis.
+
+## Acceptance Criteria
+- **Given** client data is processed  
+  **When** lineage events occur  
+  **Then** lineage history is stored persistently
+
+- **Given** lineage history exists  
+  **When** it is requested  
+  **Then** historical lineage events can be retrieved
+
+- **Given** lineage history storage fails  
+  **When** processing continues  
+  **Then** the failure is reported clearly

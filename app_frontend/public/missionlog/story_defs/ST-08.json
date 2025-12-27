@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-08",
+  "slug": "ST-08_apply_deltas",
+  "source_path": "docs/mission_destination/stories/ST-08_apply_deltas.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-08",
+    "feature": "FT-04",
+    "name": "Apply deltas",
+    "description": "Apply detected deltas.\n",
+    "acceptance_criteria": [
+      "Deltas applied"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Apply Upstream Deltas\n\n## Statement\nAs a data operations user, I want detected upstream deltas to be applied so that the platform state remains aligned with source system changes.\n\n## Description\nOnce upstream deltas have been identified, the platform must apply those changes to its internal representation of client data.  \nApplying deltas ensures that new records are added, updated records are amended, and removed records are handled appropriately.\n\nThis process keeps the platform’s client data synchronised with upstream systems without requiring full reloads.\n\n## Acceptance Criteria\n- **Given** upstream deltas have been detected  \n  **When** delta application is executed  \n  **Then** new and updated records are applied to the platform state\n\n- **Given** records are marked as removed  \n  **When** deltas are applied  \n  **Then** the platform state reflects the removal according to defined rules\n\n- **Given** no deltas are detected  \n  **When** delta application runs  \n  **Then** no changes are applied"
+}

@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-19",
+  "slug": "ST-19_search_ranking",
+  "source_path": "docs/mission_destination/stories/ST-19_search_ranking.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-19",
+    "feature": "FT-09",
+    "name": "Search ranking",
+    "description": "Ranking logic.\n",
+    "acceptance_criteria": [
+      "Correct ordering"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Search Ranking\n\n## Statement\nAs an operations user, I want search results to be ranked so that the most relevant client profiles appear first.\n\n## Description\nWhen multiple client profiles match a search query, the platform must rank results based on relevance.  \nRanking may consider factors such as match strength, attribute confidence, and data completeness.\n\nSearch ranking ensures that users can quickly identify the most likely relevant clients.\n\n## Acceptance Criteria\n- **Given** multiple search results are returned  \n  **When** ranking is applied  \n  **Then** results are ordered by relevance\n\n- **Given** ranking criteria change  \n  **When** search is performed  \n  **Then** result ordering reflects the updated criteria\n\n- **Given** ranking cannot be applied  \n  **When** search is executed  \n  **Then** results are returned without ranking and the issue is reported"
+}

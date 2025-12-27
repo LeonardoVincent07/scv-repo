@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-29",
+  "slug": "ST-29_compute_completeness",
+  "source_path": "docs/mission_destination/stories/ST-29_compute_completeness.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-29",
+    "feature": "FT-14",
+    "name": "Compute completeness",
+    "description": "Completeness.\n",
+    "acceptance_criteria": [
+      "Completeness correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Compute Completeness\n\n## Statement\nAs a compliance or operations user, I want data completeness to be computed so that I can assess whether client profiles contain sufficient information.\n\n## Description\nClient profiles may be partially populated depending on available source data.  \nThe platform must compute completeness indicators that describe how fully populated a client profile is relative to expected attributes.\n\nCompleteness indicators support data quality monitoring and informed operational decision-making.\n\n## Acceptance Criteria\n- **Given** a client profile exists  \n  **When** completeness is computed  \n  **Then** completeness indicators are calculated for the profile\n\n- **Given** underlying client data changes  \n  **When** completeness is recomputed  \n  **Then** indicators reflect the updated profile state\n\n- **Given** completeness cannot be fully determined  \n  **When** computation is attempted  \n  **Then** partial completeness is recorded with clear indicators"
+}

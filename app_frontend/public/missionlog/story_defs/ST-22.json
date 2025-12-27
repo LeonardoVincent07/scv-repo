@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-22",
+  "slug": "ST-22_expose_lineage",
+  "source_path": "docs/mission_destination/stories/ST-22_expose_lineage.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-22",
+    "feature": "FT-11",
+    "name": "Expose lineage",
+    "description": "Lineage display.\n",
+    "acceptance_criteria": [
+      "Lineage visible"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Expose Lineage\n\n## Statement\nAs a compliance or audit user, I want lineage information to be exposed so that downstream systems and users can understand how client data was derived.\n\n## Description\nThe platform must make data lineage information available through a controlled interface.  \nExposed lineage describes the origin of data, the transformations applied, and the processes involved in producing client profiles.\n\nExposing lineage enables transparency, auditability, and integration with downstream tools.\n\n## Acceptance Criteria\n- **Given** lineage information exists  \n  **When** lineage is requested  \n  **Then** the information is returned successfully\n\n- **Given** lineage is exposed  \n  **When** it is consumed  \n  **Then** it accurately reflects source systems and transformations\n\n- **Given** lineage is unavailable for a request  \n  **When** exposure is attempted  \n  **Then** this is indicated clearly"
+}

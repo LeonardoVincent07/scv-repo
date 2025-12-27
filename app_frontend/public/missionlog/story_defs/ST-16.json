@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-16",
+  "slug": "ST-16_build_index",
+  "source_path": "docs/mission_destination/stories/ST-16_build_index.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-16",
+    "feature": "FT-08",
+    "name": "Build index",
+    "description": "Build search index.\n",
+    "acceptance_criteria": [
+      "Index built"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Build Index\n\n## Statement\nAs an operations user, I want client data to be indexed so that client information can be searched and retrieved efficiently.\n\n## Description\nTo support fast and reliable search, the platform must build and maintain indexes over relevant client data.  \nIndexes are derived from ingested and assembled client information and are optimised for common search and retrieval patterns.\n\nIndexing enables responsive search and supports downstream operational use of the platform.\n\n## Acceptance Criteria\n- **Given** client data exists  \n  **When** index building is executed  \n  **Then** search indexes are created successfully\n\n- **Given** client data changes  \n  **When** indexes are rebuilt or updated  \n  **Then** indexes reflect the latest data state\n\n- **Given** indexing fails  \n  **When** index construction is attempted  \n  **Then** the failure is reported clearly"
+}

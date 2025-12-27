@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-12",
+  "slug": "ST-12_attribute_confidence",
+  "source_path": "docs/mission_destination/stories/ST-12_attribute_confidence.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-12",
+    "feature": "FT-06",
+    "name": "Attribute confidence",
+    "description": "Compute confidence.\n",
+    "acceptance_criteria": [
+      "Confidence computed"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Fuzzy Name Match\n\n## Statement\nAs a compliance operations user, I want client records to be matched using fuzzy name matching so that potential duplicates can be identified even when names are not identical.\n\n## Description\nClient names may be represented inconsistently across source systems due to spelling variations, abbreviations, or formatting differences.  \nThe platform must support fuzzy name matching to identify potential matches where exact matching is insufficient.\n\nFuzzy name matching complements deterministic matching strategies and supports improved identification of related client records.\n\n## Acceptance Criteria\n- **Given** multiple client records exist with similar names  \n  **When** fuzzy name matching is performed  \n  **Then** records with similar names are identified as potential matches\n\n- **Given** fuzzy name matches are identified  \n  **When** downstream processing occurs  \n  **Then** the records are flagged for consolidation or further review\n\n- **Given** names are dissimilar beyond acceptable thresholds  \n  **When** fuzzy matching is attempted  \n  **Then** no match is identified"
+}

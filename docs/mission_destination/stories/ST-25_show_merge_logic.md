@@ -23,3 +23,26 @@ self_healing_adherence: not_run
 analytics_adherence: not_run
 last_updated: <auto>
 ---
+# Show Merge Logic
+
+## Statement
+As a compliance or audit user, I want to understand how merge decisions were made so that client data consolidation is transparent.
+
+## Description
+When client data is merged, the platform applies rules and logic to determine which values are retained.  
+The platform must expose the merge logic applied to client attributes so that users can understand why specific values were chosen.
+
+Showing merge logic supports auditability, trust, and investigation of client profile outcomes.
+
+## Acceptance Criteria
+- **Given** client attributes have been merged  
+  **When** merge logic is requested  
+  **Then** the applied rules and outcomes are displayed clearly
+
+- **Given** merge logic is displayed  
+  **When** it is reviewed  
+  **Then** it explains why specific values were retained
+
+- **Given** merge logic cannot be determined  
+  **When** it is requested  
+  **Then** this is indicated clearly

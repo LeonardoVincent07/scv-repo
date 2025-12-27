@@ -1,0 +1,39 @@
+{
+  "story_id": "ST-20",
+  "slug": "ST-20_assemble_base_profile",
+  "source_path": "docs/mission_destination/stories/ST-20_assemble_base_profile.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-20",
+    "feature": "FT-10",
+    "name": "Assemble base profile",
+    "overall_status": "Complete",
+    "testing_status": "pass",
+    "halo_adherence": "pass",
+    "guardrail_adherence": "pass",
+    "code_quality_adherence": "pass",
+    "security_policy_adherence": "pass",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "description": "Assemble a canonical client base profile by reading existing client data\nfrom the persistent database and returning it in the shape defined by the\nInitial Logical Data Model.\n\nThis story covers read-only assembly of core client attributes only.\nNo matching, merging, enrichment, lineage computation, or quality scoring\nis performed as part of this story.\n",
+    "acceptance_criteria": [
+      "A client profile can be retrieved using an existing internal client identifier",
+      "The returned profile conforms to the ClientProfile structure defined in the Initial Logical Data Model",
+      "Core profile fields (e.g. name, email, country, identifiers, addresses) are populated from persisted data where available",
+      "The profile assembly is deterministic and repeatable for the same input",
+      "No matching, merging, enrichment, lineage, or quality logic is applied"
+    ],
+    "guardrails": {
+      "G03": {
+        "ldm_contract": "ldm://client_profile/1.0.0",
+        "artifact": "client_profile",
+        "mode": "strict"
+      }
+    },
+    "last_updated": "2025-12-21T21:26:23+00:00"
+  },
+  "body_markdown": ""
+}

@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-35",
+  "slug": "ST-35_profile_api_lineage",
+  "source_path": "docs/mission_destination/stories/ST-35_profile_api_lineage.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-35",
+    "feature": "FT-17",
+    "name": "Profile API lineage",
+    "description": "Lineage in API.\n",
+    "acceptance_criteria": [
+      "Lineage included"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Profile API (Lineage)\n\n## Statement\nAs a compliance or audit user, I want the profile API to expose lineage information so that I can understand how client profile data was derived.\n\n## Description\nIn addition to basic profile retrieval, the platform must support exposing lineage information through the profile API.  \nThis allows consumers to retrieve not only the client profile but also the associated lineage describing data origins and transformations.\n\nExposing lineage through the API supports transparency, auditability, and integration with governance tooling.\n\n## Acceptance Criteria\n- **Given** a client profile with recorded lineage exists  \n  **When** the profile API is called with lineage enabled  \n  **Then** the profile and associated lineage are returned\n\n- **Given** lineage information is requested  \n  **When** it is retrieved  \n  **Then** it accurately reflects data sources and processing steps\n\n- **Given** lineage is unavailable  \n  **When** the API is called  \n  **Then** this is indicated clearly in the response"
+}

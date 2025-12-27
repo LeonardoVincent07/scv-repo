@@ -1,0 +1,26 @@
+{
+  "story_id": "ST-00-FRONTEND-UI-SHELL",
+  "slug": "ST-00-frontend-ui-shell",
+  "source_path": "docs/mission_destination/stories/ST-00-frontend-ui-shell.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-00-FRONTEND-UI-SHELL",
+    "slug": "st-00-frontend-ui-shell",
+    "name": "Provide Frontend UI Shell Availability",
+    "epic": "E00-UI",
+    "feature": "FT-00-UI",
+    "testing_status": "pass",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "fail",
+    "security_policy_adherence": "not_run",
+    "overall_status": "In Progress",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-21T16:51:47+00:00"
+  },
+  "body_markdown": "# Provide Frontend UI Shell\n\n## Statement\nAs a platform owner, I want a frontend UI shell to be available so that delivered business functionality can be surfaced consistently and credibly as the platform evolves.\n\n## Description\nThis story establishes the foundational frontend capability required to present platform functionality to users in a coherent and extensible way. It confirms that the frontend is not merely a static page, but a properly structured application capable of supporting complex, data-driven user journeys.\n\nThe frontend UI shell has been implemented using a modern component-based framework, with:\n- a running application build and dev workflow\n- a consistent layout and visual structure\n- routing and navigation foundations\n- reusable UI components and styling conventions\n\nThe UI shell provides defined integration points for backend services and has been wired to consume real data where appropriate, rather than relying on mock or placeholder responses. This ensures that the frontend is validated against real backend behaviour from the outset.\n\nCore concerns such as:\n- application startup\n- dependency loading\n- error handling\n- environment configuration\n- visual consistency\n\nhave been exercised and proven.\n\nThis story also establishes the structural container into which future stories will be rendered, including MissionLog, evidence panels, lineage views, and client profile screens. As such, it acts as the visual and interaction baseline for all subsequent frontend work.\n\nAll subsequent frontend stories assume the existence of this shell.\n\n## Acceptance Criteria\n- **Given** the frontend application is started  \n  **When** a user accesses the application  \n  **Then** the UI shell loads successfully without errors\n\n- **Given** the UI shell is loaded  \n  **When** navigation and layout elements are displayed  \n  **Then** they provide a consistent structure for future feature integration\n\n- **Given** the frontend build or configuration is invalid  \n  **When** the application is started  \n  **Then** errors are surfaced clearly and prevent ambiguous failure\n\n- **Given** the frontend is connected to backend services  \n  **When** real data is requested  \n  **Then** responses are handled and rendered correctly"
+}

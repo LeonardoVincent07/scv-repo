@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-15",
+  "slug": "ST-15_record_lineage",
+  "source_path": "docs/mission_destination/stories/ST-15_record_lineage.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-15",
+    "feature": "FT-07",
+    "name": "Record lineage",
+    "description": "Lineage for merges.\n",
+    "acceptance_criteria": [
+      "Lineage stored"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Record Lineage\n\n## Statement\nAs a compliance or audit user, I want lineage to be recorded so that the origin and transformation of client data can be traced over time.\n\n## Description\nAs client data is ingested, matched, merged, and assembled, the platform must record lineage information describing how the data was produced.  \nRecorded lineage provides the foundation for auditability, transparency, and trust in client profiles.\n\nLineage records must be associated with the relevant data and processing events.\n\n## Acceptance Criteria\n- **Given** client data is processed  \n  **When** processing occurs  \n  **Then** lineage information is recorded for the relevant events\n\n- **Given** lineage has been recorded  \n  **When** it is queried  \n  **Then** it accurately reflects data origins and transformations\n\n- **Given** lineage recording fails  \n  **When** processing continues  \n  **Then** the failure is reported clearly"
+}

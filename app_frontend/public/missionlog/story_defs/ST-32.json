@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-32",
+  "slug": "ST-32_search_api_basic",
+  "source_path": "docs/mission_destination/stories/ST-32_search_api_basic.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-32",
+    "feature": "FT-16",
+    "name": "Search API basic",
+    "description": "Search endpoint.\n",
+    "acceptance_criteria": [
+      "JSON response"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Search API (Basic)\n\n## Statement\nAs an application or operations user, I want a basic search API so that client profiles can be retrieved programmatically.\n\n## Description\nThe platform must expose a basic search API that allows clients to be searched using common criteria.  \nThe API provides programmatic access to search capabilities and supports integration with downstream applications and user interfaces.\n\nThe basic search API focuses on core search functionality without advanced ranking or tuning.\n\n## Acceptance Criteria\n- **Given** client profiles exist  \n  **When** the basic search API is called with valid criteria  \n  **Then** matching client profiles are returned\n\n- **Given** no profiles match the criteria  \n  **When** the API is called  \n  **Then** an empty result set is returned\n\n- **Given** invalid search parameters are provided  \n  **When** the API is called  \n  **Then** a clear error response is returned"
+}

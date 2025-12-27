@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-09",
+  "slug": "ST-09_match_by_tax_id",
+  "source_path": "docs/mission_destination/stories/ST-09_match_by_tax_id.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-09",
+    "feature": "FT-05",
+    "name": "Match by tax ID",
+    "description": "Exact match by tax ID.\n",
+    "acceptance_criteria": [
+      "Matches correct"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Match Clients by Tax Identifier\n\n## Statement\nAs a compliance operations user, I want clients to be matched by tax identifier so that duplicate or related client records can be identified accurately.\n\n## Description\nClients may appear in multiple source systems with different representations.  \nThe platform must support matching client records using tax identifiers as a strong matching attribute.\n\nSuccessful matching enables consolidation of records that refer to the same real-world entity and reduces duplication in client profiles.\n\n## Acceptance Criteria\n- **Given** multiple client records exist  \n  **When** matching by tax identifier is performed  \n  **Then** records with the same tax identifier are identified as potential matches\n\n- **Given** a tax identifier match is identified  \n  **When** client profiles are assembled  \n  **Then** matched records are treated as referring to the same client\n\n- **Given** a tax identifier is missing or invalid  \n  **When** matching is attempted  \n  **Then** the limitation is reported clearly"
+}

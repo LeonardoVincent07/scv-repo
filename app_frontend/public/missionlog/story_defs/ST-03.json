@@ -1,0 +1,29 @@
+{
+  "story_id": "ST-03",
+  "slug": "ST-03_map_identity_fields",
+  "source_path": "docs/mission_destination/stories/ST-03_map_identity_fields.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-03",
+    "feature": "FT-02",
+    "name": "Map identity fields",
+    "description": "Map core identity fields.\n",
+    "acceptance_criteria": [
+      "Fields mapped",
+      "Types correct"
+    ],
+    "overall_status": "In Progress",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "fail",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "2025-12-21T16:19:34+00:00"
+  },
+  "body_markdown": "# Map Identity Fields\n\n## Statement\nAs a data operations user, I want to map identity fields so that equivalent client attributes from different source systems can be normalised and compared consistently.\n\n## Description\nClient identity data may be provided by multiple source systems using different field names and structures.  \nThe platform must support mapping source-specific identity fields to a canonical representation so that identity information can be processed consistently across the platform.\n\nMapped identity fields form the basis for downstream matching, profile assembly, and lineage reporting.\n\n## Acceptance Criteria\n- **Given** identity fields exist in a source system  \n  **When** identity field mappings are defined  \n  **Then** the fields are mapped to the platform’s canonical identity model\n\n- **Given** identity mappings are defined  \n  **When** client data is ingested  \n  **Then** identity values are normalised according to the mappings\n\n- **Given** a required identity field is unmapped  \n  **When** identity processing is attempted  \n  **Then** the issue is reported clearly"
+}

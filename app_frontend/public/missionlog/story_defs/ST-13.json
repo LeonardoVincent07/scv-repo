@@ -1,0 +1,28 @@
+{
+  "story_id": "ST-13",
+  "slug": "ST-13_merge_identity",
+  "source_path": "docs/mission_destination/stories/ST-13_merge_identity.md",
+  "exported_at_utc": "2025-12-27T20:51:45Z",
+  "front_matter": {
+    "story_id": "ST-13",
+    "feature": "FT-07",
+    "name": "Merge identity",
+    "description": "Merge identity attributes.\n",
+    "acceptance_criteria": [
+      "Conflicts resolved"
+    ],
+    "overall_status": "Planned",
+    "testing_status": "not_run",
+    "halo_adherence": "not_run",
+    "guardrail_adherence": "not_run",
+    "code_quality_adherence": "not_run",
+    "security_policy_adherence": "not_run",
+    "policy_adherence": "not_run",
+    "technology_lineage_adherence": "not_run",
+    "business_data_lineage_adherence": "not_run",
+    "self_healing_adherence": "not_run",
+    "analytics_adherence": "not_run",
+    "last_updated": "<auto>"
+  },
+  "body_markdown": "# Merge Identity\n\n## Statement\nAs a compliance operations user, I want identity information to be merged so that client profiles reflect a single, coherent representation of the client.\n\n## Description\nWhen client records are identified as referring to the same real-world entity, identity attributes from those records must be merged.  \nThe platform must combine identity information in a controlled manner, resolving conflicts according to defined rules.\n\nMerging identity information enables accurate and consistent client profiles.\n\n## Acceptance Criteria\n- **Given** client records are identified as matches  \n  **When** identity merge is performed  \n  **Then** identity attributes are combined into a single representation\n\n- **Given** conflicting identity attributes exist  \n  **When** a merge occurs  \n  **Then** conflicts are resolved according to defined rules\n\n- **Given** identity merge cannot be completed  \n  **When** the process runs  \n  **Then** the issue is reported clearly"
+}
