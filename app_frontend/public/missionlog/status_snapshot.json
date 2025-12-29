@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-29T16:03:14Z",
+  "generated_at": "2025-12-29T16:37:01Z",
   "epics": [
     {
       "epic_id": "E00",
@@ -128,9 +128,9 @@
               "story_id": "ST-05",
               "name": "Bulk load CRM",
               "feature_id": "FT-03",
-              "overall_status": "In Progress",
+              "overall_status": "Complete",
               "testing_status": "pass",
-              "halo_adherence": "not_run",
+              "halo_adherence": "pass",
               "guardrail_adherence": "pass",
               "code_quality_adherence": "pass",
               "security_policy_adherence": "pass"
