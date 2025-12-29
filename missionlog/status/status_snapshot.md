@@ -49,7 +49,7 @@
 | ST-02 | FT-01 | Register KYC source | Planned |
 | ST-03 | FT-02 | Map identity fields | In Progress |
 | ST-04 | FT-02 | Map identifiers | In Progress |
-| ST-05 | FT-03 | Bulk load CRM | Complete |
+| ST-05 | FT-03 | Bulk load CRM | In Progress |
 | ST-06 | FT-03 | Bulk load KYC | Planned |
 | ST-07 | FT-04 | Detect upstream deltas | Planned |
 | ST-08 | FT-04 | Apply deltas | Planned |

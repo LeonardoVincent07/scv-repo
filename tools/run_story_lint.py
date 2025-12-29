@@ -64,7 +64,7 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
         / "stories"
         / "ST-05_bulk_load_crm.md",
         "lint_targets": [
-            "backend_v2\app\services\crm_bulk_load_service.py",
+            r"backend_v2\app\services\crm_bulk_load_service.py",
         ],
     },
     "ST-09": {

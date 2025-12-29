@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-22T19:27:02Z",
+  "generated_at": "2025-12-29T16:03:14Z",
   "epics": [
     {
       "epic_id": "E00",
@@ -45,9 +45,9 @@
               "overall_status": "In Progress",
               "testing_status": "pass",
               "halo_adherence": "not_run",
-              "guardrail_adherence": "not_run",
+              "guardrail_adherence": "pass",
               "code_quality_adherence": "fail",
-              "security_policy_adherence": "not_run"
+              "security_policy_adherence": "pass"
             }
           ]
         }
@@ -101,7 +101,7 @@
               "overall_status": "In Progress",
               "testing_status": "not_run",
               "halo_adherence": "not_run",
-              "guardrail_adherence": "fail",
+              "guardrail_adherence": "pass",
               "code_quality_adherence": "not_run",
               "security_policy_adherence": "not_run"
             },
@@ -112,7 +112,7 @@
               "overall_status": "In Progress",
               "testing_status": "not_run",
               "halo_adherence": "not_run",
-              "guardrail_adherence": "fail",
+              "guardrail_adherence": "pass",
               "code_quality_adherence": "not_run",
               "security_policy_adherence": "not_run"
             }
@@ -128,9 +128,9 @@
               "story_id": "ST-05",
               "name": "Bulk load CRM",
               "feature_id": "FT-03",
-              "overall_status": "Complete",
+              "overall_status": "In Progress",
               "testing_status": "pass",
-              "halo_adherence": "pass",
+              "halo_adherence": "not_run",
               "guardrail_adherence": "pass",
               "code_quality_adherence": "pass",
               "security_policy_adherence": "pass"

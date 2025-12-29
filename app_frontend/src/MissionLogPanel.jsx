@@ -109,6 +109,69 @@ function EvidenceModal({ open, onClose, title, subtitle, loading, error, data })
   );
 }
 
+// Confirm execution modal
+function ConfirmExecutionModal({ open, onCancel, onConfirm }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onCancel}
+        role="button"
+        tabIndex={0}
+      />
+
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl bg-white rounded-halo shadow-lg border border-gray-200">
+          <div className="flex items-start justify-between p-4 border-b border-gray-200">
+            <div>
+              <h3
+                style={{ fontFamily: "Fjalla One" }}
+                className="text-lg text-gray-900 tracking-wide"
+              >
+                Confirm Story Execution
+              </h3>
+            </div>
+
+            <button
+              type="button"
+              onClick={onCancel}
+              className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-body hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="p-4">
+            <p className="text-sm font-body text-gray-800">
+              M7 Mission Control will now code and test this story, and ensure that it meets all
+              defined principles, guidelines and guardrails before deployment. Please confirm.
+            </p>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="inline-flex items-center justify-center px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-body hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={onConfirm}
+                className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-[#1A9988] text-white text-sm font-body font-medium shadow-sm transition-all duration-150 hover:bg-[#178c7d]"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Story definition modal (now loads exported JSON and renders markdown)
 function StoryDefinitionModal({ open, onClose, storyId, storyName }) {
   const [loading, setLoading] = useState(false);
@@ -272,38 +335,108 @@ export default function MissionLogPanel({ setActiveView }) {
     storyName: "",
   });
 
+  // Demo execution state (local-first MissionControl loop)
+  const [demo, setDemo] = useState({
+    mode: "idle", // idle | confirming | running | completed | failed
+    storyId: "",
+    storyName: "",
+    runId: "",
+    message: "",
+  });
+
   // Filters (multi-select)
   const [selectedEpics, setSelectedEpics] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [selectedStories, setSelectedStories] = useState([]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const reloadSnapshot = async () => {
+    try {
+      const res = await fetch(`/missionlog/status_snapshot.json?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setData(json);
+      setError("");
+    } catch (err) {
+      console.error("Failed to load MissionLog status snapshot", err);
+      setError("Could not load latest status snapshot.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    async function load() {
+  useEffect(() => {
+    reloadSnapshot();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Poll MissionControl runner and refresh snapshot while a run is active
+  useEffect(() => {
+    if (demo.mode !== "running" || !demo.runId) return;
+
+    let stopped = false;
+
+    const interval = setInterval(async () => {
+      if (stopped) return;
+
       try {
-        const res = await fetch("/missionlog/status_snapshot.json", {
+        const res = await fetch(`http://127.0.0.1:8000/missioncontrol/runs/${demo.runId}`, {
           cache: "no-store",
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        if (!cancelled) {
-          setData(json);
-          setError("");
+        const run = await res.json();
+
+        setDemo((d) => ({
+          ...d,
+          message: run.message || d.message,
+          mode:
+            run.state === "completed"
+              ? "completed"
+              : run.state === "failed"
+              ? "failed"
+              : "running",
+        }));
+
+        await reloadSnapshot();
+
+        if (run.state === "completed" || run.state === "failed") {
+          clearInterval(interval);
         }
       } catch (err) {
-        console.error("Failed to load MissionLog status snapshot", err);
-        if (!cancelled) setError("Could not load latest status snapshot.");
-      } finally {
-        if (!cancelled) setLoading(false);
+        console.error("MissionControl polling error", err);
       }
-    }
+    }, 700);
 
-    load();
     return () => {
-      cancelled = true;
+      stopped = true;
+      clearInterval(interval);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demo.mode, demo.runId]);
+
+  const startRun = async (storyId, storyName) => {
+    setDemo({
+      mode: "running",
+      storyId,
+      storyName: storyName || "",
+      runId: "",
+      message: "Starting execution…",
+    });
+
+    const res = await fetch("http://127.0.0.1:8000/missioncontrol/runs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ story_id: storyId }),
+    });
+
+    const json = await res.json();
+
+    setDemo((d) => ({
+      ...d,
+      runId: json.run_id || "",
+    }));
+  };
 
   const epics = data?.epics || [];
 
@@ -562,6 +695,22 @@ export default function MissionLogPanel({ setActiveView }) {
         </button>
       </div>
 
+      {demo.mode === "running" && (
+        <div className="mb-4 p-3 bg-halo-primary/10 rounded-md border border-halo-primary text-sm font-body text-gray-900">
+          <strong>M7 Mission Control:</strong> {demo.message || "Running…"}
+        </div>
+      )}
+      {demo.mode === "completed" && (
+        <div className="mb-4 p-3 bg-green-50 rounded-md border border-green-200 text-sm font-body text-gray-900">
+          <strong>M7 Mission Control:</strong> Completed.
+        </div>
+      )}
+      {demo.mode === "failed" && (
+        <div className="mb-4 p-3 bg-yellow-50 rounded-md border border-yellow-200 text-sm font-body text-gray-900">
+          <strong>M7 Mission Control:</strong> Failed. Check backend logs.
+        </div>
+      )}
+
       <div className="mb-4 p-3 bg-gray-50 rounded-md text-sm font-body text-gray-800">
         <strong>Status Key:</strong>
         <div className="flex flex-wrap gap-3 mt-2">
@@ -719,7 +868,37 @@ export default function MissionLogPanel({ setActiveView }) {
                               <span className="font-semibold">{story.story_id}</span> · {story.name}
                             </button>
 
-                            <div className="flex justify-end">
+                            {/* ONLY CHANGE: button moved left of chip, widened, and ST-05 green */}
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                disabled={story.story_id !== "ST-05" || demo.mode === "running"}
+                                onClick={() =>
+                                  setDemo({
+                                    mode: "confirming",
+                                    storyId: story.story_id,
+                                    storyName: story.name || "",
+                                    runId: "",
+                                    message: "",
+                                  })
+                                }
+                                className={[
+                                  "inline-flex items-center justify-center",
+                                  "px-4 py-2 rounded-md",
+                                  "text-xs font-body font-medium",
+                                  "whitespace-nowrap",
+                                  "min-w-[170px]",
+                                  story.story_id === "ST-05"
+                                    ? "bg-[#1A9988] text-white hover:bg-[#178c7d]"
+                                    : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                                  demo.mode === "running"
+                                    ? "opacity-60 cursor-not-allowed"
+                                    : "",
+                                ].join(" ")}
+                              >
+                                Ready to Implement
+                              </button>
+
                               <StatusChip
                                 label={normaliseStatus(story.overall_status)}
                                 status={story.overall_status}
@@ -757,6 +936,14 @@ export default function MissionLogPanel({ setActiveView }) {
         </div>
       )}
 
+      <ConfirmExecutionModal
+        open={demo.mode === "confirming"}
+        onCancel={() =>
+          setDemo({ mode: "idle", storyId: "", storyName: "", runId: "", message: "" })
+        }
+        onConfirm={() => startRun(demo.storyId, demo.storyName)}
+      />
+
       <EvidenceModal
         open={evidenceOpen}
         onClose={closeEvidence}
@@ -776,6 +963,8 @@ export default function MissionLogPanel({ setActiveView }) {
     </section>
   );
 }
+
+
 
 
 
