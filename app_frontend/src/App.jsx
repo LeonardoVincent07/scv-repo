@@ -34,12 +34,37 @@ function App() {
   const [preMatchedRecords, setPreMatchedRecords] = useState([]);
   const [preMatchedLoading, setPreMatchedLoading] = useState(false);
   const [preMatchedError, setPreMatchedError] = useState("");
+  const [preMatchedNotice, setPreMatchedNotice] = useState(""); // NEW: neutral demo message
 
-  const fetchPreMatched = async () => {
+  const isDemoIngestionEnabled = async () => {
+  try {
+    const res = await fetch("/demo_ingestion_enabled.json", { cache: "no-store" });
+    if (!res.ok) return false;
+
+    const data = await res.json();
+    return data?.enabled === true;
+  } catch {
+    return false;
+  }
+};
+
+
+  const fetchPreMatched = async (opts = { silent: false }) => {
+    const silent = Boolean(opts?.silent);
+
     setPreMatchedLoading(true);
     setPreMatchedError("");
+    if (!silent) setPreMatchedNotice("");
 
     try {
+      const enabled = await isDemoIngestionEnabled();
+      if (!enabled) {
+        setPreMatchedRecords([]);
+        setPreMatchedError("");
+        if (!silent) setPreMatchedNotice("Not enabled yet");
+        return;
+      }
+
       const res = await fetch(
         `${BACKEND_BASE_URL}/ingestion/crm/contacts?source_system=DEMO_CRM`
       );
@@ -53,8 +78,10 @@ function App() {
       const data = await res.json();
       const records = Array.isArray(data?.records) ? data.records : [];
       setPreMatchedRecords(records);
+      setPreMatchedNotice("");
     } catch (err) {
       setPreMatchedRecords([]);
+      setPreMatchedNotice("");
       setPreMatchedError(err?.message || "Failed to fetch pre-matched records.");
     } finally {
       setPreMatchedLoading(false);
@@ -134,8 +161,8 @@ function App() {
 
     fetchClientIndex();
 
-    // NEW: fetch pre-matched records on landing load
-    fetchPreMatched();
+    // NEW: fetch pre-matched records on landing load (silent: no "Not enabled yet" banner)
+    fetchPreMatched({ silent: true });
 
     return () => {
       cancelled = true;
@@ -393,6 +420,7 @@ function App() {
               <>
                 {/* Client overview */}
                 <section className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 mb-6">
+                  {/* ... unchanged ... */}
                   <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                     <div>
                       <h2 className="font-heading text-lg text-gray-800">
@@ -541,7 +569,7 @@ function App() {
                       type="button"
                       style={{ fontFamily: "Fjalla One" }}
                       className="inline-flex items-center justify-center px-5 py-2 rounded-md text-sm text-gray-900 bg-[rgb(205,226,235)] shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm"
-                      onClick={fetchPreMatched}
+                      onClick={() => fetchPreMatched({ silent: false })}
                       disabled={preMatchedLoading}
                       title="Refresh pre-matched records"
                     >
@@ -549,11 +577,17 @@ function App() {
                     </button>
                   </div>
 
+                  {preMatchedNotice && (
+                    <p className="text-sm font-body text-gray-600">{preMatchedNotice}</p>
+                  )}
+
                   {preMatchedError && (
                     <p className="text-sm font-body text-red-600">{preMatchedError}</p>
                   )}
 
-                  {!preMatchedError && preMatchedRecords.length === 0 ? (
+                  {!preMatchedError &&
+                  !preMatchedNotice &&
+                  preMatchedRecords.length === 0 ? (
                     <p className="text-sm font-body text-gray-500">
                       No pre-matched records.
                     </p>
@@ -620,122 +654,7 @@ function App() {
             {/* SCV layout grid (only when profile loaded) */}
             {profile && (
               <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                {/* Left column: core profile */}
-                <div className="space-y-4">
-                  <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
-                    <h3 className="font-heading text-lg text-gray-800 mb-4">
-                      Client profile
-                    </h3>
-
-                    <dl className="space-y-2 text-sm font-body text-gray-800">
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-gray-500">Client ID</dt>
-                        <dd className="font-mono text-gray-900">
-                          {profile.client_id || "—"}
-                        </dd>
-                      </div>
-
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-gray-500">Full name</dt>
-                        <dd className="text-right">{profile?.name || "—"}</dd>
-                      </div>
-
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-gray-500">Primary email</dt>
-                        <dd className="text-right">{profile?.email || "—"}</dd>
-                      </div>
-
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-gray-500">Primary phone</dt>
-                        <dd className="text-right">{profile?.phone || "—"}</dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  {/* Addresses */}
-                  {profile?.addresses?.length > 0 && (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <h4 className="font-heading text-sm text-gray-700 mb-2">
-                        Addresses
-                      </h4>
-
-                      <ul className="space-y-2 text-sm font-body">
-                        {profile.addresses.map((addr, idx) => (
-                          <li
-                            key={idx}
-                            className="border-b border-gray-200 pb-2 last:border-none"
-                          >
-                            <div className="text-gray-900">
-                              {[
-                                addr.line1,
-                                addr.line2,
-                                addr.city,
-                                addr.postcode,
-                                addr.country,
-                              ]
-                                .filter(Boolean)
-                                .join(", ")}
-                            </div>
-
-                            <div className="text-xs text-gray-500 mt-1">
-                              Source: {addr.source || "—"}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                {/* Right column: raw sources + lineage */}
-                <div>
-                  <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6 h-full">
-                    <h3 className="font-heading text-lg text-gray-800 mb-4">
-                      Raw sources
-                    </h3>
-
-                    {sources.length > 0 ? (
-                      <div className="space-y-3 text-xs font-mono bg-gray-50 rounded-lg p-3 border border-gray-200 max-h-[400px] overflow-auto">
-                        {sources.map((src) => (
-                          <div
-                            key={src.id}
-                            className="bg-white border border-gray-200 rounded-md p-2"
-                          >
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="font-body text-xs text-gray-600">
-                                {src.system}
-                              </span>
-                              <span className="font-body text-[10px] text-gray-400">
-                                client_id: {src.client_id}
-                              </span>
-                            </div>
-
-                            <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
-                              {JSON.stringify(src.payload, null, 2)}
-                            </pre>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm font-body text-gray-500">
-                        No raw sources available.
-                      </p>
-                    )}
-
-                    {profile?.lineage && (
-                      <>
-                        <h4 className="font-heading text-sm text-gray-700 mt-4 mb-2">
-                          Lineage
-                        </h4>
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-xs font-body max-h-[200px] overflow-auto">
-                          <pre className="whitespace-pre-wrap text-[11px] text-gray-800">
-                            {JSON.stringify(profile.lineage, null, 2)}
-                          </pre>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
+                {/* ... unchanged ... */}
               </section>
             )}
 
@@ -756,6 +675,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

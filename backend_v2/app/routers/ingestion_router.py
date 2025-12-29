@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -20,7 +21,36 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 
 
 def _demo_enabled() -> bool:
-    return os.getenv("SCV_DEMO_INGESTION_ENABLED", "false").lower() == "true"
+    """
+    Demo ingestion is enabled if either:
+      1) SCV_DEMO_INGESTION_ENABLED=true (explicit env flag), OR
+      2) app_frontend/public/missionlog/demo_capabilities.json contains:
+            { "demo_ingestion_enabled": true }
+
+    This supports the demo flow where MissionControl can "unlock" ingestion
+    by writing the capability file.
+    """
+    # 1) Backwards-compatible env toggle
+    if os.getenv("SCV_DEMO_INGESTION_ENABLED", "false").lower() == "true":
+        return True
+
+    # 2) Capability file toggle (MissionControl can flip this during the demo)
+    cap_path = (
+        BASE_DIR.parents[1]
+        / "app_frontend"
+        / "public"
+        / "missionlog"
+        / "demo_capabilities.json"
+    )
+    try:
+        if cap_path.exists():
+            data = json.loads(cap_path.read_text(encoding="utf-8") or "{}")
+            return bool(data.get("demo_ingestion_enabled") is True)
+    except Exception:
+        # Fail closed: if file is malformed/unreadable, keep ingestion disabled
+        return False
+
+    return False
 
 
 @router.post("/crm/bulk")
@@ -156,6 +186,7 @@ def delete_crm_contacts(
         "deleted": int(res.rowcount or 0),
         "scope": {"source_system": source_system},
     }
+
 
 
 
