@@ -1,5 +1,5 @@
 {
-  "story_id": "ST-04",
+  "story_id": "ST-05",
   "passed": true,
   "message": "No applicable guardrails for this Story (G03 not declared).",
   "guardrails_checked": [

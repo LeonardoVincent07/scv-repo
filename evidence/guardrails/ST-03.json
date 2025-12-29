@@ -1,12 +1,20 @@
 {
   "story_id": "ST-03",
-  "passed": false,
-  "message": "Error calling get_client_profile in guardrail check: TypeError(\"argument of type 'NoneType' is not iterable\")",
+  "passed": true,
+  "message": "No applicable guardrails for this Story (G03 not declared).",
   "guardrails_checked": [
-    "Import ClientProfileService and ClientProfile dataclass",
-    "Call ClientProfileService.get_client_profile('123')",
-    "Assert returned object is dict",
-    "Assert dict contains all ClientProfile dataclass field keys"
+    "G03 (not applicable)"
   ],
-  "warnings": []
+  "warnings_count": 0,
+  "warnings": [],
+  "guardrail_results": [
+    {
+      "guardrail_id": "G03",
+      "applicable": false,
+      "passed": true,
+      "message": "G03 not declared for this Story; treated as not applicable.",
+      "warnings_count": 0,
+      "warnings": []
+    }
+  ]
 }

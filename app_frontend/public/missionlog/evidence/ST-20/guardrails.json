@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "story_id": "ST-20",
+    "dimension": "guardrails",
+    "published_at_utc": "2025-12-27T23:23:16Z",
+    "source_path": "evidence/guardrails/ST-20.json"
+  },
+  "payload": {
+    "story_id": "ST-20",
+    "passed": true,
+    "message": "LDM validation passed",
+    "guardrails_checked": [
+      "G03 (LDM adherence)"
+    ],
+    "warnings_count": 0,
+    "warnings": [],
+    "guardrail_results": [
+      {
+        "guardrail_id": "G03",
+        "applicable": true,
+        "passed": true,
+        "message": "LDM validation passed",
+        "contract_id": "ldm://client_profile/1.0.0",
+        "artifact_path": "evidence/runtime_outputs/ST-20/client_profile.json",
+        "errors": [],
+        "warnings_count": 0,
+        "warnings": []
+      }
+    ]
+  }
+}

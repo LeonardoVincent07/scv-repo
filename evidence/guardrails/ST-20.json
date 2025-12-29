@@ -1,10 +1,23 @@
 {
-  "guardrail_id": "G03",
+  "story_id": "ST-20",
   "passed": true,
   "message": "LDM validation passed",
-  "contract_id": "ldm://client_profile/1.0.0",
-  "artifact_path": "evidence/runtime_outputs/ST-20/client_profile.json",
-  "errors": [],
+  "guardrails_checked": [
+    "G03 (LDM adherence)"
+  ],
   "warnings_count": 0,
-  "warnings": []
+  "warnings": [],
+  "guardrail_results": [
+    {
+      "guardrail_id": "G03",
+      "applicable": true,
+      "passed": true,
+      "message": "LDM validation passed",
+      "contract_id": "ldm://client_profile/1.0.0",
+      "artifact_path": "evidence/runtime_outputs/ST-20/client_profile.json",
+      "errors": [],
+      "warnings_count": 0,
+      "warnings": []
+    }
+  ]
 }

@@ -8,7 +8,7 @@ feature: FT-00-UI
 # MissionSmith Status Fields (used by CI + tools/*.py)
 testing_status: pass
 halo_adherence: not_run
-guardrail_adherence: not_run
+guardrail_adherence: pass
 code_quality_adherence: fail
 security_policy_adherence: pass
 overall_status: In Progress

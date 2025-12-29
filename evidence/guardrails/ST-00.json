@@ -1,26 +1,20 @@
 {
   "story_id": "ST-00",
   "passed": true,
-  "message": "/health returns 200 with JSON {'status': 'ok'}.",
+  "message": "No applicable guardrails for this Story (G03 not declared).",
   "guardrails_checked": [
-    "Import FastAPI app from app_backend.main",
-    "GET /health via TestClient",
-    "Assert HTTP 200",
-    "Assert JSON body contains {'status': 'ok'}"
+    "G03 (not applicable)"
   ],
-  "warnings_count": 2,
-  "warnings": [
+  "warnings_count": 0,
+  "warnings": [],
+  "guardrail_results": [
     {
-      "category": "PydanticDeprecatedSince20",
-      "message": "Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/",
-      "filename": "C:\\Dev\\scv-repo\\app_backend\\schemas.py",
-      "lineno": 11
-    },
-    {
-      "category": "UserWarning",
-      "message": "Valid config keys have changed in V2:\n* 'orm_mode' has been renamed to 'from_attributes'",
-      "filename": "C:\\Dev\\scv-repo\\app_backend\\venv\\Lib\\site-packages\\pydantic\\_internal\\_config.py",
-      "lineno": 383
+      "guardrail_id": "G03",
+      "applicable": false,
+      "passed": true,
+      "message": "G03 not declared for this Story; treated as not applicable.",
+      "warnings_count": 0,
+      "warnings": []
     }
   ]
 }

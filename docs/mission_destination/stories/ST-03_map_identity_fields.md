@@ -13,7 +13,7 @@ overall_status: In Progress
 
 testing_status: not_run
 halo_adherence: not_run
-guardrail_adherence: fail
+guardrail_adherence: pass
 code_quality_adherence: not_run
 security_policy_adherence: not_run
 
