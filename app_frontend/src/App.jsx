@@ -615,17 +615,15 @@ function App() {
                                 Email
                               </th>
                               <th className="text-left px-4 py-3 font-medium">
-                                Created
+                                Ingested
                               </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
                             {preMatchedRecords.map((r) => {
                               const name = `${r.first_name || ""} ${r.last_name || ""}`.trim();
-                              const created =
-                                r.created_at
-                                  ? String(r.created_at).replace("T", " ").slice(0, 19)
-                                  : "—";
+                              const ingested = new Date().toISOString().slice(0, 10);
+
 
                               return (
                                 <tr key={r.id} className="bg-white">
@@ -642,7 +640,7 @@ function App() {
                                     {r.email || "—"}
                                   </td>
                                   <td className="px-4 py-3 text-gray-900">
-                                    {created}
+                                    {ingested}
                                   </td>
                                 </tr>
                               );
