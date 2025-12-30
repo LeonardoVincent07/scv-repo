@@ -37,17 +37,16 @@ function App() {
   const [preMatchedNotice, setPreMatchedNotice] = useState(""); // NEW: neutral demo message
 
   const isDemoIngestionEnabled = async () => {
-  try {
-    const res = await fetch("/demo_ingestion_enabled.json", { cache: "no-store" });
-    if (!res.ok) return false;
+    try {
+      const res = await fetch("/demo_ingestion_enabled.json", { cache: "no-store" });
+      if (!res.ok) return false;
 
-    const data = await res.json();
-    return data?.enabled === true;
-  } catch {
-    return false;
-  }
-};
-
+      const data = await res.json();
+      return data?.enabled === true;
+    } catch {
+      return false;
+    }
+  };
 
   const fetchPreMatched = async (opts = { silent: false }) => {
     const silent = Boolean(opts?.silent);
@@ -240,6 +239,12 @@ function App() {
       console.log("Profile Response:", profileJson);
 
       setProfile(profileJson);
+
+      // ✅ CHANGE 1: scroll to the profile section after loading
+      setTimeout(() => {
+        const el = document.getElementById("scv-profile");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
 
       const sourcesRes = await fetch(
         `${BACKEND_BASE_URL}/clients/${encodedId}/sources`
@@ -653,8 +658,193 @@ function App() {
 
             {/* SCV layout grid (only when profile loaded) */}
             {profile && (
-              <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                {/* ... unchanged ... */}
+              <section
+                id="scv-profile"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4"
+              >
+                {/* 1. Client Summary */}
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
+                  <h3 className="font-heading text-base text-gray-800 mb-4">
+                    Client summary
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Client ID</div>
+                      <div className="text-sm font-mono text-gray-900">
+                        {profile?.client_id ?? "—"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Name</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.name ?? "—"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Email</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.email ?? "—"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Country</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.country ?? "—"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Risk rating</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.risk_rating ?? "—"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Status</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.operational_state?.status ?? "—"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Accounts */}
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
+                  <h3 className="font-heading text-base text-gray-800 mb-4">
+                    Accounts
+                  </h3>
+
+                  {Array.isArray(profile?.accounts) && profile.accounts.length > 0 ? (
+                    <div className="overflow-auto border border-gray-200 rounded-md">
+                      <table className="min-w-full text-sm font-body">
+                        <thead className="bg-gray-50 text-gray-700">
+                          <tr>
+                            <th className="text-left px-4 py-3 font-medium">Account #</th>
+                            <th className="text-left px-4 py-3 font-medium">Type</th>
+                            <th className="text-left px-4 py-3 font-medium">CCY</th>
+                            <th className="text-left px-4 py-3 font-medium">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 bg-white">
+                          {profile.accounts.map((a, idx) => (
+                            <tr key={a.id ?? a.account_number ?? idx}>
+                              <td className="px-4 py-3 font-mono text-gray-900">
+                                {a.account_number ?? "—"}
+                              </td>
+                              <td className="px-4 py-3 text-gray-900">
+                                {a.account_type ?? "—"}
+                              </td>
+                              <td className="px-4 py-3 text-gray-900">
+                                {a.currency ?? "—"}
+                              </td>
+                              <td className="px-4 py-3 text-gray-900">
+                                {a.status ?? "—"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-body text-gray-500">No accounts available.</p>
+                  )}
+                </div>
+
+                {/* 3. Client Information */}
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
+                  <h3 className="font-heading text-base text-gray-800 mb-4">
+                    Client information
+                  </h3>
+
+                  <dl className="space-y-2 text-sm font-body text-gray-800">
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Client ID</dt>
+                      <dd className="text-gray-900 font-mono text-xs text-right">
+                        {profile?.client_id ?? "—"}
+                      </dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Full name</dt>
+                      <dd className="text-gray-900 text-right">{profile?.name ?? "—"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Primary email</dt>
+                      <dd className="text-gray-900 text-right">{profile?.email ?? "—"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Primary phone</dt>
+                      <dd className="text-gray-900 text-right">{profile?.phone ?? "—"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Country</dt>
+                      <dd className="text-gray-900 text-right">{profile?.country ?? "—"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Primary address</dt>
+                      <dd className="text-gray-900 text-right">
+                        {profile?.primary_address ?? "—"}
+                      </dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Segment</dt>
+                      <dd className="text-gray-900 text-right">{profile?.segment ?? "—"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Risk rating</dt>
+                      <dd className="text-gray-900 text-right">
+                        {profile?.risk_rating ?? "—"}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                {/* 4. Raw Sources */}
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
+                  <h3 className="font-heading text-base text-gray-800 mb-4">
+                    Raw sources
+                  </h3>
+
+                  {Array.isArray(sources) && sources.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {sources.map((s, idx) => (
+                        <div
+                          key={s.id ?? `src-${idx}`}
+                          className="border border-gray-200 rounded-md p-4 bg-gray-50"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <div className="text-xs font-body text-gray-600">System</div>
+                              <div className="text-sm font-body text-gray-900">
+                                {s.system ?? "—"}
+                              </div>
+                            </div>
+                            <div className="text-[11px] font-mono text-gray-500 bg-white border border-gray-200 rounded-md px-2 py-1">
+                              {s.id ?? "—"}
+                            </div>
+                          </div>
+
+                          <pre className="mt-3 whitespace-pre-wrap text-[11px] font-mono text-gray-800 bg-white border border-gray-200 rounded-md p-3">
+                            {JSON.stringify(s.payload ?? {}, null, 2)}
+                          </pre>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-body text-gray-500">No sources available.</p>
+                  )}
+                </div>
               </section>
             )}
 
@@ -675,6 +865,8 @@ function App() {
 }
 
 export default App;
+
+
 
 
 
