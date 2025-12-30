@@ -128,7 +128,7 @@ def _execute_run(run_id: str) -> None:
         _set_run(run_id,
             state="running",
             stage="coding_testing",
-            message="Coding and Testing"
+            message="Step 1 of 6 - Generating Application Code and Running Automated Tests"
         )
         time.sleep(0.8)
         _run_cmd(["tools/run_story_tests.py", story], cwd=root)
@@ -137,7 +137,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="halo",
-            message="Validating Halo adherence"
+            message="Step 2 of 6 -Ensuring User Experience Standards"
         )
         time.sleep(0.8)
         _set_halo_pass_with_explanation(story, cwd=root)
@@ -146,7 +146,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="guardrails",
-            message="Validating guardrail adherence"
+            message="Step 3 of 6 - Checking Architecure and Data Guardrails"
         )
         time.sleep(0.8)
         _run_cmd(["tools/run_story_guardrails.py", story], cwd=root)
@@ -155,7 +155,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="quality",
-            message="Ensuring code quality"
+            message="Step 4 of 6 - Checking Code Style and Quality Standards"
         )
         time.sleep(0.8)
         _run_cmd(["tools/run_story_lint.py", story], cwd=root)
@@ -164,7 +164,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="security",
-            message="Validating security posture"
+            message="Step 5 of 6 - Running Automated Security Checks"
         )
         time.sleep(0.8)
         _run_cmd(["tools/run_story_security.py", story], cwd=root)
@@ -173,7 +173,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="finalising",
-            message="Finalising overall story status"
+            message="Step 6 of 6 - Saving Results and Execution Evidence"
         )
         time.sleep(0.6)
         _run_cmd(["tools/update_story_overall_status.py", story], cwd=root)
@@ -185,7 +185,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             state="completed",
-            message="Complete",
+            message="All Steps Completed Successfully",
             finished_at_utc=_utc_iso()
         )
 

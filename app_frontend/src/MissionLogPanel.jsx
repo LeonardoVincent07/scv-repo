@@ -695,22 +695,6 @@ export default function MissionLogPanel({ setActiveView }) {
         </button>
       </div>
 
-      {demo.mode === "running" && (
-        <div className="mb-4 p-3 bg-halo-primary/10 rounded-md border border-halo-primary text-sm font-body text-gray-900">
-          <strong>M7 Mission Control:</strong> {demo.message || "Running…"}
-        </div>
-      )}
-      {demo.mode === "completed" && (
-        <div className="mb-4 p-3 bg-green-50 rounded-md border border-green-200 text-sm font-body text-gray-900">
-          <strong>M7 Mission Control:</strong> Completed.
-        </div>
-      )}
-      {demo.mode === "failed" && (
-        <div className="mb-4 p-3 bg-yellow-50 rounded-md border border-yellow-200 text-sm font-body text-gray-900">
-          <strong>M7 Mission Control:</strong> Failed. Check backend logs.
-        </div>
-      )}
-
       <div className="mb-4 p-3 bg-gray-50 rounded-md text-sm font-body text-gray-800">
         <strong>Status Key:</strong>
         <div className="flex flex-wrap gap-3 mt-2">
@@ -801,7 +785,38 @@ export default function MissionLogPanel({ setActiveView }) {
         </p>
       </div>
 
-      {loading && (
+            {/* Semantic Execution Plane */} 
+      <div className="mb-4">
+        <h2
+          style={{ fontFamily: "Fjalla One" }}
+          className="text-lg text-gray-900 tracking-wide"
+        >
+          Semantic Execution Plane
+        </h2>
+        <p className="text-sm font-body text-gray-600 mt-1">
+          Turning intent into governed execution
+        </p>
+
+        {demo.mode === "running" && (
+                <div className="mt-3 p-3 bg-halo-primary/10 rounded-md border border-halo-primary text-sm font-body text-gray-900">
+                  <strong>M7 Mission Control:</strong> {demo.message || "Running…"}
+                </div>
+              )}
+              {demo.mode === "completed" && (
+                <div className="mt-3 p-3 bg-green-50 rounded-md border border-green-200 text-sm font-body text-gray-900">
+                  <strong>M7 Mission Control:</strong> Completed.
+                </div>
+              )}
+              {demo.mode === "failed" && (
+                <div className="mt-3 p-3 bg-yellow-50 rounded-md border border-yellow-200 text-sm font-body text-gray-900">
+                  <strong>M7 Mission Control:</strong> Failed. Check backend logs.
+                </div>
+              )}
+
+
+      </div>
+
+{loading && (
         <p className="text-sm font-body text-gray-500">Loading latest status snapshot…</p>
       )}
       {!loading && error && <p className="text-sm font-body text-red-600 mb-2">{error}</p>}

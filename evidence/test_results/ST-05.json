@@ -6,6 +6,6 @@
   "exit_code": 0,
   "status": "pass",
   "warnings_count": 1,
-  "pytest_summary": "1 passed, 1 warning in 0.31s",
-  "warnings": "============================== warnings summary ===============================\nbackend_v2\\app\\config.py:5\n  C:\\Dev\\scv-repo\\backend_v2\\app\\config.py:5: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class Settings(BaseSettings):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.31s"
+  "pytest_summary": "1 passed, 1 warning in 0.42s",
+  "warnings": "============================== warnings summary ===============================\nbackend_v2\\app\\config.py:5\n  C:\\Dev\\scv-repo\\backend_v2\\app\\config.py:5: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class Settings(BaseSettings):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.42s"
 }
