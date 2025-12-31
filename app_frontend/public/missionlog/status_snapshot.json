@@ -1,26 +1,26 @@
 {
-  "generated_at": "2025-12-31T20:21:06Z",
+  "generated_at": "2025-12-31T21:49:32Z",
   "epics": [
     {
       "epic_id": "E00",
-      "name": "Application Bootstrapping",
-      "overall_status": "In Progress",
+      "name": "Backend Foundation",
+      "overall_status": "Complete",
       "features": [
         {
           "feature_id": "FT-00-BE",
-          "name": "Backend Fundamentals",
+          "name": "Backend Foundation",
           "epic_id": "E00",
-          "overall_status": "In Progress",
+          "overall_status": "Complete",
           "stories": [
             {
               "story_id": "ST-00",
-              "name": "Provide Basic Backend API Availability",
+              "name": "Backend Foundation",
               "feature_id": "FT-00-BE",
-              "overall_status": "In Progress",
+              "overall_status": "Complete",
               "testing_status": "pass",
               "halo_adherence": "pass",
               "guardrail_adherence": "pass",
-              "code_quality_adherence": "fail",
+              "code_quality_adherence": "pass",
               "security_policy_adherence": "pass"
             }
           ]
@@ -29,24 +29,24 @@
     },
     {
       "epic_id": "E00-UI",
-      "name": "User Interface Bootstrapping",
-      "overall_status": "In Progress",
+      "name": "User Interface Foundation",
+      "overall_status": "Complete",
       "features": [
         {
           "feature_id": "FT-00-UI",
-          "name": "Frontend Fundamentals",
+          "name": "User Interface Foundation",
           "epic_id": "E00-UI",
-          "overall_status": "In Progress",
+          "overall_status": "Complete",
           "stories": [
             {
               "story_id": "ST-00-FRONTEND-UI-SHELL",
-              "name": "Provide Frontend UI Shell Availability",
+              "name": "User Interface Foundation",
               "feature_id": "FT-00-UI",
-              "overall_status": "In Progress",
+              "overall_status": "Complete",
               "testing_status": "pass",
-              "halo_adherence": "not_run",
+              "halo_adherence": "pass",
               "guardrail_adherence": "pass",
-              "code_quality_adherence": "fail",
+              "code_quality_adherence": "pass",
               "security_policy_adherence": "pass"
             }
           ]
@@ -56,7 +56,7 @@
     {
       "epic_id": "EP-01",
       "name": "Client Ingestion & Normalisation",
-      "overall_status": "In Progress",
+      "overall_status": "Planned",
       "features": [
         {
           "feature_id": "FT-01",
@@ -92,16 +92,16 @@
           "feature_id": "FT-02",
           "name": "Schema Mapping to Canonical Model",
           "epic_id": "EP-01",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-03",
               "name": "Map identity fields",
               "feature_id": "FT-02",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
               "halo_adherence": "not_run",
-              "guardrail_adherence": "pass",
+              "guardrail_adherence": "not_run",
               "code_quality_adherence": "not_run",
               "security_policy_adherence": "not_run"
             },
@@ -109,10 +109,10 @@
               "story_id": "ST-04",
               "name": "Map identifiers",
               "feature_id": "FT-02",
-              "overall_status": "In Progress",
+              "overall_status": "Planned",
               "testing_status": "not_run",
               "halo_adherence": "not_run",
-              "guardrail_adherence": "pass",
+              "guardrail_adherence": "not_run",
               "code_quality_adherence": "not_run",
               "security_policy_adherence": "not_run"
             }
@@ -122,18 +122,18 @@
           "feature_id": "FT-03",
           "name": "Data Ingestion",
           "epic_id": "EP-01",
-          "overall_status": "In Progress",
+          "overall_status": "Planned",
           "stories": [
             {
               "story_id": "ST-05",
               "name": "Ingest CRM Data",
               "feature_id": "FT-03",
-              "overall_status": "Complete",
-              "testing_status": "pass",
-              "halo_adherence": "pass",
-              "guardrail_adherence": "pass",
-              "code_quality_adherence": "pass",
-              "security_policy_adherence": "pass"
+              "overall_status": "Planned",
+              "testing_status": "not_run",
+              "halo_adherence": "not_run",
+              "guardrail_adherence": "not_run",
+              "code_quality_adherence": "not_run",
+              "security_policy_adherence": "not_run"
             },
             {
               "story_id": "ST-06",

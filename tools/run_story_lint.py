@@ -105,7 +105,7 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
         / "stories"
         / "ST-00-backend-api-availability.md",
         "lint_targets": [
-            "app_backend/main.py",
+            r"backend_v2\app\main.py",
         ],
     },
     "ST-00-FRONTEND-UI-SHELL": {
@@ -115,7 +115,7 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
         / "stories"
         / "ST-00-frontend-ui-shell.md",
         "lint_targets": [
-            "app_backend/main.py",
+            r"backend_v2\app\main.py",
         ],
     },
 }

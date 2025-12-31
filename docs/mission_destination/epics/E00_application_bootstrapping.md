@@ -1,16 +1,16 @@
 ---
 epic_id: E00
 slug: e00_application_bootstrapping
-name: "Application Bootstrapping"
+name: "Backend Foundation"
 
 features:
   - FT-00-BE
 
 
 
-overall_status: In Progress
+overall_status: Complete
 
-last_updated: 2025-12-21T16:19:34Z
+last_updated: 2025-12-31T21:07:49Z
 
 ---
 

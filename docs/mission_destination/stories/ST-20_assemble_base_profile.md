@@ -5,7 +5,7 @@ name: Assemble base profile
 
 overall_status: Complete
 
-testing_status: pass
+testing_status: fail
 halo_adherence: pass
 guardrail_adherence: pass
 code_quality_adherence: pass

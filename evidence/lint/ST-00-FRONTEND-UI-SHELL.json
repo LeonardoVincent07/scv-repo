@@ -1,19 +1,42 @@
 {
   "story_id": "ST-00-FRONTEND-UI-SHELL",
   "targets": [
-    "app_backend/main.py"
+    "backend_v2\\app\\main.py"
   ],
-  "passed": false,
-  "message": "Ruff reported 1 code-quality issue(s).",
-  "issues": [
+  "passed": true,
+  "message": "No code-quality issues reported by Ruff.",
+  "issues": [],
+  "rule_family_basis": "Ruff exit code 0 indicates all enabled Ruff rules passed; non-zero indicates at least one enabled rule failed.",
+  "rule_family_results": [
     {
-      "filename": "C:\\Dev\\scv-repo\\app_backend\\main.py",
-      "code": "F401",
-      "message": "`.schemas` imported but unused",
-      "location": {
-        "column": 23,
-        "row": 12
-      }
+      "check": "Pyflakes \u2013 error & bug detection",
+      "status": "pass",
+      "examples": "Undefined variables, unused imports, redefined names, incorrect __all__"
+    },
+    {
+      "check": "Pycodestyle \u2013 error-level correctness",
+      "status": "pass",
+      "examples": "Syntax/indentation errors, invalid escapes, is vs == misuse, ambiguous names"
+    },
+    {
+      "check": "Import sorting (isort-equivalent)",
+      "status": "pass",
+      "examples": "Import grouping, ordering, duplicates"
+    },
+    {
+      "check": "Bugbear \u2013 high-risk constructs (subset)",
+      "status": "pass",
+      "examples": "Mutable defaults, risky asserts, loop variable capture, fragile except blocks"
+    },
+    {
+      "check": "Naming & shadowing issues",
+      "status": "pass",
+      "examples": "Shadowing built-ins, conflicting imports, suspicious name reuse"
+    },
+    {
+      "check": "Safe autofix candidates",
+      "status": "pass",
+      "examples": "Unused import removal, import sorting, safe simplifications (when run with --fix)"
     }
   ]
 }
