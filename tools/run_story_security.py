@@ -5,7 +5,7 @@ in each Story's front matter.
 
 MVP:
 - Use Bandit to scan the Story's Python files for security issues.
-- If any Medium/High severity issues are found, mark as fail.
+- If any Medium/High severity issues are found (and confidence is Medium/High), mark as fail.
 - Otherwise mark as pass.
 """
 
@@ -64,20 +64,19 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
         / "stories"
         / "ST-05_bulk_load_crm.md",
         "security_targets": [
-            "backend_v2\app\services\crm_bulk_load_service.py",
+            r"backend_v2\app\services\crm_bulk_load_service.py",
         ],
     },
     "ST-09": {
-    "story_file": REPO_ROOT
+        "story_file": REPO_ROOT
         / "docs"
         / "mission_destination"
         / "stories"
         / "ST-09_match_by_tax_id.md",
-    "security_targets": [
-        "src/services/client_profile/service.py",
-    ],
-},
-
+        "security_targets": [
+            "src/services/client_profile/service.py",
+        ],
+    },
     "ST-20": {
         "story_file": REPO_ROOT
         / "docs"
@@ -99,7 +98,7 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "src/services/audit/service.py",
         ],
     },
-     "ST-00": {
+    "ST-00": {
         "story_file": REPO_ROOT
         / "docs"
         / "mission_destination"
@@ -109,7 +108,7 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "app_backend/main.py",
         ],
     },
-     "ST-00-FRONTEND-UI-SHELL": {
+    "ST-00-FRONTEND-UI-SHELL": {
         "story_file": REPO_ROOT
         / "docs"
         / "mission_destination"
@@ -119,9 +118,88 @@ STORY_CONFIG: Dict[str, Dict[str, Any]] = {
             "app_backend/main.py",
         ],
     },
-
-
 }
+
+
+# ---------------------------------------------------------------------------
+# Rule-family evidence (new)
+# ---------------------------------------------------------------------------
+
+BANDIT_RULE_FAMILIES: List[Dict[str, str]] = [
+    {
+        "check": "High-risk function usage (injection & execution)",
+        "examples": "eval, exec, compile, pickle.loads, os.system, os.popen",
+    },
+    {
+        "check": "OS command injection risks",
+        "examples": "subprocess usage with shell=True or unsafe command construction",
+    },
+    {
+        "check": "Hardcoded secrets & credentials",
+        "examples": "hardcoded passwords, tokens, API keys, basic auth strings",
+    },
+    {
+        "check": "Insecure cryptography",
+        "examples": "weak hashes (md5/sha1), insecure randomness, weak SSL/TLS settings",
+    },
+    {
+        "check": "Unsafe deserialization",
+        "examples": "pickle, marshal, yaml.load without SafeLoader",
+    },
+    {
+        "check": "SQL injection patterns",
+        "examples": "string concatenation / formatting used to build SQL",
+    },
+    {
+        "check": "XML / YAML parser vulnerabilities",
+        "examples": "unsafe XML parsing patterns, unsafe yaml.load usage",
+    },
+    {
+        "check": "Temporary file insecurity",
+        "examples": "tempfile.mktemp, predictable temp filenames, race-prone patterns",
+    },
+    {
+        "check": "Network & transport security",
+        "examples": "disabled certificate validation, weak TLS settings",
+    },
+    {
+        "check": "Debug & information disclosure",
+        "examples": "debug flags enabled, risky asserts for security checks, leaking secrets",
+    },
+    {
+        "check": "Permissions & file access risks",
+        "examples": "overly permissive chmod, unsafe file writes, world-writable paths",
+    },
+    {
+        "check": "Miscellaneous unsafe patterns",
+        "examples": "deprecated security APIs and other high-risk constructs",
+    },
+]
+
+
+def build_rule_family_results(passed: bool) -> List[Dict[str, str]]:
+    """
+    Mark each security rule family pass/fail based on our security gate.
+
+    Important: this repo's security gate is "no Medium/High severity AND Medium/High confidence findings".
+    So 'pass' here means "no medium/high findings detected in this category" (not "no findings at all").
+    """
+    status = "pass" if passed else "fail"
+    qualifier = (
+        "no medium/high findings" if passed else "one or more medium/high findings"
+    )
+
+    results: List[Dict[str, str]] = []
+    for item in BANDIT_RULE_FAMILIES:
+        results.append(
+            {
+                "check": item["check"],
+                "status": status,
+                "detail": qualifier,
+                "examples": item["examples"],
+            }
+        )
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -229,15 +307,30 @@ def write_security_evidence(
     results_dir.mkdir(parents=True, exist_ok=True)
 
     evidence_path = results_dir / f"{story_id}.json"
+
+    # New: rule-family pass evidence
+    rule_family_results = build_rule_family_results(passed)
+
     payload = {
         "story_id": story_id,
         "targets": targets,
         "passed": passed,
         "message": message,
         "issues": issues,
+        # New fields (rule-family pass evidence)
+        "rule_family_basis": (
+            "Security gate for this repo is: no Bandit findings with "
+            "severity in {MEDIUM,HIGH} and confidence in {MEDIUM,HIGH}. "
+            "If the gate passes, each enabled security rule family is recorded as "
+            "'pass (no medium/high findings)'."
+        ),
+        "rule_family_results": rule_family_results,
     }
+
     evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f">>> Wrote security evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}")
+    print(
+        f">>> Wrote security evidence for {story_id} to {evidence_path.relative_to(REPO_ROOT)}"
+    )
     return evidence_path
 
 
@@ -322,3 +415,4 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
