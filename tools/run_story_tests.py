@@ -17,10 +17,18 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
+
+import yaml  # mapping-driven scope (repo already uses PyYAML)
 
 # Repo root = parent of /tools
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+# Story -> Service mapping (governing artefact)
+STORY_SERVICE_MAPPING_PATH = (
+    REPO_ROOT / "docs" / "mission_destination" / "story_service_mapping.yaml"
+)
+GOVERNED_BY = "docs/mission_destination/story_service_mapping.yaml"
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +121,54 @@ STORY_CONFIG: Dict[str, Dict[str, object]] = {
 
 
 # ---------------------------------------------------------------------------
+# Mapping-driven scope helpers (additions only)
+# ---------------------------------------------------------------------------
+
+def load_story_service_mapping() -> Dict[str, Any]:
+    if not STORY_SERVICE_MAPPING_PATH.exists():
+        raise FileNotFoundError(f"Mapping file not found: {STORY_SERVICE_MAPPING_PATH}")
+    return yaml.safe_load(STORY_SERVICE_MAPPING_PATH.read_text(encoding="utf-8")) or {}
+
+
+def resolve_scope_for_story(story_key: str, mapping: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Resolve owning service + implementation file from the governing story->service mapping.
+
+    story_key is the key used in STORY_CONFIG (e.g. ST-05, ST-00, ST-00-FRONTEND-UI-SHELL).
+    The mapping file keys include ST-00-backend and ST-00-frontend, so we bridge those.
+    """
+    key_aliases = {
+        "ST-00": "ST-00-backend",
+        "ST-00-FRONTEND-UI-SHELL": "ST-00-frontend",
+    }
+    mapping_key = key_aliases.get(story_key, story_key)
+
+    entry = mapping.get(mapping_key)
+    if isinstance(entry, dict):
+        return {
+            "owning_service": entry.get("service"),
+            "implementation_file": entry.get("code_file"),
+            "governed_by": GOVERNED_BY,
+        }
+
+    # Fallback: match by embedded story_id field (for resilience if keys change)
+    for _, maybe in mapping.items():
+        if isinstance(maybe, dict) and maybe.get("story_id") == story_key:
+            return {
+                "owning_service": maybe.get("service"),
+                "implementation_file": maybe.get("code_file"),
+                "governed_by": GOVERNED_BY,
+            }
+
+    return {
+        "owning_service": None,
+        "implementation_file": None,
+        "governed_by": GOVERNED_BY,
+        "warning": f"No mapping entry found for {story_key}",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Core helpers
 # ---------------------------------------------------------------------------
 
@@ -194,6 +250,7 @@ def write_test_result_evidence(
     warnings_count: int,
     pytest_summary: str,
     warnings: str,
+    scope: Dict[str, Any],
 ) -> Path:
     """
     Write a small JSON evidence file with the Story's test result.
@@ -210,6 +267,8 @@ def write_test_result_evidence(
         "warnings_count": warnings_count,
         "pytest_summary": pytest_summary,
         "warnings": warnings,
+        # mapping-driven scope additions only
+        "scope": scope,
     }
     evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(
@@ -245,7 +304,7 @@ def update_story_testing_status(story_file: Path, status: str) -> None:
     print(f">>> Updated {rel} -> testing_status: {status}")
 
 
-def run_for_story(story_id: str) -> Tuple[int, str]:
+def run_for_story(story_id: str, mapping: Dict[str, Any]) -> Tuple[int, str]:
     """
     Execute end-to-end for a single Story:
     - run pytest on its configured targets
@@ -266,6 +325,8 @@ def run_for_story(story_id: str) -> Tuple[int, str]:
     pytest_summary = extract_pytest_summary(output)
     warnings_block = extract_warnings_block(output)
 
+    scope = resolve_scope_for_story(story_id, mapping)
+
     write_test_result_evidence(
         story_id,
         pytest_targets,
@@ -274,6 +335,7 @@ def run_for_story(story_id: str) -> Tuple[int, str]:
         warnings_count,
         pytest_summary,
         warnings_block,
+        scope,
     )
     update_story_testing_status(story_file, status)
 
@@ -291,6 +353,8 @@ def main(argv: List[str]) -> int:
       python tools/run_story_tests.py          # run for all configured Stories
       python tools/run_story_tests.py ST-03    # run for a single Story
     """
+    mapping = load_story_service_mapping()
+
     if len(argv) > 1:
         story_id = argv[1].upper()
         if story_id not in STORY_CONFIG:
@@ -304,7 +368,7 @@ def main(argv: List[str]) -> int:
     overall_exit = 0
     for sid in requested_ids:
         print(f"\n=== Running tests for Story {sid} ===")
-        exit_code, _ = run_for_story(sid)
+        exit_code, _ = run_for_story(sid, mapping)
         overall_exit = max(overall_exit, exit_code)
 
     return overall_exit
@@ -312,5 +376,6 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
 
 

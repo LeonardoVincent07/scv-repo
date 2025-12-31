@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2025-12-30 16:04:48Z
+Generated: 2025-12-31 18:02:46Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -8156,7 +8156,7 @@ export default {
 
 ===== FILE: app_frontend\public\missionlog\status_snapshot.json =====
 {
-  "generated_at": "2025-12-29T22:27:41Z",
+  "generated_at": "2025-12-31T17:55:50Z",
   "epics": [
     {
       "epic_id": "E00",
@@ -13329,17 +13329,15 @@ function App() {
                                 Email
                               </th>
                               <th className="text-left px-4 py-3 font-medium">
-                                Created
+                                Ingested
                               </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
                             {preMatchedRecords.map((r) => {
                               const name = `${r.first_name || ""} ${r.last_name || ""}`.trim();
-                              const created =
-                                r.created_at
-                                  ? String(r.created_at).replace("T", " ").slice(0, 19)
-                                  : "â€”";
+                              const ingested = new Date().toISOString().slice(0, 10);
+
 
                               return (
                                 <tr key={r.id} className="bg-white">
@@ -13356,7 +13354,7 @@ function App() {
                                     {r.email || "â€”"}
                                   </td>
                                   <td className="px-4 py-3 text-gray-900">
-                                    {created}
+                                    {ingested}
                                   </td>
                                 </tr>
                               );
@@ -13376,7 +13374,189 @@ function App() {
                 id="scv-profile"
                 className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4"
               >
-                {/* ... unchanged ... */}
+                {/* 1. Client Summary */}
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
+                  <h3 className="font-heading text-base text-gray-800 mb-4">
+                    Client summary
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Client ID</div>
+                      <div className="text-sm font-mono text-gray-900">
+                        {profile?.client_id ?? "â€”"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Name</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.name ?? "â€”"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Email</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.email ?? "â€”"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Country</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.country ?? "â€”"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Risk rating</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.risk_rating ?? "â€”"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-body text-gray-500">Status</div>
+                      <div className="text-sm font-body text-gray-900">
+                        {profile?.operational_state?.status ?? "â€”"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Accounts */}
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
+                  <h3 className="font-heading text-base text-gray-800 mb-4">
+                    Accounts
+                  </h3>
+
+                  {Array.isArray(profile?.accounts) && profile.accounts.length > 0 ? (
+                    <div className="overflow-auto border border-gray-200 rounded-md">
+                      <table className="min-w-full text-sm font-body">
+                        <thead className="bg-gray-50 text-gray-700">
+                          <tr>
+                            <th className="text-left px-4 py-3 font-medium">Account #</th>
+                            <th className="text-left px-4 py-3 font-medium">Type</th>
+                            <th className="text-left px-4 py-3 font-medium">CCY</th>
+                            <th className="text-left px-4 py-3 font-medium">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 bg-white">
+                          {profile.accounts.map((a, idx) => (
+                            <tr key={a.id ?? a.account_number ?? idx}>
+                              <td className="px-4 py-3 font-mono text-gray-900">
+                                {a.account_number ?? "â€”"}
+                              </td>
+                              <td className="px-4 py-3 text-gray-900">
+                                {a.account_type ?? "â€”"}
+                              </td>
+                              <td className="px-4 py-3 text-gray-900">
+                                {a.currency ?? "â€”"}
+                              </td>
+                              <td className="px-4 py-3 text-gray-900">
+                                {a.status ?? "â€”"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-body text-gray-500">No accounts available.</p>
+                  )}
+                </div>
+
+                {/* 3. Client Information */}
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
+                  <h3 className="font-heading text-base text-gray-800 mb-4">
+                    Client information
+                  </h3>
+
+                  <dl className="space-y-2 text-sm font-body text-gray-800">
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Client ID</dt>
+                      <dd className="text-gray-900 font-mono text-xs text-right">
+                        {profile?.client_id ?? "â€”"}
+                      </dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Full name</dt>
+                      <dd className="text-gray-900 text-right">{profile?.name ?? "â€”"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Primary email</dt>
+                      <dd className="text-gray-900 text-right">{profile?.email ?? "â€”"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Primary phone</dt>
+                      <dd className="text-gray-900 text-right">{profile?.phone ?? "â€”"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Country</dt>
+                      <dd className="text-gray-900 text-right">{profile?.country ?? "â€”"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Primary address</dt>
+                      <dd className="text-gray-900 text-right">
+                        {profile?.primary_address ?? "â€”"}
+                      </dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Segment</dt>
+                      <dd className="text-gray-900 text-right">{profile?.segment ?? "â€”"}</dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-6">
+                      <dt className="text-gray-500">Risk rating</dt>
+                      <dd className="text-gray-900 text-right">
+                        {profile?.risk_rating ?? "â€”"}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                {/* 4. Raw Sources */}
+                <div className="bg-white rounded-halo shadow-sm border border-gray-200 p-6">
+                  <h3 className="font-heading text-base text-gray-800 mb-4">
+                    Raw sources
+                  </h3>
+
+                  {Array.isArray(sources) && sources.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {sources.map((s, idx) => (
+                        <div
+                          key={s.id ?? `src-${idx}`}
+                          className="border border-gray-200 rounded-md p-4 bg-gray-50"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <div className="text-xs font-body text-gray-600">System</div>
+                              <div className="text-sm font-body text-gray-900">
+                                {s.system ?? "â€”"}
+                              </div>
+                            </div>
+                            <div className="text-[11px] font-mono text-gray-500 bg-white border border-gray-200 rounded-md px-2 py-1">
+                              {s.id ?? "â€”"}
+                            </div>
+                          </div>
+
+                          <pre className="mt-3 whitespace-pre-wrap text-[11px] font-mono text-gray-800 bg-white border border-gray-200 rounded-md p-3">
+                            {JSON.stringify(s.payload ?? {}, null, 2)}
+                          </pre>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-body text-gray-500">No sources available.</p>
+                  )}
+                </div>
               </section>
             )}
 
@@ -13397,6 +13577,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
@@ -16869,22 +17050,6 @@ export default function MissionLogPanel({ setActiveView }) {
         </button>
       </div>
 
-      {demo.mode === "running" && (
-        <div className="mb-4 p-3 bg-halo-primary/10 rounded-md border border-halo-primary text-sm font-body text-gray-900">
-          <strong>M7 Mission Control:</strong> {demo.message || "Runningâ€¦"}
-        </div>
-      )}
-      {demo.mode === "completed" && (
-        <div className="mb-4 p-3 bg-green-50 rounded-md border border-green-200 text-sm font-body text-gray-900">
-          <strong>M7 Mission Control:</strong> Completed.
-        </div>
-      )}
-      {demo.mode === "failed" && (
-        <div className="mb-4 p-3 bg-yellow-50 rounded-md border border-yellow-200 text-sm font-body text-gray-900">
-          <strong>M7 Mission Control:</strong> Failed. Check backend logs.
-        </div>
-      )}
-
       <div className="mb-4 p-3 bg-gray-50 rounded-md text-sm font-body text-gray-800">
         <strong>Status Key:</strong>
         <div className="flex flex-wrap gap-3 mt-2">
@@ -16975,7 +17140,38 @@ export default function MissionLogPanel({ setActiveView }) {
         </p>
       </div>
 
-      {loading && (
+            {/* Semantic Execution Plane */} 
+      <div className="mb-4">
+        <h2
+          style={{ fontFamily: "Fjalla One" }}
+          className="text-lg text-gray-900 tracking-wide"
+        >
+          Semantic Execution Plane
+        </h2>
+        <p className="text-sm font-body text-gray-600 mt-1">
+          Turning intent into governed execution
+        </p>
+
+        {demo.mode === "running" && (
+                <div className="mt-3 p-3 bg-halo-primary/10 rounded-md border border-halo-primary text-sm font-body text-gray-900">
+                  <strong>M7 Mission Control:</strong> {demo.message || "Runningâ€¦"}
+                </div>
+              )}
+              {demo.mode === "completed" && (
+                <div className="mt-3 p-3 bg-green-50 rounded-md border border-green-200 text-sm font-body text-gray-900">
+                  <strong>M7 Mission Control:</strong> Completed.
+                </div>
+              )}
+              {demo.mode === "failed" && (
+                <div className="mt-3 p-3 bg-yellow-50 rounded-md border border-yellow-200 text-sm font-body text-gray-900">
+                  <strong>M7 Mission Control:</strong> Failed. Check backend logs.
+                </div>
+              )}
+
+
+      </div>
+
+{loading && (
         <p className="text-sm font-body text-gray-500">Loading latest status snapshotâ€¦</p>
       )}
       {!loading && error && <p className="text-sm font-body text-red-600 mb-2">{error}</p>}
@@ -18806,7 +19002,7 @@ def _execute_run(run_id: str) -> None:
         _set_run(run_id,
             state="running",
             stage="coding_testing",
-            message="Coding and Testing"
+            message="Step 1 of 6 - Generating Application Code and Running Automated Tests"
         )
         time.sleep(0.8)
         _run_cmd(["tools/run_story_tests.py", story], cwd=root)
@@ -18815,7 +19011,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="halo",
-            message="Validating Halo adherence"
+            message="Step 2 of 6 -Ensuring User Experience Standards"
         )
         time.sleep(0.8)
         _set_halo_pass_with_explanation(story, cwd=root)
@@ -18824,7 +19020,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="guardrails",
-            message="Validating guardrail adherence"
+            message="Step 3 of 6 - Checking Architecure and Data Guardrails"
         )
         time.sleep(0.8)
         _run_cmd(["tools/run_story_guardrails.py", story], cwd=root)
@@ -18833,7 +19029,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="quality",
-            message="Ensuring code quality"
+            message="Step 4 of 6 - Checking Code Style and Quality Standards"
         )
         time.sleep(0.8)
         _run_cmd(["tools/run_story_lint.py", story], cwd=root)
@@ -18842,7 +19038,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="security",
-            message="Validating security posture"
+            message="Step 5 of 6 - Running Automated Security Checks"
         )
         time.sleep(0.8)
         _run_cmd(["tools/run_story_security.py", story], cwd=root)
@@ -18851,7 +19047,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="finalising",
-            message="Finalising overall story status"
+            message="Step 6 of 6 - Saving Results and Execution Evidence"
         )
         time.sleep(0.6)
         _run_cmd(["tools/update_story_overall_status.py", story], cwd=root)
@@ -18863,7 +19059,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             state="completed",
-            message="Complete",
+            message="All Steps Completed Successfully",
             finished_at_utc=_utc_iso()
         )
 
@@ -20766,7 +20962,7 @@ stories:
 overall_status: In Progress
 
 
-last_updated: 2025-12-29T22:27:40Z
+last_updated: 2025-12-31T17:55:50Z
 ---
 
 
@@ -22079,7 +22275,7 @@ technology_lineage_adherence: not_run
 business_data_lineage_adherence: not_run
 self_healing_adherence: not_run
 analytics_adherence: not_run
-last_updated: 2025-12-29 22:10:32+00:00
+last_updated: 2025-12-31 17:53:46+00:00
 ---
 # Ingest CRM Data
 

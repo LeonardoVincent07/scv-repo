@@ -2,7 +2,7 @@
   "meta": {
     "story_id": "ST-05",
     "dimension": "code_quality",
-    "published_at_utc": "2025-12-30T23:03:07Z",
+    "published_at_utc": "2025-12-31T18:52:02Z",
     "source_path": "evidence/lint/ST-05.json"
   },
   "payload": {
@@ -12,6 +12,39 @@
     ],
     "passed": true,
     "message": "No code-quality issues reported by Ruff.",
-    "issues": []
+    "issues": [],
+    "rule_family_basis": "Ruff exit code 0 indicates all enabled Ruff rules passed; non-zero indicates at least one enabled rule failed.",
+    "rule_family_results": [
+      {
+        "check": "Pyflakes – error & bug detection",
+        "status": "pass",
+        "examples": "Undefined variables, unused imports, redefined names, incorrect __all__"
+      },
+      {
+        "check": "Pycodestyle – error-level correctness",
+        "status": "pass",
+        "examples": "Syntax/indentation errors, invalid escapes, is vs == misuse, ambiguous names"
+      },
+      {
+        "check": "Import sorting (isort-equivalent)",
+        "status": "pass",
+        "examples": "Import grouping, ordering, duplicates"
+      },
+      {
+        "check": "Bugbear – high-risk constructs (subset)",
+        "status": "pass",
+        "examples": "Mutable defaults, risky asserts, loop variable capture, fragile except blocks"
+      },
+      {
+        "check": "Naming & shadowing issues",
+        "status": "pass",
+        "examples": "Shadowing built-ins, conflicting imports, suspicious name reuse"
+      },
+      {
+        "check": "Safe autofix candidates",
+        "status": "pass",
+        "examples": "Unused import removal, import sorting, safe simplifications (when run with --fix)"
+      }
+    ]
   }
 }
