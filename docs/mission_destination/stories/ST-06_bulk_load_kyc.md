@@ -1,9 +1,9 @@
 ---
 story_id: ST-06
 feature: FT-03
-name: "Bulk load KYC"
+name: "Ingest KYC Data"
 description: |
-  Initial KYC load.
+  Ingest KYC Data.
 
 acceptance_criteria:
   - Records loaded

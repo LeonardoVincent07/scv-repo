@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-31T19:35:35Z",
+  "generated_at": "2025-12-31T20:21:06Z",
   "epics": [
     {
       "epic_id": "E00",
@@ -120,13 +120,13 @@
         },
         {
           "feature_id": "FT-03",
-          "name": "Initial Bulk Ingestion",
+          "name": "Data Ingestion",
           "epic_id": "EP-01",
           "overall_status": "In Progress",
           "stories": [
             {
               "story_id": "ST-05",
-              "name": "Bulk load CRM",
+              "name": "Ingest CRM Data",
               "feature_id": "FT-03",
               "overall_status": "Complete",
               "testing_status": "pass",
@@ -137,7 +137,7 @@
             },
             {
               "story_id": "ST-06",
-              "name": "Bulk load KYC",
+              "name": "Ingest KYC Data",
               "feature_id": "FT-03",
               "overall_status": "Planned",
               "testing_status": "not_run",

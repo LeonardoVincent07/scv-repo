@@ -1,8 +1,8 @@
 ---
 story_id: ST-05
 feature: FT-03
-name: Bulk load CRM
-description: 'Initial CRM load.
+name: Ingest CRM Data
+description: 'Ingest CRM Data.
 
   '
 acceptance_criteria:
@@ -23,23 +23,23 @@ last_updated: 2025-12-31 17:53:46+00:00
 # Ingest CRM Data
 
 ## Statement
-As a data operations user, I want to bulk load CRM data so that existing client records can be ingested into the platform efficiently and consistently.
+As a data operations user, I want to load CRM data so that existing client records can be ingested into the platform efficiently and consistently.
 
 ## Description
-The platform must support bulk ingestion of client data from a registered CRM source system.  
+The platform must support ingestion of client data from a registered CRM source system.  
 This capability enables an initial or repeat load of CRM records into the platform using a controlled and repeatable process.
 
-Bulk loading creates persisted client records that can subsequently be mapped, matched, and assembled into client profiles. The same ingestion logic must be usable for automated testing and operational execution.
+Loading creates persisted client records that can subsequently be mapped, matched, and assembled into client profiles. The same ingestion logic must be usable for automated testing and operational execution.
 
 ## Acceptance Criteria
 - **Given** a CRM source system is registered  
-  **When** a bulk load of CRM data is executed  
+  **When** a load of CRM data is executed  
   **Then** client records are ingested and persisted successfully
 
-- **Given** a bulk load is executed  
+- **Given** a load is executed  
   **When** individual records fail validation  
   **Then** valid records are persisted and invalid records are reported clearly
 
-- **Given** the bulk load process completes  
+- **Given** the load process completes  
   **When** downstream processes run  
   **Then** the ingested CRM records are available for mapping and matching

@@ -137,7 +137,7 @@ def _execute_run(run_id: str) -> None:
 
         _set_run(run_id,
             stage="halo",
-            message="Step 2 of 6 -Ensuring User Experience Standards"
+            message="Step 2 of 6 - Ensuring User Experience Standards"
         )
         time.sleep(0.8)
         _set_halo_pass_with_explanation(story, cwd=root)

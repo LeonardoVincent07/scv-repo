@@ -1,9 +1,9 @@
 ---
 feature_id: FT-03
 epic: EP-01
-name: "Initial Bulk Ingestion"
+name: "Data Ingestion"
 description: |
-  Perform a one-time historical load of all client records from each upstream
+  Loading of all client records from each upstream
   system. Includes batching, error handling, and ingestion evidence.
 
 stories:
