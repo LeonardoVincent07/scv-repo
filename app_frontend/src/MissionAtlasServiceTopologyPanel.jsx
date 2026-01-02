@@ -1,483 +1,506 @@
 import React, { useMemo, useState } from "react";
+import physicalModel from "./data/physical_model_by_domain.json";
 
-export default function MissionAtlasServiceTopologyPanel({ domains, services }) {
-  // Service Topology UI state
-  const [topologyMode, setTopologyMode] = useState("dependencies"); // "dependencies" | "catalogue"
-  const [topologyDomainFilter, setTopologyDomainFilter] = useState("All");
-  const [topologyQuery, setTopologyQuery] = useState("");
-
-  // Dependency graph navigation state
-  const [selectedEdge, setSelectedEdge] = useState(null); // { fromId, fromName, toId, toName, labels }
-  const [focusEdgeServices, setFocusEdgeServices] = useState(true);
-
-  // Service selection state (local to Service Topology)
+export default function MissionAtlasServiceTopologyPanel() {
+  const [tab, setTab] = useState("dependencies"); // dependencies | catalogue
   const [selectedService, setSelectedService] = useState(null);
+  const [query, setQuery] = useState("");
 
   const normalise = (s) => (s || "").toString().trim().toLowerCase();
 
-  const topologyDomainsList = useMemo(
-    () => ["All", ...(domains || []).map((d) => d.name)],
-    [domains]
-  );
+  const domains = useMemo(() => physicalModel?.domains || [], []);
 
-  const topologyFilteredServices = useMemo(() => {
-    const q = normalise(topologyQuery);
-    return (services || []).filter((svc) => {
-      const domainOk =
-        topologyDomainFilter === "All" || svc.domain === topologyDomainFilter;
+  // Map platform domains → microservices (this is your microservice boundary)
+  const services = useMemo(() => {
+    return (domains || []).map((d) => {
+      const tables = d.tables || [];
+      const fks = tables.flatMap((t) => t.foreign_keys || []);
+      const indexes = tables.flatMap((t) => t.indexes || []);
+      const cols = tables.reduce((acc, t) => acc + (t.columns?.length || 0), 0);
 
-      const qOk =
-        !q ||
-        normalise(svc.name).includes(q) ||
-        normalise(svc.domain).includes(q) ||
-        (svc.exposes || []).some((x) => normalise(x).includes(q)) ||
-        (svc.consumes || []).some((x) => normalise(x).includes(q)) ||
-        (svc.produces || []).some((x) => normalise(x).includes(q));
-
-      return domainOk && qOk;
+      return {
+        serviceId: domainToServiceId(d.domain),
+        serviceName: domainToServiceName(d.domain),
+        domain: d.domain,
+        purpose: d.purpose,
+        tables,
+        stats: {
+          tables: tables.length,
+          columns: cols,
+          outboundFks: fks.length,
+          indexes: indexes.length,
+        },
+        // contracts are placeholders for now (ready to wire to OpenAPI later)
+        contracts: suggestedContractsForDomain(d.domain),
+      };
     });
-  }, [services, topologyDomainFilter, topologyQuery]);
+  }, [domains]);
 
-  const topologyDependencyEdges = useMemo(() => {
-    const edges = [];
-    for (const from of topologyFilteredServices) {
-      for (const to of topologyFilteredServices) {
-        if (from.id === to.id) continue;
+  // Build lookup: table fq -> domain
+  const fqToDomain = useMemo(() => {
+    const m = new Map();
+    for (const d of domains) {
+      for (const t of d.tables || []) {
+        m.set(`${t.schema}.${t.table}`, d.domain);
+      }
+    }
+    return m;
+  }, [domains]);
 
-        const fromProduces = new Set((from.produces || []).map((x) => x.trim()));
-        const toConsumes = new Set((to.consumes || []).map((x) => x.trim()));
-        const shared = [...fromProduces].filter((p) => toConsumes.has(p));
+  // Compute cross-service dependencies using FK references
+  const dependencies = useMemo(() => {
+    const depMap = new Map(); // domain -> Map(refDomain -> count)
 
-        if (shared.length) {
-          edges.push({
-            fromId: from.id,
-            fromName: from.name,
-            toId: to.id,
-            toName: to.name,
-            labels: shared,
-          });
+    for (const d of domains) {
+      const domain = d.domain;
+      if (!depMap.has(domain)) depMap.set(domain, new Map());
+
+      for (const t of d.tables || []) {
+        for (const fk of t.foreign_keys || []) {
+          const refDomain = fqToDomain.get(fk.references_table) || "External/Unknown";
+          if (refDomain === domain) continue;
+          const inner = depMap.get(domain);
+          inner.set(refDomain, (inner.get(refDomain) || 0) + 1);
         }
       }
     }
 
-    edges.sort((a, b) => {
-      const k1 = `${a.fromName}→${a.toName}`;
-      const k2 = `${b.fromName}→${b.toName}`;
-      return k1.localeCompare(k2);
+    return [...depMap.entries()]
+      .map(([domain, refs]) => ({
+        domain,
+        refs: [...refs.entries()]
+          .map(([refDomain, count]) => ({ refDomain, count }))
+          .sort((a, b) => b.count - a.count || a.refDomain.localeCompare(b.refDomain)),
+      }))
+      .sort((a, b) => a.domain.localeCompare(b.domain));
+  }, [domains, fqToDomain]);
+
+  const filteredServices = useMemo(() => {
+    const q = normalise(query);
+    if (!q) return services;
+    return services.filter((s) => {
+      return (
+        normalise(s.serviceName).includes(q) ||
+        normalise(s.serviceId).includes(q) ||
+        normalise(s.domain).includes(q) ||
+        normalise(s.purpose).includes(q) ||
+        s.tables.some((t) => normalise(`${t.schema}.${t.table}`).includes(q))
+      );
     });
+  }, [services, query]);
 
-    return edges;
-  }, [topologyFilteredServices]);
+  const selected = useMemo(() => {
+    if (!selectedService) return filteredServices[0] || null;
+    return filteredServices.find((s) => s.serviceId === selectedService) || filteredServices[0] || null;
+  }, [selectedService, filteredServices]);
 
-  const topologyServiceById = useMemo(() => {
-    const m = new Map();
-    for (const s of topologyFilteredServices) m.set(s.id, s);
-    return m;
-  }, [topologyFilteredServices]);
+  if (!selectedService && filteredServices.length) {
+    // set once on first render
+    setSelectedService(filteredServices[0].serviceId);
+  }
 
-  const topologyServicesForList = useMemo(() => {
-    if (!selectedEdge || !focusEdgeServices) return topologyFilteredServices;
-    const ids = new Set([selectedEdge.fromId, selectedEdge.toId]);
-    return topologyFilteredServices.filter((s) => ids.has(s.id));
-  }, [topologyFilteredServices, selectedEdge, focusEdgeServices]);
-
-  const selectedEdgeFrom = useMemo(() => {
-    if (!selectedEdge) return null;
-    return (services || []).find((s) => s.id === selectedEdge.fromId) || null;
-  }, [services, selectedEdge]);
-
-  const selectedEdgeTo = useMemo(() => {
-    if (!selectedEdge) return null;
-    return (services || []).find((s) => s.id === selectedEdge.toId) || null;
-  }, [services, selectedEdge]);
-
-  const clearSelectedEdge = () => {
-    setSelectedEdge(null);
-    setFocusEdgeServices(true);
-  };
+  const selectedDeps = useMemo(() => {
+    if (!selected) return [];
+    const entry = dependencies.find((d) => d.domain === selected.domain);
+    return entry?.refs || [];
+  }, [selected, dependencies]);
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="rounded-halo border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h3 className="font-heading text-sm text-gray-900">Microservices Architecture</h3>
             <p className="mt-1 text-xs font-body text-gray-600">
-              A live view of domains, services, contracts and inter-service dependencies across the platform.
+              Service boundaries, ownership and dependencies derived from the live schema.
+              This is a microservice view (not a table inspector).
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setTopologyMode("dependencies")}
-                className={`px-3 py-2 rounded-md text-sm font-body border ${
-                  topologyMode === "dependencies"
-                    ? "border-halo-primary bg-teal-50 text-gray-900"
-                    : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
-                }`}
-              >
-                Dependencies
-              </button>
-              <button
-                type="button"
-                onClick={() => setTopologyMode("catalogue")}
-                className={`px-3 py-2 rounded-md text-sm font-body border ${
-                  topologyMode === "catalogue"
-                    ? "border-halo-primary bg-teal-50 text-gray-900"
-                    : "border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
-                }`}
-              >
-                Catalogue
-              </button>
-            </div>
-
-            <select
-              value={topologyDomainFilter}
-              onChange={(e) => setTopologyDomainFilter(e.target.value)}
-              className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white"
-            >
-              {topologyDomainsList.map((d) => (
-                <option key={`dom-${d}`} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-
-            <input
-              value={topologyQuery}
-              onChange={(e) => setTopologyQuery(e.target.value)}
-              placeholder="Search services, contracts, tokens…"
-              className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white min-w-[240px]"
-            />
-          </div>
+          <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-600">
+            tables: {physicalModel?.summary?.tables ?? "—"} • domains: {physicalModel?.summary?.domains ?? "—"} • fks:{" "}
+            {physicalModel?.summary?.foreign_keys ?? "—"} • idx: {physicalModel?.summary?.indexes ?? "—"}
+          </span>
         </div>
       </div>
 
-      {topologyMode === "dependencies" ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-halo border border-gray-200 bg-gray-50 p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h4 className="font-heading text-sm text-gray-900">Dependency Graph</h4>
-                <p className="mt-1 text-xs font-body text-gray-600">
-                  Derived from producer/consumer relationships (Produces → Consumes). Click a dependency to inspect it.
-                </p>
-              </div>
-
-              {selectedEdge ? (
-                <button
-                  type="button"
-                  onClick={clearSelectedEdge}
-                  className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
-                >
-                  Clear
-                </button>
-              ) : null}
-            </div>
-
-            {topologyDependencyEdges.length === 0 ? (
-              <div className="mt-4 text-xs font-body text-gray-700">
-                No dependencies found for the current filters.
-              </div>
-            ) : (
-              <div className="mt-4 space-y-2">
-                {topologyDependencyEdges.map((e, idx) => {
-                  const isSelected =
-                    selectedEdge &&
-                    selectedEdge.fromId === e.fromId &&
-                    selectedEdge.toId === e.toId;
-
-                  return (
-                    <button
-                      key={`edge-${idx}`}
-                      type="button"
-                      onClick={() => {
-                        setSelectedEdge(e);
-                        setFocusEdgeServices(true);
-
-                        // Default to consumer, because that's the dependent party
-                        const consumer = (services || []).find((s) => s.id === e.toId) || null;
-                        setSelectedService(consumer);
-                      }}
-                      className={`w-full text-left rounded-md border p-3 transition ${
-                        isSelected
-                          ? "bg-amber-50 border-amber-300 shadow"
-                          : "bg-white border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="text-sm font-body text-gray-900">
-                          <span className="font-heading">{e.fromName}</span>{" "}
-                          <span className="text-gray-500">→</span>{" "}
-                          <span className="font-heading">{e.toName}</span>
-                        </div>
-                        <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-600">
-                          {e.labels.length} link{e.labels.length === 1 ? "" : "s"}
-                        </span>
-                      </div>
-
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {e.labels.map((lbl) => (
-                          <span
-                            key={`${e.fromId}-${e.toId}-${lbl}`}
-                            className="text-[11px] font-mono rounded-md px-2 py-1 border bg-teal-50 border-teal-200 text-gray-800"
-                          >
-                            {lbl}
-                          </span>
-                        ))}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+      {/* Controls */}
+      <div className="rounded-halo border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex gap-2">
+            <button
+              className={`px-3 py-2 rounded-md text-sm font-body border ${
+                tab === "dependencies" ? "bg-amber-50 border-amber-300" : "bg-white border-gray-200"
+              }`}
+              onClick={() => setTab("dependencies")}
+              type="button"
+            >
+              Dependencies
+            </button>
+            <button
+              className={`px-3 py-2 rounded-md text-sm font-body border ${
+                tab === "catalogue" ? "bg-amber-50 border-amber-300" : "bg-white border-gray-200"
+              }`}
+              onClick={() => setTab("catalogue")}
+              type="button"
+            >
+              Catalogue
+            </button>
           </div>
 
-          <div className="rounded-halo border border-gray-200 bg-gray-50 p-4">
-            <div className="flex items-start justify-between gap-4">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search services, domains, tables..."
+            className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white min-w-[320px]"
+          />
+        </div>
+      </div>
+
+      {tab === "catalogue" ? (
+        <div className="rounded-halo border border-gray-200 bg-white p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            {filteredServices.map((s) => {
+              const active = selected?.serviceId === s.serviceId;
+              return (
+                <button
+                  key={s.serviceId}
+                  type="button"
+                  onClick={() => setSelectedService(s.serviceId)}
+                  className={`text-left rounded-md border p-3 transition ${
+                    active ? "bg-amber-50 border-amber-300 shadow" : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-heading text-sm text-gray-900">{s.serviceName}</div>
+                      <div className="mt-1 text-[11px] font-mono text-gray-700">{s.serviceId}</div>
+                      <div className="mt-1 text-[11px] font-body text-gray-600">{s.domain}</div>
+                    </div>
+
+                    <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-white border-gray-200 text-gray-700">
+                      tables: {s.stats.tables}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 text-xs font-body text-gray-700 line-clamp-2">{s.purpose}</div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-white border-gray-200 text-gray-700">
+                      cols: {s.stats.columns}
+                    </span>
+                    <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-white border-gray-200 text-gray-700">
+                      outbound fks: {s.stats.outboundFks}
+                    </span>
+                    <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-white border-gray-200 text-gray-700">
+                      idx: {s.stats.indexes}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Service list */}
+          <div className="rounded-halo border border-gray-200 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <h4 className="font-heading text-sm text-gray-900">Selected Service</h4>
+                <h4 className="font-heading text-sm text-gray-900">Services</h4>
                 <p className="mt-1 text-xs font-body text-gray-600">
-                  Click a service below to view its contracts.
+                  Select a service to inspect its boundaries, owned data and dependencies.
                 </p>
               </div>
-
-              {selectedEdge ? (
-                <label className="flex items-center gap-2 text-xs font-body text-gray-700 select-none">
-                  <input
-                    type="checkbox"
-                    checked={focusEdgeServices}
-                    onChange={(e) => setFocusEdgeServices(e.target.checked)}
-                  />
-                  Focus edge services
-                </label>
-              ) : null}
+              <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-600">
+                {filteredServices.length}
+              </span>
             </div>
 
-            {selectedEdge ? (
-              <div className="mt-4 rounded-md border border-gray-200 bg-white p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-heading text-sm text-gray-900">Edge Details</div>
-                    <div className="mt-1 text-xs font-body text-gray-600">
-                      <span className="font-heading">{selectedEdge.fromName}</span>{" "}
-                      <span className="text-gray-500">→</span>{" "}
-                      <span className="font-heading">{selectedEdge.toName}</span>
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-600">
-                    Producer → Consumer
-                  </span>
-                </div>
-
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                    <div className="text-xs font-body text-gray-600">Producer</div>
-                    <div className="font-heading text-sm text-gray-900">
-                      {selectedEdgeFrom?.name || selectedEdge.fromName}
-                    </div>
-                    <div className="text-[11px] font-body text-gray-500">
-                      Domain: {selectedEdgeFrom?.domain || "—"}
-                    </div>
-                  </div>
-
-                  <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                    <div className="text-xs font-body text-gray-600">Consumer</div>
-                    <div className="font-heading text-sm text-gray-900">
-                      {selectedEdgeTo?.name || selectedEdge.toName}
-                    </div>
-                    <div className="text-[11px] font-body text-gray-500">
-                      Domain: {selectedEdgeTo?.domain || "—"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <div className="text-xs font-body text-gray-600 mb-1">Link contracts</div>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedEdge.labels.map((lbl) => (
-                      <span
-                        key={`edge-lbl-${lbl}`}
-                        className="text-[11px] font-mono rounded-md px-2 py-1 border bg-teal-50 border-teal-200 text-gray-800"
-                      >
-                        {lbl}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="mt-4 grid grid-cols-1 gap-2">
-              {topologyServicesForList.map((svc) => {
-                const active = selectedService?.id === svc.id;
+            <div className="mt-3 space-y-2 max-h-[560px] overflow-auto pr-1">
+              {filteredServices.map((s) => {
+                const active = selected?.serviceId === s.serviceId;
                 return (
                   <button
+                    key={`svc-${s.serviceId}`}
                     type="button"
-                    key={`svcbtn-${svc.id}`}
-                    onClick={() => setSelectedService(active ? null : svc)}
-                    className={`text-left rounded-md border p-3 transition ${
-                      active
-                        ? "bg-amber-50 border-amber-300 shadow"
-                        : "bg-white border-gray-200 hover:bg-gray-50"
+                    onClick={() => setSelectedService(s.serviceId)}
+                    className={`w-full text-left rounded-md border p-3 transition ${
+                      active ? "bg-amber-50 border-amber-300 shadow" : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-heading text-sm text-gray-900">{svc.name}</div>
-                        <div className="text-[11px] font-body text-gray-500">
-                          Domain: {svc.domain}
-                        </div>
-                      </div>
-                      <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-600">
-                        {svc.exposes?.length ? "API" : "Internal"}
-                      </span>
+                    <div className="font-heading text-sm text-gray-900">{s.serviceName}</div>
+                    <div className="mt-1 text-[11px] font-mono text-gray-700">{s.serviceId}</div>
+                    <div className="mt-1 text-[11px] font-body text-gray-600">
+                      tables: {s.stats.tables} • fks: {s.stats.outboundFks}
                     </div>
                   </button>
                 );
               })}
             </div>
-
-            {selectedService && topologyServiceById.has(selectedService.id) ? (
-              <div className="mt-4 rounded-md border border-gray-200 bg-white p-4">
-                <div className="font-heading text-sm text-gray-900">{selectedService.name}</div>
-
-                <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <div className="text-xs font-body text-gray-600 mb-1">Consumes</div>
-                    {(selectedService.consumes || []).length ? (
-                      <ul className="list-disc pl-4 space-y-1">
-                        {selectedService.consumes.map((x) => (
-                          <li key={`${selectedService.id}-c-${x}`} className="text-xs font-body text-gray-800">
-                            {x}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="text-xs font-body text-gray-500">—</div>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="text-xs font-body text-gray-600 mb-1">Produces</div>
-                    {(selectedService.produces || []).length ? (
-                      <ul className="list-disc pl-4 space-y-1">
-                        {selectedService.produces.map((x) => (
-                          <li key={`${selectedService.id}-p-${x}`} className="text-xs font-body text-gray-800">
-                            {x}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="text-xs font-body text-gray-500">—</div>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="text-xs font-body text-gray-600 mb-1">Exposes</div>
-                    {(selectedService.exposes || []).length ? (
-                      <ul className="list-disc pl-4 space-y-1">
-                        {selectedService.exposes.map((x) => (
-                          <li key={`${selectedService.id}-e-${x}`} className="text-xs font-body text-gray-800">
-                            {x}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="text-xs font-body text-gray-500">—</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-halo border border-gray-200 bg-white p-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-heading text-sm text-gray-900">Service Catalogue</h4>
-            <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-600">
-              {topologyFilteredServices.length} service{topologyFilteredServices.length === 1 ? "" : "s"}
-            </span>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {topologyFilteredServices.map((svc) => (
-              <div key={`cat-${svc.id}`} className="rounded-md border border-gray-200 bg-gray-50 p-4">
-                <div className="flex items-start justify-between gap-3">
+          {/* Service detail */}
+          <div className="lg:col-span-2 rounded-halo border border-gray-200 bg-white p-4">
+            {!selected ? (
+              <div className="text-sm font-body text-gray-700">Select a service.</div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                   <div>
-                    <div className="font-heading text-sm text-gray-900">{svc.name}</div>
-                    <div className="text-[11px] font-body text-gray-500">Domain: {svc.domain}</div>
+                    <h4 className="font-heading text-sm text-gray-900">{selected.serviceName}</h4>
+                    <div className="mt-1 text-[11px] font-mono text-gray-700">{selected.serviceId}</div>
+                    <div className="mt-2 text-xs font-body text-gray-700">{selected.purpose}</div>
                   </div>
-                  <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-white border-gray-200 text-gray-600">
-                    {svc.exposes?.length ? "API Surface" : "Internal"}
-                  </span>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-700">
+                      tables: {selected.stats.tables}
+                    </span>
+                    <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-700">
+                      cols: {selected.stats.columns}
+                    </span>
+                    <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-teal-50 border-teal-200 text-gray-800">
+                      outbound fks: {selected.stats.outboundFks}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="mt-3">
-                  <div className="text-xs font-body text-gray-600 mb-1">Responsibilities</div>
-                  <ul className="list-disc pl-4 space-y-1">
-                    {(svc.responsibilities || []).map((r, idx) => (
-                      <li key={`${svc.id}-resp-${idx}`} className="text-xs font-body text-gray-800">
-                        {r}
-                      </li>
+                {/* Owned tables */}
+                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+                  <div className="font-heading text-sm text-gray-900">Owned data (service boundary)</div>
+                  <div className="mt-1 text-xs font-body text-gray-600">
+                    Tables owned by this service. This is the data contract surface for the service.
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(selected.tables || []).map((t) => (
+                      <span
+                        key={`${t.schema}.${t.table}`}
+                        className="text-[11px] font-mono rounded-md px-2 py-1 border bg-white border-gray-200 text-gray-700"
+                      >
+                        {t.schema}.{t.table}
+                      </span>
                     ))}
+                    {!selected.tables?.length ? (
+                      <div className="text-xs font-body text-gray-600">—</div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {/* Dependencies */}
+                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+                  <div className="font-heading text-sm text-gray-900">Service dependencies</div>
+                  <div className="mt-1 text-xs font-body text-gray-600">
+                    Derived from cross-domain foreign key references (data coupling surface).
+                  </div>
+
+                  <ul className="mt-2 list-disc pl-5 space-y-1">
+                    {selectedDeps.length ? (
+                      selectedDeps.map((d) => (
+                        <li key={`${selected.domain}->${d.refDomain}`} className="text-xs font-body text-gray-800">
+                          <span className="font-mono">{domainToServiceName(d.refDomain)}</span>{" "}
+                          <span className="text-gray-500">({d.refDomain})</span> —{" "}
+                          <span className="font-mono">{d.count}</span> FK reference(s)
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-xs font-body text-gray-600">No cross-domain dependencies detected.</li>
+                    )}
                   </ul>
                 </div>
 
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <div className="text-xs font-body text-gray-600 mb-1">Consumes</div>
-                    <div className="flex flex-wrap gap-2">
-                      {(svc.consumes || []).length ? (
-                        svc.consumes.map((x) => (
-                          <span key={`${svc.id}-c2-${x}`} className="text-[11px] font-mono rounded-md px-2 py-1 border bg-white border-gray-200 text-gray-700">
-                            {x}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs font-body text-gray-500">—</span>
-                      )}
-                    </div>
+                {/* Contracts */}
+                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+                  <div className="font-heading text-sm text-gray-900">Service contracts</div>
+                  <div className="mt-1 text-xs font-body text-gray-600">
+                    Suggested REST contracts (placeholder until wired to real OpenAPI from backend).
                   </div>
 
-                  <div>
-                    <div className="text-xs font-body text-gray-600 mb-1">Produces</div>
-                    <div className="flex flex-wrap gap-2">
-                      {(svc.produces || []).length ? (
-                        svc.produces.map((x) => (
-                          <span key={`${svc.id}-p2-${x}`} className="text-[11px] font-mono rounded-md px-2 py-1 border bg-teal-50 border-teal-200 text-gray-800">
-                            {x}
+                  <div className="mt-2 space-y-2">
+                    {selected.contracts.map((c) => (
+                      <div
+                        key={`${selected.serviceId}-${c.name}`}
+                        className="rounded-md border border-gray-200 bg-white p-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="font-heading text-sm text-gray-900">{c.name}</div>
+                          <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-gray-50 border-gray-200 text-gray-700">
+                            {c.version}
                           </span>
-                        ))
-                      ) : (
-                        <span className="text-xs font-body text-gray-500">—</span>
-                      )}
-                    </div>
-                  </div>
+                        </div>
+                        <div className="mt-1 text-xs font-body text-gray-700">{c.description}</div>
 
-                  <div>
-                    <div className="text-xs font-body text-gray-600 mb-1">Exposes</div>
-                    <div className="flex flex-wrap gap-2">
-                      {(svc.exposes || []).length ? (
-                        svc.exposes.map((x) => (
-                          <span key={`${svc.id}-e2-${x}`} className="text-[11px] font-mono rounded-md px-2 py-1 border bg-amber-50 border-amber-200 text-gray-800">
-                            {x}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs font-body text-gray-500">—</span>
-                      )}
-                    </div>
+                        <div className="mt-2 flex flex-col gap-1">
+                          {c.endpoints.map((e) => (
+                            <div key={`${c.name}-${e.method}-${e.path}`} className="text-[11px] font-mono text-gray-700">
+                              {e.method} {e.path}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className="rounded-md border border-gray-200 bg-white p-3">
+                  <div className="text-xs font-body text-gray-600">Next enrichment (optional)</div>
+                  <div className="mt-1 text-xs font-body text-gray-800">
+                    Wire this to real service metadata by parsing FastAPI route tables/OpenAPI JSON from backend_v2,
+                    then replace “suggested contracts” with the actual published interfaces.
                   </div>
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}
     </div>
   );
 }
+
+function domainToServiceId(domain) {
+  const d = (domain || "").toLowerCase().replace(/\s*&\s*/g, "-").replace(/\s+/g, "-");
+  return `svc-${d}`;
+}
+
+function domainToServiceName(domain) {
+  const d = (domain || "").toString();
+  const map = {
+    "Client canonical": "Client Canonical Service",
+    "Lineage & dictionary": "Lineage and Dictionary Service",
+    "KYC & risk": "KYC and Risk Service",
+    "Reference data": "Reference Data Service",
+  };
+  return map[d] || `${d} Service`;
+}
+
+function suggestedContractsForDomain(domain) {
+  // These are intentionally credible but placeholders.
+  // Once you wire OpenAPI, these should become real.
+  const d = (domain || "").toLowerCase();
+
+  const contracts = [];
+
+  if (d.includes("ingestion")) {
+    contracts.push({
+      name: "Ingestion API",
+      version: "v1",
+      description: "Manage ingestion runs, accept source payloads and expose ingest status.",
+      endpoints: [
+        { method: "POST", path: "/ingestion/runs" },
+        { method: "GET", path: "/ingestion/runs/{run_id}" },
+        { method: "POST", path: "/ingestion/source-records" },
+        { method: "GET", path: "/ingestion/source-records?run_id={run_id}" },
+      ],
+    });
+  }
+
+  if (d.includes("client canonical")) {
+    contracts.push({
+      name: "Client Profile API",
+      version: "v1",
+      description: "Retrieve unified client profiles and operational state.",
+      endpoints: [
+        { method: "GET", path: "/clients" },
+        { method: "GET", path: "/clients/{client_id}" },
+        { method: "GET", path: "/clients/{client_id}/operational-state" },
+        { method: "GET", path: "/clients/{client_id}/source-coverage" },
+      ],
+    });
+  }
+
+  if (d.includes("matching")) {
+    contracts.push({
+      name: "Matching API",
+      version: "v1",
+      description: "Execute and inspect matching, clusters and match decisions.",
+      endpoints: [
+        { method: "POST", path: "/matching/runs" },
+        { method: "GET", path: "/matching/runs/{run_id}" },
+        { method: "GET", path: "/matching/clusters" },
+        { method: "GET", path: "/matching/decisions?run_id={run_id}" },
+      ],
+    });
+  }
+
+  if (d.includes("lineage")) {
+    contracts.push({
+      name: "Lineage API",
+      version: "v1",
+      description: "Attribute dictionary, precedence and resolved lineage paths.",
+      endpoints: [
+        { method: "GET", path: "/lineage/dictionary" },
+        { method: "GET", path: "/lineage/precedence-rules" },
+        { method: "GET", path: "/lineage/resolve?client_id={id}&concept={concept}" },
+      ],
+    });
+  }
+
+  if (d.includes("assurance")) {
+    contracts.push({
+      name: "Assurance API",
+      version: "v1",
+      description: "Validation results, audits and operational health signals.",
+      endpoints: [
+        { method: "GET", path: "/assurance/validation-results" },
+        { method: "GET", path: "/assurance/audit-events" },
+        { method: "GET", path: "/assurance/health-checks" },
+        { method: "GET", path: "/assurance/error-logs" },
+      ],
+    });
+  }
+
+  if (d.includes("evidence")) {
+    contracts.push({
+      name: "Evidence API",
+      version: "v1",
+      description: "Evidence artefacts and bundles generated from governed execution.",
+      endpoints: [
+        { method: "GET", path: "/evidence/artefacts" },
+        { method: "GET", path: "/evidence/bundles" },
+        { method: "GET", path: "/evidence/bundles/{bundle_id}" },
+      ],
+    });
+  }
+
+  if (d.includes("kyc") || d.includes("risk")) {
+    contracts.push({
+      name: "KYC & Risk API",
+      version: "v1",
+      description: "KYC flags, KYC records and risk rating surfaces.",
+      endpoints: [
+        { method: "GET", path: "/kyc/corporate/{client_id}" },
+        { method: "GET", path: "/kyc/flags?client_id={id}" },
+        { method: "GET", path: "/risk/rating?client_id={id}" },
+      ],
+    });
+  }
+
+  if (d.includes("reference")) {
+    contracts.push({
+      name: "Reference Data API",
+      version: "v1",
+      description: "Reference and master data shared across services.",
+      endpoints: [
+        { method: "GET", path: "/reference/countries" },
+        { method: "GET", path: "/reference/asset-classes" },
+      ],
+    });
+  }
+
+  // fallback if nothing matched
+  if (!contracts.length) {
+    contracts.push({
+      name: "Service API",
+      version: "v1",
+      description: "Service contract placeholder (wire OpenAPI for real endpoints).",
+      endpoints: [{ method: "GET", path: "/health" }],
+    });
+  }
+
+  return contracts;
+}
+

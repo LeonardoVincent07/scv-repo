@@ -1,0 +1,235 @@
+{
+  "artifact_type": "physical_data_model",
+  "artifact_version": "1.0",
+  "source": {
+    "authority": "MissionDestination",
+    "derived_from": "docs/mission_destination/initial_database_schema.txt"
+  },
+  "tables": [
+    {
+      "table": "client_addresses",
+      "columns": [
+        {
+          "name": "client_id",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": {
+            "references_table": "clients",
+            "references_columns": [
+              "client_id"
+            ]
+          },
+          "raw": "client_id"
+        },
+        {
+          "name": "line1",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "line1"
+        },
+        {
+          "name": "line2",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "line2"
+        },
+        {
+          "name": "city",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "city"
+        },
+        {
+          "name": "postcode",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "postcode"
+        },
+        {
+          "name": "country",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "country"
+        },
+        {
+          "name": "source",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "source"
+        }
+      ],
+      "constraints": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "client_id"
+          ],
+          "references_table": "clients",
+          "references_columns": [
+            "client_id"
+          ],
+          "raw": "`client_id` -> `clients.client_id`"
+        }
+      ]
+    },
+    {
+      "table": "client_identifiers",
+      "columns": [
+        {
+          "name": "client_id",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": {
+            "references_table": "clients",
+            "references_columns": [
+              "client_id"
+            ]
+          },
+          "raw": "client_id"
+        },
+        {
+          "name": "system",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "system"
+        },
+        {
+          "name": "value",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "value"
+        }
+      ],
+      "constraints": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "client_id"
+          ],
+          "references_table": "clients",
+          "references_columns": [
+            "client_id"
+          ],
+          "raw": "`client_id` -> `clients.client_id`"
+        }
+      ]
+    },
+    {
+      "table": "clients",
+      "columns": [
+        {
+          "name": "client_id",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "client_id"
+        },
+        {
+          "name": "name",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "name"
+        },
+        {
+          "name": "email",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "email"
+        },
+        {
+          "name": "country",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "country"
+        },
+        {
+          "name": "created_at",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "created_at"
+        },
+        {
+          "name": "updated_at",
+          "type": "unknown",
+          "nullable": null,
+          "default": null,
+          "pk": true,
+          "unique": false,
+          "fk": null,
+          "raw": "updated_at"
+        }
+      ],
+      "constraints": [],
+      "foreign_keys": []
+    },
+    {
+      "table": "evidence_artefacts",
+      "columns": [],
+      "constraints": [],
+      "foreign_keys": []
+    },
+    {
+      "table": "match_decisions",
+      "columns": [],
+      "constraints": [],
+      "foreign_keys": []
+    }
+  ]
+}

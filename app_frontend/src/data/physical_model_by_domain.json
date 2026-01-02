@@ -1,0 +1,3058 @@
+{
+  "artifact_type": "physical_model_by_domain",
+  "artifact_version": "1.0",
+  "source": {
+    "authority": "Postgres schema dump",
+    "derived_from": "C:\\Dev\\scv-repo\\docs\\mission_destination\\database_schema12.sql"
+  },
+  "domains": [
+    {
+      "domain": "Ingestion",
+      "purpose": "Capture and manage inbound source data feeds, ingest runs, mappings and raw records.",
+      "tables": [
+        {
+          "schema": "public",
+          "table": "accounts",
+          "columns": [
+            {
+              "name": "id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "id integer NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.clients",
+                "references_columns": [
+                  "id"
+                ]
+              },
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "account_number",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "account_number character varying NOT NULL"
+            },
+            {
+              "name": "account_type",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "account_type character varying"
+            },
+            {
+              "name": "currency",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "currency character varying NOT NULL"
+            },
+            {
+              "name": "status",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "status character varying NOT NULL"
+            },
+            {
+              "name": "opened_at",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "opened_at character varying"
+            },
+            {
+              "name": "closed_at",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "closed_at character varying"
+            }
+          ],
+          "primary_key": [
+            "id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "accounts_client_id_fkey",
+              "columns": [
+                "client_id"
+              ],
+              "references_table": "public.clients",
+              "references_columns": [
+                "id"
+              ],
+              "raw": "ALTER TABLE ONLY public.accounts\n    ADD CONSTRAINT accounts_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.clients(id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_accounts_account_number",
+              "unique": true,
+              "method": "btree",
+              "columns": [
+                "account_number"
+              ]
+            },
+            {
+              "name": "ix_accounts_client_id",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "client_id"
+              ]
+            },
+            {
+              "name": "ix_accounts_id",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "id"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "corporate_trade_history",
+          "columns": [
+            {
+              "name": "trade_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "trade_id integer NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.clients",
+                "references_columns": [
+                  "id"
+                ]
+              },
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "trade_date",
+              "type": "timestamp without time zone",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "trade_date timestamp without time zone NOT NULL"
+            },
+            {
+              "name": "asset_class_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.asset_class",
+                "references_columns": [
+                  "asset_class_id"
+                ]
+              },
+              "raw": "asset_class_id integer NOT NULL"
+            },
+            {
+              "name": "instrument",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "instrument character varying(100) NOT NULL"
+            },
+            {
+              "name": "direction",
+              "type": "character varying(4)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "direction character varying(4) NOT NULL"
+            },
+            {
+              "name": "quantity",
+              "type": "numeric(18,4)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "quantity numeric(18,4) NOT NULL"
+            },
+            {
+              "name": "price",
+              "type": "numeric(18,6)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "price numeric(18,6) NOT NULL"
+            },
+            {
+              "name": "pnl",
+              "type": "numeric(18,2)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "pnl numeric(18,2) NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "trade_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "corporate_trade_history_asset_class_id_fkey",
+              "columns": [
+                "asset_class_id"
+              ],
+              "references_table": "public.asset_class",
+              "references_columns": [
+                "asset_class_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.corporate_trade_history\n    ADD CONSTRAINT corporate_trade_history_asset_class_id_fkey FOREIGN KEY (asset_class_id) REFERENCES public.asset_class(asset_class_id);"
+            },
+            {
+              "name": "corporate_trade_history_client_id_fkey",
+              "columns": [
+                "client_id"
+              ],
+              "references_table": "public.clients",
+              "references_columns": [
+                "id"
+              ],
+              "raw": "ALTER TABLE ONLY public.corporate_trade_history\n    ADD CONSTRAINT corporate_trade_history_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.clients(id);"
+            }
+          ],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "crm_contacts",
+          "columns": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "id uuid NOT NULL"
+            },
+            {
+              "name": "source_system",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "source_system character varying NOT NULL"
+            },
+            {
+              "name": "source_record_id",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "source_record_id character varying NOT NULL"
+            },
+            {
+              "name": "first_name",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "first_name character varying"
+            },
+            {
+              "name": "last_name",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "last_name character varying"
+            },
+            {
+              "name": "email",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "email character varying"
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "created_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "updated_at timestamp with time zone DEFAULT now() NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "ingestion_runs",
+          "columns": [
+            {
+              "name": "ingestion_run_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "ingestion_run_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "source_system_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.source_systems",
+                "references_columns": [
+                  "source_system_id"
+                ]
+              },
+              "raw": "source_system_id integer NOT NULL"
+            },
+            {
+              "name": "started_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "started_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "finished_at",
+              "type": "timestamp with time zone",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "finished_at timestamp with time zone"
+            },
+            {
+              "name": "status",
+              "type": "character varying(30)",
+              "nullable": false,
+              "default": "'started'::character varying",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "status character varying(30) DEFAULT 'started'::character varying NOT NULL"
+            },
+            {
+              "name": "schema_version",
+              "type": "character varying(50)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "schema_version character varying(50)"
+            },
+            {
+              "name": "triggered_by",
+              "type": "character varying(200)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "triggered_by character varying(200)"
+            },
+            {
+              "name": "notes",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "notes text"
+            }
+          ],
+          "primary_key": [
+            "ingestion_run_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "ingestion_runs_source_system_id_fkey",
+              "columns": [
+                "source_system_id"
+              ],
+              "references_table": "public.source_systems",
+              "references_columns": [
+                "source_system_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.ingestion_runs\n    ADD CONSTRAINT ingestion_runs_source_system_id_fkey FOREIGN KEY (source_system_id) REFERENCES public.source_systems(source_system_id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_ingestion_runs_source_started",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "source_system_id",
+                "started_at DESC"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "source_field_mappings",
+          "columns": [
+            {
+              "name": "mapping_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "mapping_id integer NOT NULL"
+            },
+            {
+              "name": "source_system_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.source_systems",
+                "references_columns": [
+                  "source_system_id"
+                ]
+              },
+              "raw": "source_system_id integer NOT NULL"
+            },
+            {
+              "name": "source_field",
+              "type": "character varying(200)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "source_field character varying(200) NOT NULL"
+            },
+            {
+              "name": "attribute_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.attribute_dictionary",
+                "references_columns": [
+                  "attribute_id"
+                ]
+              },
+              "raw": "attribute_id integer NOT NULL"
+            },
+            {
+              "name": "transform_rule",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "transform_rule text"
+            },
+            {
+              "name": "is_active",
+              "type": "boolean",
+              "nullable": false,
+              "default": "true",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "is_active boolean DEFAULT true NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "mapping_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "source_field_mappings_attribute_id_fkey",
+              "columns": [
+                "attribute_id"
+              ],
+              "references_table": "public.attribute_dictionary",
+              "references_columns": [
+                "attribute_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.source_field_mappings\n    ADD CONSTRAINT source_field_mappings_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.attribute_dictionary(attribute_id);"
+            },
+            {
+              "name": "source_field_mappings_source_system_id_fkey",
+              "columns": [
+                "source_system_id"
+              ],
+              "references_table": "public.source_systems",
+              "references_columns": [
+                "source_system_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.source_field_mappings\n    ADD CONSTRAINT source_field_mappings_source_system_id_fkey FOREIGN KEY (source_system_id) REFERENCES public.source_systems(source_system_id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_source_field_mappings_system",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "source_system_id"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "source_records_raw",
+          "columns": [
+            {
+              "name": "source_record_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "source_record_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "ingestion_run_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "ingestion_run_id uuid NOT NULL"
+            },
+            {
+              "name": "source_system_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.source_systems",
+                "references_columns": [
+                  "source_system_id"
+                ]
+              },
+              "raw": "source_system_id integer NOT NULL"
+            },
+            {
+              "name": "source_record_key",
+              "type": "character varying(200)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "source_record_key character varying(200) NOT NULL"
+            },
+            {
+              "name": "received_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "received_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "payload",
+              "type": "jsonb",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "payload jsonb NOT NULL"
+            },
+            {
+              "name": "payload_hash",
+              "type": "character varying(128)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "payload_hash character varying(128)"
+            },
+            {
+              "name": "extracted_external_id",
+              "type": "character varying(200)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "extracted_external_id character varying(200)"
+            },
+            {
+              "name": "extracted_email",
+              "type": "character varying(320)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "extracted_email character varying(320)"
+            },
+            {
+              "name": "extracted_tax_id",
+              "type": "character varying(100)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "extracted_tax_id character varying(100)"
+            },
+            {
+              "name": "structural_ok",
+              "type": "boolean",
+              "nullable": false,
+              "default": "true",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "structural_ok boolean DEFAULT true NOT NULL"
+            },
+            {
+              "name": "structural_errors",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "structural_errors jsonb"
+            }
+          ],
+          "primary_key": [
+            "source_record_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "source_records_raw_source_system_id_fkey",
+              "columns": [
+                "source_system_id"
+              ],
+              "references_table": "public.source_systems",
+              "references_columns": [
+                "source_system_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.source_records_raw\n    ADD CONSTRAINT source_records_raw_source_system_id_fkey FOREIGN KEY (source_system_id) REFERENCES public.source_systems(source_system_id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_source_records_raw_run",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "ingestion_run_id"
+              ]
+            },
+            {
+              "name": "ix_source_records_raw_system_key",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "source_system_id",
+                "source_record_key"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "source_systems",
+          "columns": [
+            {
+              "name": "source_system_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "source_system_id integer NOT NULL"
+            },
+            {
+              "name": "code",
+              "type": "character varying(50)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "code character varying(50) NOT NULL"
+            },
+            {
+              "name": "name",
+              "type": "character varying(200)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "name character varying(200) NOT NULL"
+            },
+            {
+              "name": "description",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "description text"
+            },
+            {
+              "name": "is_active",
+              "type": "boolean",
+              "nullable": false,
+              "default": "true",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "is_active boolean DEFAULT true NOT NULL"
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "created_at timestamp with time zone DEFAULT now() NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "source_system_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "transactions",
+          "columns": [
+            {
+              "name": "id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "id integer NOT NULL"
+            },
+            {
+              "name": "account_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.accounts",
+                "references_columns": [
+                  "id"
+                ]
+              },
+              "raw": "account_id integer NOT NULL"
+            },
+            {
+              "name": "trade_date",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "trade_date character varying"
+            },
+            {
+              "name": "value_date",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "value_date character varying"
+            },
+            {
+              "name": "amount",
+              "type": "double precision",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "amount double precision NOT NULL"
+            },
+            {
+              "name": "currency",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "currency character varying NOT NULL"
+            },
+            {
+              "name": "txn_type",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "txn_type character varying NOT NULL"
+            },
+            {
+              "name": "description",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "description character varying"
+            },
+            {
+              "name": "price",
+              "type": "double precision",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "price double precision"
+            },
+            {
+              "name": "pnl",
+              "type": "double precision",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "pnl double precision"
+            }
+          ],
+          "primary_key": [
+            "id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "transactions_account_id_fkey",
+              "columns": [
+                "account_id"
+              ],
+              "references_table": "public.accounts",
+              "references_columns": [
+                "id"
+              ],
+              "raw": "ALTER TABLE ONLY public.transactions\n    ADD CONSTRAINT transactions_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_transactions_account_id",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "account_id"
+              ]
+            },
+            {
+              "name": "ix_transactions_id",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "id"
+              ]
+            }
+          ],
+          "create_constraints": []
+        }
+      ]
+    },
+    {
+      "domain": "Client canonical",
+      "purpose": "Canonical client records, operational state and source coverage.",
+      "tables": [
+        {
+          "schema": "public",
+          "table": "client_operational_state",
+          "columns": [
+            {
+              "name": "state_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "state_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "as_of",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "as_of timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "processing_stage",
+              "type": "character varying(50)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "processing_stage character varying(50) NOT NULL"
+            },
+            {
+              "name": "status",
+              "type": "character varying(30)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "status character varying(30) NOT NULL"
+            },
+            {
+              "name": "message",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "message text"
+            },
+            {
+              "name": "details",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "details jsonb"
+            }
+          ],
+          "primary_key": [
+            "state_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [
+            {
+              "name": "ix_client_operational_state_client_asof",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "client_id",
+                "as_of DESC"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "client_source_coverage",
+          "columns": [
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "source_system_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": {
+                "references_table": "public.source_systems",
+                "references_columns": [
+                  "source_system_id"
+                ]
+              },
+              "raw": "source_system_id integer NOT NULL"
+            },
+            {
+              "name": "last_seen_at",
+              "type": "timestamp with time zone",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "last_seen_at timestamp with time zone"
+            },
+            {
+              "name": "is_missing",
+              "type": "boolean",
+              "nullable": false,
+              "default": "false",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "is_missing boolean DEFAULT false NOT NULL"
+            },
+            {
+              "name": "is_stale",
+              "type": "boolean",
+              "nullable": false,
+              "default": "false",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "is_stale boolean DEFAULT false NOT NULL"
+            },
+            {
+              "name": "notes",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "notes text"
+            }
+          ],
+          "primary_key": [
+            "client_id",
+            "source_system_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "client_source_coverage_source_system_id_fkey",
+              "columns": [
+                "source_system_id"
+              ],
+              "references_table": "public.source_systems",
+              "references_columns": [
+                "source_system_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.client_source_coverage\n    ADD CONSTRAINT client_source_coverage_source_system_id_fkey FOREIGN KEY (source_system_id) REFERENCES public.source_systems(source_system_id);"
+            }
+          ],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "clients",
+          "columns": [
+            {
+              "name": "id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "id integer NOT NULL"
+            },
+            {
+              "name": "external_id",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "external_id character varying"
+            },
+            {
+              "name": "full_name",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "full_name character varying NOT NULL"
+            },
+            {
+              "name": "email",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "email character varying"
+            },
+            {
+              "name": "phone",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "phone character varying"
+            },
+            {
+              "name": "primary_address",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "primary_address character varying"
+            },
+            {
+              "name": "country",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "country character varying"
+            },
+            {
+              "name": "tax_id",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "tax_id character varying"
+            },
+            {
+              "name": "segment",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "segment character varying"
+            },
+            {
+              "name": "risk_rating",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "risk_rating character varying"
+            },
+            {
+              "name": "country_id",
+              "type": "integer",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "country_id integer"
+            },
+            {
+              "name": "risk_rating_id",
+              "type": "integer",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "risk_rating_id integer"
+            }
+          ],
+          "primary_key": [
+            "id"
+          ],
+          "foreign_keys": [],
+          "indexes": [
+            {
+              "name": "ix_clients_external_id",
+              "unique": true,
+              "method": "btree",
+              "columns": [
+                "external_id"
+              ]
+            },
+            {
+              "name": "ix_clients_id",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "id"
+              ]
+            }
+          ],
+          "create_constraints": []
+        }
+      ]
+    },
+    {
+      "domain": "Matching",
+      "purpose": "Run matching, record decisions and maintain client clusters.",
+      "tables": [
+        {
+          "schema": "public",
+          "table": "client_cluster_members",
+          "columns": [
+            {
+              "name": "cluster_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "cluster_id uuid NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "role",
+              "type": "character varying(30)",
+              "nullable": false,
+              "default": "'member'::character varying",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "role character varying(30) DEFAULT 'member'::character varying NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "client_id",
+            "cluster_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "client_clusters",
+          "columns": [
+            {
+              "name": "cluster_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "cluster_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "created_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "rationale",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "rationale text"
+            }
+          ],
+          "primary_key": [
+            "cluster_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "match_decisions",
+          "columns": [
+            {
+              "name": "match_decision_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "match_decision_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "match_run_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "match_run_id uuid NOT NULL"
+            },
+            {
+              "name": "source_record_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "source_record_id uuid NOT NULL"
+            },
+            {
+              "name": "decided_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "decided_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "decision",
+              "type": "character varying(30)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "decision character varying(30) NOT NULL"
+            },
+            {
+              "name": "matched_client_id",
+              "type": "integer",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.clients",
+                "references_columns": [
+                  "id"
+                ]
+              },
+              "raw": "matched_client_id integer"
+            },
+            {
+              "name": "confidence",
+              "type": "numeric(5,4)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "confidence numeric(5,4)"
+            },
+            {
+              "name": "rule_hits",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "rule_hits jsonb"
+            },
+            {
+              "name": "conflict_summary",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "conflict_summary jsonb"
+            }
+          ],
+          "primary_key": [
+            "match_decision_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "match_decisions_matched_client_id_fkey",
+              "columns": [
+                "matched_client_id"
+              ],
+              "references_table": "public.clients",
+              "references_columns": [
+                "id"
+              ],
+              "raw": "ALTER TABLE ONLY public.match_decisions\n    ADD CONSTRAINT match_decisions_matched_client_id_fkey FOREIGN KEY (matched_client_id) REFERENCES public.clients(id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_match_decisions_client",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "matched_client_id"
+              ]
+            },
+            {
+              "name": "ix_match_decisions_run",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "match_run_id"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "match_runs",
+          "columns": [
+            {
+              "name": "match_run_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "match_run_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "started_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "started_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "finished_at",
+              "type": "timestamp with time zone",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "finished_at timestamp with time zone"
+            },
+            {
+              "name": "status",
+              "type": "character varying(30)",
+              "nullable": false,
+              "default": "'started'::character varying",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "status character varying(30) DEFAULT 'started'::character varying NOT NULL"
+            },
+            {
+              "name": "ruleset_version",
+              "type": "character varying(50)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "ruleset_version character varying(50)"
+            },
+            {
+              "name": "notes",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "notes text"
+            }
+          ],
+          "primary_key": [
+            "match_run_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        }
+      ]
+    },
+    {
+      "domain": "Lineage & dictionary",
+      "purpose": "Attribute dictionary, precedence rules and attribute-level lineage.",
+      "tables": [
+        {
+          "schema": "public",
+          "table": "attribute_dictionary",
+          "columns": [
+            {
+              "name": "attribute_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "attribute_id integer NOT NULL"
+            },
+            {
+              "name": "canonical_name",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "canonical_name character varying(100) NOT NULL"
+            },
+            {
+              "name": "data_type",
+              "type": "character varying(30)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "data_type character varying(30) NOT NULL"
+            },
+            {
+              "name": "is_mandatory",
+              "type": "boolean",
+              "nullable": false,
+              "default": "false",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "is_mandatory boolean DEFAULT false NOT NULL"
+            },
+            {
+              "name": "description",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "description text"
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "created_at timestamp with time zone DEFAULT now() NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "attribute_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "attribute_precedence_rules",
+          "columns": [
+            {
+              "name": "precedence_rule_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "precedence_rule_id integer NOT NULL"
+            },
+            {
+              "name": "attribute_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.attribute_dictionary",
+                "references_columns": [
+                  "attribute_id"
+                ]
+              },
+              "raw": "attribute_id integer NOT NULL"
+            },
+            {
+              "name": "source_system_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.source_systems",
+                "references_columns": [
+                  "source_system_id"
+                ]
+              },
+              "raw": "source_system_id integer NOT NULL"
+            },
+            {
+              "name": "precedence_rank",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "precedence_rank integer NOT NULL"
+            },
+            {
+              "name": "is_active",
+              "type": "boolean",
+              "nullable": false,
+              "default": "true",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "is_active boolean DEFAULT true NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "precedence_rule_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "attribute_precedence_rules_attribute_id_fkey",
+              "columns": [
+                "attribute_id"
+              ],
+              "references_table": "public.attribute_dictionary",
+              "references_columns": [
+                "attribute_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.attribute_precedence_rules\n    ADD CONSTRAINT attribute_precedence_rules_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.attribute_dictionary(attribute_id);"
+            },
+            {
+              "name": "attribute_precedence_rules_source_system_id_fkey",
+              "columns": [
+                "source_system_id"
+              ],
+              "references_table": "public.source_systems",
+              "references_columns": [
+                "source_system_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.attribute_precedence_rules\n    ADD CONSTRAINT attribute_precedence_rules_source_system_id_fkey FOREIGN KEY (source_system_id) REFERENCES public.source_systems(source_system_id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_attribute_precedence_attr",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "attribute_id",
+                "precedence_rank"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "client_data_lineage",
+          "columns": [
+            {
+              "name": "lineage_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "lineage_id integer NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "data_source",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "data_source character varying(100) NOT NULL"
+            },
+            {
+              "name": "field_name",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "field_name character varying(100) NOT NULL"
+            },
+            {
+              "name": "transformation_description",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "transformation_description text"
+            },
+            {
+              "name": "timestamp",
+              "type": "timestamp without time zone",
+              "nullable": true,
+              "default": "CURRENT_TIMESTAMP",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "\"timestamp\" timestamp without time zone DEFAULT CURRENT_TIMESTAMP"
+            }
+          ],
+          "primary_key": [
+            "lineage_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        }
+      ]
+    },
+    {
+      "domain": "Assurance",
+      "purpose": "Validation, audit and operational assurance signals, including conflicts and errors.",
+      "tables": [
+        {
+          "schema": "public",
+          "table": "attribute_conflicts",
+          "columns": [
+            {
+              "name": "conflict_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "conflict_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "attribute_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.attribute_dictionary",
+                "references_columns": [
+                  "attribute_id"
+                ]
+              },
+              "raw": "attribute_id integer NOT NULL"
+            },
+            {
+              "name": "detected_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "detected_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "values_by_source",
+              "type": "jsonb",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "values_by_source jsonb NOT NULL"
+            },
+            {
+              "name": "resolved",
+              "type": "boolean",
+              "nullable": false,
+              "default": "false",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "resolved boolean DEFAULT false NOT NULL"
+            },
+            {
+              "name": "resolution_notes",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "resolution_notes text"
+            },
+            {
+              "name": "resolved_at",
+              "type": "timestamp with time zone",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "resolved_at timestamp with time zone"
+            }
+          ],
+          "primary_key": [
+            "conflict_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "attribute_conflicts_attribute_id_fkey",
+              "columns": [
+                "attribute_id"
+              ],
+              "references_table": "public.attribute_dictionary",
+              "references_columns": [
+                "attribute_id"
+              ],
+              "raw": "ALTER TABLE ONLY public.attribute_conflicts\n    ADD CONSTRAINT attribute_conflicts_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.attribute_dictionary(attribute_id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_attribute_conflicts_client",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "client_id",
+                "resolved"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "audit_events",
+          "columns": [
+            {
+              "name": "audit_event_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "audit_event_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "occurred_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "occurred_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "actor",
+              "type": "character varying(200)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "actor character varying(200) NOT NULL"
+            },
+            {
+              "name": "event_type",
+              "type": "character varying(80)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "event_type character varying(80) NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "client_id integer"
+            },
+            {
+              "name": "source_record_id",
+              "type": "uuid",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "source_record_id uuid"
+            },
+            {
+              "name": "evidence_bundle_id",
+              "type": "uuid",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "evidence_bundle_id uuid"
+            },
+            {
+              "name": "details",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "details jsonb"
+            }
+          ],
+          "primary_key": [
+            "audit_event_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [
+            {
+              "name": "ix_audit_events_client_time",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "client_id",
+                "occurred_at DESC"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "service_error_logs",
+          "columns": [
+            {
+              "name": "error_log_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "error_log_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "occurred_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "occurred_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "service_name",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "service_name character varying(100) NOT NULL"
+            },
+            {
+              "name": "severity",
+              "type": "character varying(20)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "severity character varying(20) NOT NULL"
+            },
+            {
+              "name": "error_code",
+              "type": "character varying(50)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "error_code character varying(50)"
+            },
+            {
+              "name": "message",
+              "type": "text",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "message text NOT NULL"
+            },
+            {
+              "name": "details",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "details jsonb"
+            },
+            {
+              "name": "correlation_id",
+              "type": "character varying(100)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "correlation_id character varying(100)"
+            }
+          ],
+          "primary_key": [
+            "error_log_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [
+            {
+              "name": "ix_service_error_logs_service_time",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "service_name",
+                "occurred_at DESC"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "service_health_checks",
+          "columns": [
+            {
+              "name": "health_check_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "health_check_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "checked_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "checked_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "service_name",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "service_name character varying(100) NOT NULL"
+            },
+            {
+              "name": "check_type",
+              "type": "character varying(50)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "check_type character varying(50) NOT NULL"
+            },
+            {
+              "name": "status",
+              "type": "character varying(20)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "status character varying(20) NOT NULL"
+            },
+            {
+              "name": "details",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "details jsonb"
+            }
+          ],
+          "primary_key": [
+            "health_check_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [
+            {
+              "name": "ix_service_health_checks_service_time",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "service_name",
+                "checked_at DESC"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "validation_results",
+          "columns": [
+            {
+              "name": "validation_result_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "validation_result_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "source_record_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "source_record_id uuid NOT NULL"
+            },
+            {
+              "name": "validated_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "validated_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "validation_type",
+              "type": "character varying(50)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "validation_type character varying(50) NOT NULL"
+            },
+            {
+              "name": "passed",
+              "type": "boolean",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "passed boolean NOT NULL"
+            },
+            {
+              "name": "details",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "details jsonb"
+            },
+            {
+              "name": "error_count",
+              "type": "integer",
+              "nullable": false,
+              "default": "0",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "error_count integer DEFAULT 0 NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "validation_result_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [
+            {
+              "name": "ix_validation_results_record",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "source_record_id"
+              ]
+            }
+          ],
+          "create_constraints": []
+        }
+      ]
+    },
+    {
+      "domain": "Evidence",
+      "purpose": "Evidence artefacts and bundles generated by governed execution.",
+      "tables": [
+        {
+          "schema": "public",
+          "table": "evidence_artefacts",
+          "columns": [
+            {
+              "name": "artefact_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "artefact_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "evidence_bundle_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "evidence_bundle_id uuid NOT NULL"
+            },
+            {
+              "name": "artefact_type",
+              "type": "character varying(50)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "artefact_type character varying(50) NOT NULL"
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "created_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "content",
+              "type": "jsonb",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "content jsonb"
+            },
+            {
+              "name": "storage_ref",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "storage_ref text"
+            },
+            {
+              "name": "content_hash",
+              "type": "character varying(128)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "content_hash character varying(128)"
+            }
+          ],
+          "primary_key": [
+            "artefact_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [
+            {
+              "name": "ix_evidence_artefacts_bundle",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "evidence_bundle_id"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "evidence_bundles",
+          "columns": [
+            {
+              "name": "evidence_bundle_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "evidence_bundle_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "client_id integer"
+            },
+            {
+              "name": "ingestion_run_id",
+              "type": "uuid",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "ingestion_run_id uuid"
+            },
+            {
+              "name": "match_run_id",
+              "type": "uuid",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "match_run_id uuid"
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "created_at timestamp with time zone DEFAULT now() NOT NULL"
+            },
+            {
+              "name": "bundle_type",
+              "type": "character varying(50)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "bundle_type character varying(50) NOT NULL"
+            },
+            {
+              "name": "summary",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "summary text"
+            }
+          ],
+          "primary_key": [
+            "evidence_bundle_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [
+            {
+              "name": "ix_evidence_bundles_client_created",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "client_id",
+                "created_at DESC"
+              ]
+            }
+          ],
+          "create_constraints": []
+        }
+      ]
+    },
+    {
+      "domain": "KYC & risk",
+      "purpose": "KYC and risk data, flags, ratings and regulatory enrichment.",
+      "tables": [
+        {
+          "schema": "public",
+          "table": "client_regulatory_enrichment",
+          "columns": [
+            {
+              "name": "enrichment_id",
+              "type": "uuid",
+              "nullable": false,
+              "default": "gen_random_uuid()",
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "enrichment_id uuid DEFAULT gen_random_uuid() NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "fatca_status",
+              "type": "character varying(50)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "fatca_status character varying(50)"
+            },
+            {
+              "name": "crs_status",
+              "type": "character varying(50)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "crs_status character varying(50)"
+            },
+            {
+              "name": "onboarding_status",
+              "type": "character varying(50)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "onboarding_status character varying(50)"
+            },
+            {
+              "name": "kyc_overall_status",
+              "type": "character varying(50)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "kyc_overall_status character varying(50)"
+            },
+            {
+              "name": "derived_risk_notes",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "derived_risk_notes text"
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp with time zone",
+              "nullable": false,
+              "default": "now()",
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "updated_at timestamp with time zone DEFAULT now() NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "enrichment_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "corporate_kyc_info",
+          "columns": [
+            {
+              "name": "corporate_kyc_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "corporate_kyc_id integer NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.clients",
+                "references_columns": [
+                  "id"
+                ]
+              },
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "registration_number",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "registration_number character varying(100) NOT NULL"
+            },
+            {
+              "name": "legal_name",
+              "type": "character varying(255)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "legal_name character varying(255) NOT NULL"
+            },
+            {
+              "name": "business_license",
+              "type": "character varying(100)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "business_license character varying(100)"
+            },
+            {
+              "name": "company_structure",
+              "type": "character varying(50)",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "company_structure character varying(50)"
+            },
+            {
+              "name": "compliance_status",
+              "type": "character varying(50)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "compliance_status character varying(50) NOT NULL"
+            },
+            {
+              "name": "last_reviewed_at",
+              "type": "timestamp without time zone",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "last_reviewed_at timestamp without time zone"
+            },
+            {
+              "name": "next_review_due_at",
+              "type": "timestamp without time zone",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "next_review_due_at timestamp without time zone"
+            },
+            {
+              "name": "notes",
+              "type": "text",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "notes text"
+            }
+          ],
+          "primary_key": [
+            "corporate_kyc_id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "corporate_kyc_info_client_id_fkey",
+              "columns": [
+                "client_id"
+              ],
+              "references_table": "public.clients",
+              "references_columns": [
+                "id"
+              ],
+              "raw": "ALTER TABLE ONLY public.corporate_kyc_info\n    ADD CONSTRAINT corporate_kyc_info_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.clients(id);"
+            }
+          ],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "kyc_flags",
+          "columns": [
+            {
+              "name": "id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "id integer NOT NULL"
+            },
+            {
+              "name": "client_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": {
+                "references_table": "public.clients",
+                "references_columns": [
+                  "id"
+                ]
+              },
+              "raw": "client_id integer NOT NULL"
+            },
+            {
+              "name": "code",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "code character varying NOT NULL"
+            },
+            {
+              "name": "description",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "description character varying"
+            },
+            {
+              "name": "status",
+              "type": "character varying",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "status character varying NOT NULL"
+            },
+            {
+              "name": "created_at",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "created_at character varying"
+            },
+            {
+              "name": "resolved_at",
+              "type": "character varying",
+              "nullable": true,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "resolved_at character varying"
+            }
+          ],
+          "primary_key": [
+            "id"
+          ],
+          "foreign_keys": [
+            {
+              "name": "kyc_flags_client_id_fkey",
+              "columns": [
+                "client_id"
+              ],
+              "references_table": "public.clients",
+              "references_columns": [
+                "id"
+              ],
+              "raw": "ALTER TABLE ONLY public.kyc_flags\n    ADD CONSTRAINT kyc_flags_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.clients(id);"
+            }
+          ],
+          "indexes": [
+            {
+              "name": "ix_kyc_flags_client_id",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "client_id"
+              ]
+            },
+            {
+              "name": "ix_kyc_flags_id",
+              "unique": false,
+              "method": "btree",
+              "columns": [
+                "id"
+              ]
+            }
+          ],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "risk_rating",
+          "columns": [
+            {
+              "name": "risk_rating_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "risk_rating_id integer NOT NULL"
+            },
+            {
+              "name": "rating_code",
+              "type": "character varying(20)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "rating_code character varying(20) NOT NULL"
+            },
+            {
+              "name": "description",
+              "type": "character varying(255)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "description character varying(255) NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "risk_rating_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        }
+      ]
+    },
+    {
+      "domain": "Reference data",
+      "purpose": "Reference/master data used across the platform.",
+      "tables": [
+        {
+          "schema": "public",
+          "table": "asset_class",
+          "columns": [
+            {
+              "name": "asset_class_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "asset_class_id integer NOT NULL"
+            },
+            {
+              "name": "asset_code",
+              "type": "character varying(20)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "asset_code character varying(20) NOT NULL"
+            },
+            {
+              "name": "asset_name",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "asset_name character varying(100) NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "asset_class_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        },
+        {
+          "schema": "public",
+          "table": "country",
+          "columns": [
+            {
+              "name": "country_id",
+              "type": "integer",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": true,
+              "fk": null,
+              "raw": "country_id integer NOT NULL"
+            },
+            {
+              "name": "country_code",
+              "type": "character varying(3)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "country_code character varying(3) NOT NULL"
+            },
+            {
+              "name": "country_name",
+              "type": "character varying(100)",
+              "nullable": false,
+              "default": null,
+              "unique": false,
+              "pk": false,
+              "fk": null,
+              "raw": "country_name character varying(100) NOT NULL"
+            }
+          ],
+          "primary_key": [
+            "country_id"
+          ],
+          "foreign_keys": [],
+          "indexes": [],
+          "create_constraints": []
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "tables": 31,
+    "domains": 8,
+    "foreign_keys": 15,
+    "indexes": 24
+  }
+}

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import BusinessDataLineagePanel from "./BusinessDataLineagePanel";
 import MissionAtlasServiceTopologyPanel from "./MissionAtlasServiceTopologyPanel";
 import MissionAtlasLogicalDataModelPanel from "./MissionAtlasLogicalDataModelPanel";
+import MissionAtlasPhysicalDataModelPanel from "./MissionAtlasPhysicalDataModelPanel";
 
 
 const domains = [
@@ -274,7 +275,7 @@ export default function MissionAtlasPanel() {
       key: "physicalDataModel",
       title: "Physical Data Model",
       desc: "Database schema: tables, fields, constraints, and indexes.",
-      badge: "Planned",
+      badge: "Live",
     },
     {
       key: "engineeringQuality",
@@ -497,15 +498,7 @@ export default function MissionAtlasPanel() {
   );
 
   const renderPhysicalDataModel = () => (
-    <ComingSoonPanel
-      title="Physical Data Model"
-      subtitle="Database schema: tables, fields, constraints, and indexes."
-      bullets={[
-        "Live schema snapshot (tables + columns)",
-        "Constraints and foreign keys",
-        "Diff vs previous snapshot (change detection)",
-      ]}
-    />
+    <MissionAtlasPhysicalDataModelPanel />
   );
 
   const renderEngineeringQuality = () => (
@@ -635,7 +628,6 @@ export default function MissionAtlasPanel() {
     </section>
   );
 }
-
 
 
 
