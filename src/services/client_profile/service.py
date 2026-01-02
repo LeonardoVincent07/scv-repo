@@ -42,6 +42,8 @@ class ClientProfileService:
         # Loop through fields to populate canonical profile
         for field in ["name", "email", "phone", "country", "primary_address"]:
             for rec in raw_records:
+                if not rec:
+                    continue
                 if field in rec and rec[field]:
                     canonical[field] = rec[field]
                     lineage[field] = rec.get("_source", "unknown")
@@ -56,6 +58,8 @@ class ClientProfileService:
         # Addresses (optional, demo only)
         addresses = []
         for rec in raw_records:
+            if not rec:
+                continue
             if "address" in rec and rec["address"]:
                 addr = rec["address"]
                 addresses.append(
@@ -65,7 +69,7 @@ class ClientProfileService:
                         city=addr.get("city"),
                         postcode=addr.get("postcode"),
                         country=addr.get("country"),
-                        source=rec["_source"],
+                        source=rec.get("_source", "unknown"),
                     )
                 )
 
@@ -80,7 +84,7 @@ class ClientProfileService:
             identifiers=identifiers,
             addresses=addresses,
             lineage=lineage,
-            raw_sources={rec["_source"]: rec for rec in raw_records},
+            raw_sources={rec["_source"]: rec for rec in raw_records if rec and "_source" in rec},
         )
         return profile.__dict__
 
@@ -105,9 +109,11 @@ class ClientProfileService:
         """
         identifiers = []
         for rec in raw_records:
+            if not rec:
+                continue
             if "identifier" in rec and rec["identifier"]:
                 identifiers.append(
-                    ClientIdentifier(system=rec["_source"], value=rec["identifier"])
+                    ClientIdentifier(system=rec.get("_source", "unknown"), value=rec["identifier"])
                 )
         return identifiers
 
@@ -121,4 +127,5 @@ class ClientProfileService:
         # Replace this with a call to your KYC database or service to fetch client data
         # Example: return fetch_client_from_kyc(client_id)
         pass
+
 
