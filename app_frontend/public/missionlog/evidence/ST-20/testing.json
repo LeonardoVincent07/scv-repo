@@ -2,7 +2,7 @@
   "meta": {
     "story_id": "ST-20",
     "dimension": "testing",
-    "published_at_utc": "2025-12-31T21:50:35Z",
+    "published_at_utc": "2026-01-02T15:35:13Z",
     "source_path": "evidence/test_results/ST-20.json"
   },
   "payload": {
@@ -10,10 +10,15 @@
     "pytest_targets": [
       "tests/services/client_profile/test_st_20_assemble_base_profile.py"
     ],
-    "exit_code": 1,
-    "status": "fail",
-    "warnings_count": 0,
-    "pytest_summary": "2 failed in 0.17s",
-    "warnings": ""
+    "exit_code": 0,
+    "status": "pass",
+    "warnings_count": 1,
+    "pytest_summary": "2 passed, 1 warning in 0.09s",
+    "warnings": "============================== warnings summary ===============================\nbackend_v2\\app\\config.py:5\n  <repo>\\backend_v2\\app\\config.py:5: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class Settings(BaseSettings):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 1 warning in 0.09s",
+    "scope": {
+      "owning_service": "client_profile",
+      "implementation_file": "src/services/client_profile/service.py",
+      "governed_by": "docs/mission_destination/story_service_mapping.yaml"
+    }
   }
 }

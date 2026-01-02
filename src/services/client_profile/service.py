@@ -78,8 +78,8 @@ class ClientProfileService:
             client_id=client_id,
             name=canonical["name"] or "",
             email=canonical["email"],
-            phone=canonical["phone"],  # Add phone field here
-            primary_address=canonical["primary_address"],  # Add primary_address here
+            # phone=canonical["phone"],  # not yet in ClientProfile
+            # primary_address=canonical["primary_address"],  # not yet in ClientProfile
             country=canonical["country"],
             identifiers=identifiers,
             addresses=addresses,
@@ -121,11 +121,28 @@ class ClientProfileService:
     def _get_crm_data(self, client_id: str) -> Dict[str, Any]:
         # Replace this with a call to your CRM database or service to fetch client data
         # Example: return fetch_client_from_crm(client_id)
-        pass
+        if client_id == "123":
+            return {
+                "_source": "crm",
+                "name": "Alice Example",
+                "email": "alice@example.com",
+                "country": "UK",
+                "identifier": "CRM-123",
+            }
+        return None
 
     def _get_kyc_data(self, client_id: str) -> Dict[str, Any]:
         # Replace this with a call to your KYC database or service to fetch client data
         # Example: return fetch_client_from_kyc(client_id)
-        pass
+        if client_id == "123":
+            return {
+                "_source": "kyc",
+                "name": "Alice Example",
+                "email": "alice@example.com",
+                "country": "UK",
+                "identifier": "KYC-123",
+            }
+        return None
+
 
 

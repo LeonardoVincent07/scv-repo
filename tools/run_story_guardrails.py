@@ -24,6 +24,18 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
 
+import os
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+BACKEND_ROOT = REPO_ROOT / "backend_v2"
+
+# Ensure backend_v2 is on PYTHONPATH so `import app` works
+sys.path.insert(0, str(BACKEND_ROOT))
+os.environ["PYTHONPATH"] = str(BACKEND_ROOT)
+
+
 
 # ---------------------------------------------------------------------------
 # Repo root + sys.path
