@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import BusinessDataLineagePanel from "./BusinessDataLineagePanel";
 import MissionAtlasServiceTopologyPanel from "./MissionAtlasServiceTopologyPanel";
+import MissionAtlasLogicalDataModelPanel from "./MissionAtlasLogicalDataModelPanel";
+
 
 const domains = [
   {
@@ -258,7 +260,7 @@ export default function MissionAtlasPanel() {
     },
     {
       key: "serviceTopology",
-      title: "Service Topology",
+      title: "Microservices Architecture",
       desc: "Microservices, contracts, and interactions (live from the service model).",
       badge: "Live",
     },
@@ -266,7 +268,7 @@ export default function MissionAtlasPanel() {
       key: "logicalDataModel",
       title: "Logical Data Model",
       desc: "Business entities, relationships, and rules.",
-      badge: "Planned",
+      badge: "Live",
     },
     {
       key: "physicalDataModel",
@@ -567,7 +569,7 @@ export default function MissionAtlasPanel() {
           />
         );
       case "logicalDataModel":
-        return renderLogicalDataModel();
+        return <MissionAtlasLogicalDataModelPanel />;
       case "physicalDataModel":
         return renderPhysicalDataModel();
       case "engineeringQuality":

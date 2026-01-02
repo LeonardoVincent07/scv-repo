@@ -6,6 +6,7 @@ from pathlib import Path
 from app.routers.client_router import router as client_router
 from app.routers.ingestion_router import router as ingestion_router
 from app.routers.missioncontrol_runner import router as missioncontrol_router
+from app.atlas.routes import router as atlas_router  # <-- ADDED
 
 
 app = FastAPI(
@@ -26,6 +27,7 @@ app.add_middleware(
 app.include_router(client_router)
 app.include_router(ingestion_router)
 app.include_router(missioncontrol_router)
+app.include_router(atlas_router)  # <-- ADDED
 
 
 # -------------------------------------------------------------------

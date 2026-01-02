@@ -101,9 +101,9 @@ export default function MissionAtlasServiceTopologyPanel({ domains, services }) 
       <div className="rounded-halo border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h3 className="font-heading text-sm text-gray-900">Service Topology</h3>
+            <h3 className="font-heading text-sm text-gray-900">Microservices Architecture</h3>
             <p className="mt-1 text-xs font-body text-gray-600">
-              A live view of services, contracts, and dependencies derived from the current service model.
+              A live view of domains, services, contracts and inter-service dependencies across the platform.
             </p>
           </div>
 

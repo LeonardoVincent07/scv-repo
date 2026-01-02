@@ -1,0 +1,54 @@
+{
+  "artifact_type": "logical_data_model",
+  "artifact_version": "1.0",
+  "model_name": "Initial Logical Data Model (LDM)",
+  "mission": "Single Client View (SCV)",
+  "source": {
+    "authority": "MissionDestination",
+    "derived_from": "docs/mission_destination/initial_logical_data_model.md"
+  },
+  "entities": [
+    {
+      "entity": "ClientProfile",
+      "description": "Represents the unified, deduplicated profile of a client.",
+      "fields": [
+        { "name": "client_id", "type": "str", "description": "Internal SCV identifier" },
+        { "name": "name", "type": "str", "description": "Canonical client name" },
+        { "name": "email", "type": "Optional[str]", "description": "Canonical email" },
+        { "name": "country", "type": "Optional[str]", "description": "Country associated with the client" },
+        { "name": "identifiers", "type": "List[ClientIdentifier]", "description": "Identifiers from upstream systems" },
+        { "name": "addresses", "type": "List[ClientAddress]", "description": "Normalised address objects" },
+        { "name": "lineage", "type": "Dict[str, Any]", "description": "Provenance metadata" },
+        { "name": "quality", "type": "Dict[str, float]", "description": "Freshness, completeness, confidence" },
+        { "name": "metadata", "type": "Dict[str, str]", "description": "Timestamps, merge strategies, flags" },
+        { "name": "raw_sources", "type": "Dict[str, Dict[str, Any]]", "description": "Raw source payloads" }
+      ],
+      "relationships": [
+        { "type": "contains_many", "to": "ClientIdentifier", "via_field": "identifiers" },
+        { "type": "contains_many", "to": "ClientAddress", "via_field": "addresses" }
+      ]
+    },
+    {
+      "entity": "ClientIdentifier",
+      "description": "Identifier associated with a client from an upstream system.",
+      "fields": [
+        { "name": "system", "type": "str", "description": "Upstream system name" },
+        { "name": "value", "type": "str", "description": "Identifier in that system" }
+      ],
+      "relationships": []
+    },
+    {
+      "entity": "ClientAddress",
+      "description": "Normalised address object associated with a client.",
+      "fields": [
+        { "name": "line1", "type": "Optional[str]", "description": "Address line 1" },
+        { "name": "line2", "type": "Optional[str]", "description": "Address line 2" },
+        { "name": "city", "type": "Optional[str]", "description": "City" },
+        { "name": "postcode", "type": "Optional[str]", "description": "Postal code" },
+        { "name": "country", "type": "Optional[str]", "description": "ISO country" },
+        { "name": "source", "type": "Optional[str]", "description": "System contributing the address" }
+      ],
+      "relationships": []
+    }
+  ]
+}
