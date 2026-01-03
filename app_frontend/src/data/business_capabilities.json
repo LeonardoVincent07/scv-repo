@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "capabilities": [
+    {
+      "capability_id": "BC-CLIENT-PROFILE-BASE",
+      "name": "Assemble Base Client Profile",
+      "intent": "Return a deterministic, canonical base client profile from persisted client data.",
+      "domain": "Client Profile Assembly",
+
+      "description": "This capability assembles and exposes the base Single Client View profile. It reads an existing client record from persistence and shapes it into the ClientProfile structure defined by the Initial Logical Data Model. Scope is intentionally read-only and deterministic.",
+
+      "inputs": [
+        {
+          "name": "Internal client identifier",
+          "source": "SCV platform",
+          "interface": "Profile API request parameter (client_id)"
+        },
+        {
+          "name": "Persisted client record",
+          "source": "SCV database",
+          "interface": "Direct database read by Profile Service"
+        }
+      ],
+
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Map identity fields",
+          "services": ["client_profile"],
+          "stories": ["ST-03"]
+        },
+        {
+          "step": 2,
+          "name": "Map identifiers",
+          "services": ["client_profile"],
+          "stories": ["ST-04"]
+        },
+        {
+          "step": 3,
+          "name": "Match by tax ID",
+          "services": ["client_profile"],
+          "stories": ["ST-09"]
+        },
+        {
+          "step": 4,
+          "name": "Assemble base profile",
+          "services": ["client_profile"],
+          "stories": ["ST-20"],
+          "reads_tables": ["scv.clients"],
+          "writes_tables": []
+        }
+      ],
+
+      "persistence": {
+        "reads": ["scv.clients"],
+        "writes": []
+      },
+
+      "outputs": [
+        {
+          "name": "ClientProfile (base)",
+          "channel": "Profile API / BFF",
+          "api_routes": ["/api/client-profile/{client_id}"],
+          "reads_tables": ["scv.clients"]
+        }
+      ],
+
+      "guarantees": [
+        "Deterministic and repeatable assembly",
+        "Conforms to Initial Logical Data Model",
+        "Read-only assembly (no mutation)"
+      ],
+
+      "proof": {
+        "story_ids": ["ST-03", "ST-04", "ST-09", "ST-20"],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "live"
+      }
+    }
+  ]
+}

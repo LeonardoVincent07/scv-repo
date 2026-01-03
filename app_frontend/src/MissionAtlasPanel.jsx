@@ -3,7 +3,7 @@ import BusinessDataLineagePanel from "./BusinessDataLineagePanel";
 import MissionAtlasServiceTopologyPanel from "./MissionAtlasServiceTopologyPanel";
 import MissionAtlasLogicalDataModelPanel from "./MissionAtlasLogicalDataModelPanel";
 import MissionAtlasPhysicalDataModelPanel from "./MissionAtlasPhysicalDataModelPanel";
-
+import MissionAtlasBusinessCapabilitiesPanel from "./MissionAtlasBusinessCapabilitiesPanel";
 
 const domains = [
   {
@@ -297,33 +297,6 @@ export default function MissionAtlasPanel() {
     },
   ];
 
-  const viewTitle = (() => {
-    switch (atlasView) {
-      case "landing":
-        return "MissionAtlas — Live System Map";
-      case "businessCapabilities":
-        return "Business Capabilities";
-      case "businessDataLineage":
-        return "Business Data Lineage";
-      case "technologyArchitecture":
-        return "Technology Architecture";
-      case "serviceTopology":
-        return "Service Topology";
-      case "logicalDataModel":
-        return "Logical Data Model";
-      case "physicalDataModel":
-        return "Physical Data Model";
-      case "engineeringQuality":
-        return "Engineering Quality";
-      case "securityPosture":
-        return "Security Posture";
-      case "selfHealing":
-        return "Self-Healing";
-      default:
-        return "MissionAtlas — Live System Map";
-    }
-  })();
-
   const showBack = atlasView !== "landing";
 
   const renderLanding = () => (
@@ -363,35 +336,6 @@ export default function MissionAtlasPanel() {
               </span>
             </div>
           </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderBusinessCapabilities = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-3">
-        <h3 className="font-heading text-sm text-gray-800 mb-1">Capabilities</h3>
-        {domains.map((d) => (
-          <div key={d.id} className="rounded-md p-3 border bg-gray-50 border-gray-200">
-            <p className="font-heading text-sm text-gray-900">{d.name}</p>
-            <p className="text-xs font-body text-gray-600 mb-2">{d.description}</p>
-            <p className="text-[11px] font-mono text-gray-500">
-              Key entities: {d.keyEntities.join(", ")}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="font-heading text-sm text-gray-800 mb-1">Key Flows</h3>
-        {flows.map((flow) => (
-          <div key={flow.id} className="rounded-md p-3 border bg-gray-50 border-gray-200">
-            <p className="font-heading text-sm text-gray-900 mb-2">{flow.name}</p>
-            <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
-              {flow.steps.join("  →  ")}
-            </p>
-          </div>
         ))}
       </div>
     </div>
@@ -485,21 +429,7 @@ export default function MissionAtlasPanel() {
     </div>
   );
 
-  const renderLogicalDataModel = () => (
-    <ComingSoonPanel
-      title="Logical Data Model"
-      subtitle="Business entities, relationships, and rules."
-      bullets={[
-        "Entity catalogue (Client, SourceRecord, MatchGroup, EvidenceArtefact, etc.)",
-        "Relationships and cardinality",
-        "Declarative invariants used by Self-Healing",
-      ]}
-    />
-  );
-
-  const renderPhysicalDataModel = () => (
-    <MissionAtlasPhysicalDataModelPanel />
-  );
+  const renderPhysicalDataModel = () => <MissionAtlasPhysicalDataModelPanel />;
 
   const renderEngineeringQuality = () => (
     <ComingSoonPanel
@@ -542,9 +472,12 @@ export default function MissionAtlasPanel() {
       case "landing":
         return renderLanding();
       case "businessCapabilities":
-        return renderBusinessCapabilities();
+        return (
+          <MissionAtlasBusinessCapabilitiesPanel
+            onBack={() => setAtlasView("landing")}
+          />
+        );
       case "businessDataLineage":
-        // IMPORTANT: unchanged wiring for Business Data Lineage
         return (
           <BusinessDataLineagePanel
             defaultClientId={1}
@@ -556,10 +489,7 @@ export default function MissionAtlasPanel() {
         return renderTechnologyArchitecture();
       case "serviceTopology":
         return (
-          <MissionAtlasServiceTopologyPanel
-            domains={domains}
-            services={services}
-          />
+          <MissionAtlasServiceTopologyPanel domains={domains} services={services} />
         );
       case "logicalDataModel":
         return <MissionAtlasLogicalDataModelPanel />;
@@ -628,6 +558,8 @@ export default function MissionAtlasPanel() {
     </section>
   );
 }
+
+
 
 
 

@@ -1,0 +1,120 @@
+version: 1
+
+# Business Capabilities for MissionAtlas
+#
+# Purpose
+# - Describe what the application actually does today, end-to-end
+# - Ground each capability in repo truth (stories, services, code files, evidence)
+# - Provide a narrative spine: inputs -> orchestration -> persistence -> outputs -> guarantees -> proof
+#
+# Design rule
+# - Capabilities can be authored, but references must be resolvable:
+#   story_ids must exist in docs/mission_destination/story_service_mapping.yaml
+
+capabilities:
+
+  - capability_id: BC-CLIENT-PROFILE-BASE
+    name: Assemble Base Client Profile
+    intent: Return a deterministic, canonical base client profile from persisted client data.
+    domain: Client Profile Assembly
+
+    description: |
+      This capability assembles and exposes the base Single Client View profile.
+      It reads an existing client record from persistence and shapes it into the ClientProfile
+      structure defined by the Initial Logical Data Model.
+
+      Scope is intentionally read-only and deterministic. No matching, merging, enrichment,
+      lineage computation, or quality scoring is performed as part of this capability.
+
+    inputs:
+      - name: Internal client identifier
+        source: SCV platform
+        interface: Profile API request parameter (client_id)
+        notes: Used to retrieve an existing persisted client record
+
+      - name: Persisted client record
+        source: SCV database
+        interface: Direct database read by Profile Service
+        notes: Record must exist for deterministic assembly
+
+    orchestration:
+      - step: 1
+        name: Map identity fields
+        services: ["client_profile"]
+        stories: ["ST-03"]
+
+      - step: 2
+        name: Map identifiers
+        services: ["client_profile"]
+        stories: ["ST-04"]
+
+      - step: 3
+        name: Match by tax ID
+        services: ["client_profile"]
+        stories: ["ST-09"]
+        notes: Matching is present in the story map but is out of scope for base profile assembly output
+
+      - step: 4
+        name: Assemble base profile (read-only LDM shaping)
+        services: ["client_profile"]
+        stories: ["ST-20"]
+        reads_tables:
+          - scv.clients
+        writes_tables: []
+        notes: Shapes a ClientProfile object and returns it via API/BFF
+
+    persistence:
+      reads:
+        - scv.clients
+      writes: []
+      notes: |
+        Base profile assembly is read-only. Persistence is consumed, not mutated.
+
+    outputs:
+      - name: ClientProfile (base)
+        channel: Profile Service API via BFF to frontend
+        api_routes:
+          - /api/client-profile/{client_id}
+        reads_tables:
+          - scv.clients
+        notes: Returned profile conforms to the Initial Logical Data Model shape
+
+    guarantees:
+      - Deterministic and repeatable assembly for the same input
+      - Returned structure conforms to the Initial Logical Data Model for ClientProfile
+      - No matching, merging, enrichment, lineage computation, or quality scoring applied in assembly
+
+    proof:
+      story_ids:
+        - ST-03
+        - ST-04
+        - ST-09
+        - ST-20
+
+      # Evidence hooks for MissionAtlas UI to light up badges and deep links.
+      # The exact files can evolve, but keep paths stable and machine-resolvable.
+      evidence_paths:
+        - evidence/snapshots/<commit_sha>.json
+        - missionlog/status/status_snapshot.md
+
+      # Optional UI hints (safe to ignore in rendering if not used yet)
+      ui:
+        display_order: 10
+        maturity: live
+        badges:
+          - deterministic
+          - ldm_contract
+          - evidence_hooked
+
+  # -------------------------------------------------------------------------
+  # Future capabilities for the demo can be added below as additional entries.
+  # Keep the schema identical. Avoid inventing behaviour not represented in Stories.
+  #
+  # Suggested next demo capabilities (add when you are ready):
+  # - Ingest CRM Data (ST-05)
+  # - Ingest KYC Data (ST-06)
+  # - Assemble Profile Metadata (ST-21)
+  # - Expose Lineage (ST-22) and Drill-down Lineage (ST-23)
+  # - Search (Epic EP-03 stories ST-16 to ST-19 when implemented)
+  # -------------------------------------------------------------------------
+
