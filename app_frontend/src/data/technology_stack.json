@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "title": "Technology Stack",
+    "intent": "Curated, enterprise-grade view of runtime, frameworks, data and operational toolchain. This is not a transitive dependency BOM.",
+    "curation_policy": {
+      "include": [
+        "runtime platforms",
+        "primary frameworks",
+        "primary data stores",
+        "key tooling (quality, security, evidence)",
+        "deployment/hosting targets"
+      ],
+      "exclude": [
+        "transitive dependency trees",
+        "lockfile inventories",
+        "developer machine-specific tools"
+      ]
+    },
+    "generated_from": [
+      "backend_v2/requirements.txt",
+      "app_frontend/package.json",
+      "run-dev.ps1",
+      "docs/ (mission framework + destination artefacts)"
+    ],
+    "last_updated": "2026-01-04"
+  },
+  "summary": {
+    "runtime": ["Python (FastAPI)", "Node.js (Vite/React)"],
+    "data": ["PostgreSQL"],
+    "hosting": ["Render (target)"],
+    "quality_signals": [
+      "pytest (unit/contract/integration)",
+      "ruff (lint)",
+      "bandit (security)",
+      "evidence artefacts (MissionLog)"
+    ]
+  },
+  "components": [
+    {
+      "id": "frontend-ui",
+      "name": "Frontend UI",
+      "category": "Application",
+      "status": "Live",
+      "tech": ["React", "Vite", "Tailwind CSS"],
+      "interfaces": [
+        { "type": "http", "name": "Vite dev server", "port": 5173, "path": "/" }
+      ],
+      "provenance": [
+        { "type": "repo", "path": "app_frontend/package.json", "confidence": "High" },
+        { "type": "repo", "path": "app_frontend/src/", "confidence": "High" }
+      ],
+      "operational": [
+        { "type": "command", "label": "Local dev", "value": "cd app_frontend && npm run dev" }
+      ],
+      "notes": "Deliberately avoids lockfile BOM. Direct dependencies only."
+    },
+    {
+      "id": "backend-api",
+      "name": "Backend API",
+      "category": "Application",
+      "status": "Live",
+      "tech": ["Python", "FastAPI", "Uvicorn", "SQLAlchemy"],
+      "interfaces": [
+        { "type": "http", "name": "API base", "port": 8000, "path": "/" }
+      ],
+      "provenance": [
+        { "type": "repo", "path": "backend_v2/requirements.txt", "confidence": "High" },
+        { "type": "repo", "path": "backend_v2/app/", "confidence": "High" }
+      ],
+      "operational": [
+        { "type": "script", "label": "Local run", "value": "run-dev.ps1", "confidence": "Medium" }
+      ],
+      "controls": [
+        { "type": "quality", "name": "pytest", "status": "Live" },
+        { "type": "quality", "name": "ruff", "status": "Live" },
+        { "type": "security", "name": "bandit", "status": "Live" }
+      ]
+    },
+    {
+      "id": "database",
+      "name": "Primary Database",
+      "category": "Data",
+      "status": "Live",
+      "tech": ["PostgreSQL", "psycopg", "SQLAlchemy Engine"],
+      "interfaces": [
+        {
+          "type": "tcp",
+          "name": "Postgres",
+          "port": 5432,
+          "notes": "Default local dev port; deployment may differ."
+        }
+      ],
+      "provenance": [
+        { "type": "repo", "path": "backend_v2/.env (DATABASE_URL)", "confidence": "High" },
+        {
+          "type": "repo",
+          "path": "backend_v2/app/config.py (Settings.DATABASE_URL + env_file)",
+          "confidence": "High"
+        },
+        {
+          "type": "repo",
+          "path": "docs/mission_destination/database_schema12.sql (pg_dump from Postgres 16.4)",
+          "confidence": "High"
+        },
+        {
+          "type": "repo",
+          "path": "tests/conftest.py (requires Postgres + ephemeral schema isolation)",
+          "confidence": "High"
+        }
+      ],
+      "operational": [
+        {
+          "type": "config",
+          "label": "Connection string",
+          "value": "DATABASE_URL in backend_v2/.env",
+          "confidence": "High"
+        }
+      ],
+      "notes": "Postgres is a runtime dependency (not a planned target). Schema is captured as a pg_dump artefact and tests enforce Postgres-only execution."
+    },
+    {
+      "id": "quality-and-evidence",
+      "name": "Quality & Evidence Toolchain",
+      "category": "Tooling",
+      "status": "Live",
+      "tech": ["pytest", "ruff", "bandit", "MissionLog evidence artefacts"],
+      "provenance": [
+        { "type": "repo", "path": "backend_v2/", "confidence": "Medium" },
+        { "type": "repo", "path": "docs/mission_framework/", "confidence": "Medium" }
+      ],
+      "notes": "MissionLog evidence outputs are a first-class operational artefact, not a side effect."
+    },
+    {
+      "id": "hosting",
+      "name": "Hosting / Deployment Target",
+      "category": "Platform",
+      "status": "Planned",
+      "tech": ["Render"],
+      "provenance": [
+        { "type": "declared", "path": "Project convention", "confidence": "Low" }
+      ],
+      "notes": "Kept explicit as target only until repo contains deploy manifests and environment contracts."
+    }
+  ]
+}
+

@@ -1,5 +1,5 @@
 CLEAN REPO EXPORT
-Generated: 2026-01-03 21:38:05Z
+Generated: 2026-01-04 16:08:13Z
 Root: C:\Dev\scv-repo
 
 ============================================================
@@ -14313,6 +14313,1500 @@ export default function BusinessDataLineagePanel({
 
 
 
+===== FILE: app_frontend\src\data\business_capabilities.json =====
+{
+  "version": 1,
+  "capabilities": [
+    {
+      "capability_id": "BC-FT-01-REGISTER-SOURCES",
+      "name": "Register Source Systems",
+      "intent": "Register authoritative upstream systems (CRM, KYC) so ingestion and lineage can be governed by declared sources.",
+      "domain": "Source System Configuration",
+      "description": "Registers upstream source systems and their contracts so the platform can ingest from known, governed inputs and attribute provenance correctly.",
+      "inputs": [
+        {
+          "name": "Source system registration payload",
+          "source": "Operations / configuration",
+          "interface": "Admin/API config endpoint (planned)"
+        },
+        {
+          "name": "Source system metadata store",
+          "source": "SCV database",
+          "interface": "Source registry tables"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Register CRM source",
+          "services": [
+            "config_registry"
+          ],
+          "stories": [
+            "ST-01"
+          ],
+          "reads_tables": [],
+          "writes_tables": [
+            "scv.source_systems"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Register KYC source",
+          "services": [
+            "config_registry"
+          ],
+          "stories": [
+            "ST-02"
+          ],
+          "reads_tables": [],
+          "writes_tables": [
+            "scv.source_systems"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [],
+        "writes": [
+          "scv.source_systems"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Governed source system registry",
+          "channel": "SCV database",
+          "api_routes": [],
+          "reads_tables": []
+        }
+      ],
+      "guarantees": [
+        "Only registered sources are eligible for governed ingestion",
+        "Source identifiers are stable and can be referenced by lineage records"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-01",
+          "ST-02"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-02-SCHEMA-MAPPING",
+      "name": "Map Upstream Schemas to Canonical Model",
+      "intent": "Transform CRM and KYC shapes into the canonical SCV model so downstream services operate on one consistent contract.",
+      "domain": "Schema Mapping",
+      "description": "Defines and applies mapping rules so heterogeneous source records can be projected into the canonical identity, identifier, and address structures used by SCV.",
+      "inputs": [
+        {
+          "name": "Raw CRM/KYC source records",
+          "source": "CRM / KYC systems",
+          "interface": "Ingestion pipeline input"
+        },
+        {
+          "name": "Canonical model (LDM) contract",
+          "source": "MissionDestination",
+          "interface": "ldm://client_profile/1.0.0 (guardrail)"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Map identity fields",
+          "services": [
+            "client_profile"
+          ],
+          "stories": [
+            "ST-03"
+          ],
+          "reads_tables": [],
+          "writes_tables": []
+        },
+        {
+          "step": 2,
+          "name": "Map identifiers",
+          "services": [
+            "client_profile"
+          ],
+          "stories": [
+            "ST-04"
+          ],
+          "reads_tables": [],
+          "writes_tables": []
+        }
+      ],
+      "persistence": {
+        "reads": [],
+        "writes": []
+      },
+      "outputs": [
+        {
+          "name": "Canonicalised record fragments",
+          "channel": "In-memory transform / service response",
+          "api_routes": [],
+          "reads_tables": []
+        }
+      ],
+      "guarantees": [
+        "Canonical mapping is deterministic for identical inputs",
+        "Mappings conform to the declared logical data model contract"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-03",
+          "ST-04"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-03-INITIAL-INGESTION",
+      "name": "Initial Bulk Ingestion",
+      "intent": "Ingest initial CRM and KYC datasets into SCV persistence so profiles can be assembled and searched.",
+      "domain": "Data Ingestion",
+      "description": "Performs initial loads from CRM and KYC into SCVâ€™s persistent tables, establishing the base dataset used by matching and profile assembly.",
+      "inputs": [
+        {
+          "name": "CRM export batch",
+          "source": "CRM system",
+          "interface": "Bulk ingest job / file drop (demo)"
+        },
+        {
+          "name": "KYC export batch",
+          "source": "KYC system",
+          "interface": "Bulk ingest job / file drop (planned)"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Ingest CRM data",
+          "services": [
+            "crm_bulk_load"
+          ],
+          "stories": [
+            "ST-05"
+          ],
+          "reads_tables": [],
+          "writes_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Ingest KYC data",
+          "services": [
+            "ingestion"
+          ],
+          "stories": [
+            "ST-06"
+          ],
+          "reads_tables": [],
+          "writes_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [],
+        "writes": [
+          "scv.clients",
+          "scv.client_identifiers",
+          "scv.client_addresses"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Persisted client records",
+          "channel": "SCV database",
+          "api_routes": [],
+          "reads_tables": []
+        }
+      ],
+      "guarantees": [
+        "Ingestion writes only to governed SCV tables",
+        "Ingestion is repeatable for identical input batches (idempotency is a planned enhancement)",
+        "Ingestion events can be audited"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-05",
+          "ST-06"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-04-INCREMENTAL-DELTAS",
+      "name": "Incremental Ingestion and Change Detection",
+      "intent": "Detect upstream changes and apply deltas so SCV stays synchronised without full reloads.",
+      "domain": "Delta Processing",
+      "description": "Detects changes in upstream sources (new/updated/deleted records) and applies those changes to SCV persistence, enabling near real-time freshness.",
+      "inputs": [
+        {
+          "name": "Upstream change feed / delta batch",
+          "source": "CRM / KYC systems",
+          "interface": "CDC feed or periodic delta extract (planned)"
+        },
+        {
+          "name": "Current persisted SCV state",
+          "source": "SCV database",
+          "interface": "Reads for comparison / merge"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Detect upstream deltas",
+          "services": [
+            "ingestion_delta"
+          ],
+          "stories": [
+            "ST-07"
+          ],
+          "reads_tables": [
+            "scv.clients"
+          ],
+          "writes_tables": [
+            "scv.source_deltas"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Apply deltas",
+          "services": [
+            "ingestion_delta"
+          ],
+          "stories": [
+            "ST-08"
+          ],
+          "reads_tables": [
+            "scv.source_deltas"
+          ],
+          "writes_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.clients",
+          "scv.source_deltas"
+        ],
+        "writes": [
+          "scv.source_deltas",
+          "scv.clients",
+          "scv.client_identifiers",
+          "scv.client_addresses"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Updated SCV persistent state",
+          "channel": "SCV database",
+          "api_routes": [],
+          "reads_tables": []
+        }
+      ],
+      "guarantees": [
+        "Delta application is deterministic and replayable",
+        "SCV reflects upstream state within the configured delta window"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-07",
+          "ST-08"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-05-EXACT-MATCH",
+      "name": "Exact Match Rules",
+      "intent": "Identify whether records refer to the same real-world client using deterministic exact-match rules.",
+      "domain": "Client Matching",
+      "description": "Applies exact-match rules (tax ID, registration number) to link candidate records and support golden record construction.",
+      "inputs": [
+        {
+          "name": "Candidate client records",
+          "source": "SCV database",
+          "interface": "Match job input"
+        },
+        {
+          "name": "Exact match keys",
+          "source": "Canonical identifiers",
+          "interface": "Tax ID, registration number fields"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Match by tax ID",
+          "services": [
+            "client_profile"
+          ],
+          "stories": [
+            "ST-09"
+          ],
+          "reads_tables": [
+            "scv.client_identifiers"
+          ],
+          "writes_tables": [
+            "scv.match_links"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Match by registration number",
+          "services": [
+            "matching"
+          ],
+          "stories": [
+            "ST-10"
+          ],
+          "reads_tables": [
+            "scv.client_identifiers"
+          ],
+          "writes_tables": [
+            "scv.match_links"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.client_identifiers",
+          "scv.match_links"
+        ],
+        "writes": [
+          "scv.match_links"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Deterministic match links",
+          "channel": "SCV database",
+          "api_routes": [],
+          "reads_tables": [
+            "scv.match_links"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Exact match rules are deterministic",
+        "Match links are explainable via the rule that triggered them"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-09",
+          "ST-10"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-06-FUZZY-MATCH",
+      "name": "Fuzzy and Probabilistic Matching",
+      "intent": "Link records that likely refer to the same client when exact identifiers are missing or inconsistent.",
+      "domain": "Client Matching",
+      "description": "Runs fuzzy name matching and computes attribute-level confidence to produce probabilistic match candidates.",
+      "inputs": [
+        {
+          "name": "Candidate client records",
+          "source": "SCV database",
+          "interface": "Match job input"
+        },
+        {
+          "name": "Matching parameters",
+          "source": "Operations / policy",
+          "interface": "Thresholds and weights (planned)"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Fuzzy name match",
+          "services": [
+            "matching"
+          ],
+          "stories": [
+            "ST-11"
+          ],
+          "reads_tables": [
+            "scv.clients"
+          ],
+          "writes_tables": [
+            "scv.match_candidates"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Compute attribute confidence",
+          "services": [
+            "matching"
+          ],
+          "stories": [
+            "ST-12"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ],
+          "writes_tables": [
+            "scv.match_candidates"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.clients",
+          "scv.client_identifiers",
+          "scv.client_addresses",
+          "scv.match_candidates"
+        ],
+        "writes": [
+          "scv.match_candidates"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Probabilistic match candidates",
+          "channel": "SCV database",
+          "api_routes": [],
+          "reads_tables": [
+            "scv.match_candidates"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Matching outputs include an explicit confidence score",
+        "Matching is reproducible for the same inputs and parameters"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-11",
+          "ST-12"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-07-GOLDEN-RECORD",
+      "name": "Golden Record Construction",
+      "intent": "Construct a single canonical â€˜goldenâ€™ representation of a client from multiple source records.",
+      "domain": "Golden Record",
+      "description": "Merges identity and address attributes into a golden record, while recording lineage for every selected value.",
+      "inputs": [
+        {
+          "name": "Linked source records",
+          "source": "Matching layer / SCV DB",
+          "interface": "Match links and candidates"
+        },
+        {
+          "name": "Merge policies",
+          "source": "Operations / governance",
+          "interface": "Precedence rules (planned)"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Merge identity",
+          "services": [
+            "merge"
+          ],
+          "stories": [
+            "ST-13"
+          ],
+          "reads_tables": [
+            "scv.clients"
+          ],
+          "writes_tables": [
+            "scv.golden_clients"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Merge addresses",
+          "services": [
+            "merge"
+          ],
+          "stories": [
+            "ST-14"
+          ],
+          "reads_tables": [
+            "scv.client_addresses"
+          ],
+          "writes_tables": [
+            "scv.golden_client_addresses"
+          ]
+        },
+        {
+          "step": 3,
+          "name": "Record lineage",
+          "services": [
+            "merge"
+          ],
+          "stories": [
+            "ST-15"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_addresses"
+          ],
+          "writes_tables": [
+            "scv.lineage_attributes"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.clients",
+          "scv.client_addresses",
+          "scv.lineage_attributes"
+        ],
+        "writes": [
+          "scv.golden_clients",
+          "scv.golden_client_addresses",
+          "scv.lineage_attributes"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Golden client record",
+          "channel": "SCV database",
+          "api_routes": [],
+          "reads_tables": [
+            "scv.golden_clients"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Golden record merge is policy-driven and explainable",
+        "Every selected value has an associated lineage record"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-13",
+          "ST-14",
+          "ST-15"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-08-SEARCH-INDEX",
+      "name": "Search Index and Normalisation",
+      "intent": "Prepare client data for fast, resilient search by building an index and normalising common query fields.",
+      "domain": "Search",
+      "description": "Builds and maintains a search index from canonical client data, applying normalisation (case, whitespace, common variants) to improve recall.",
+      "inputs": [
+        {
+          "name": "Canonical client dataset",
+          "source": "SCV database",
+          "interface": "Index build input"
+        },
+        {
+          "name": "Normalisation rules",
+          "source": "Search configuration",
+          "interface": "Ruleset (planned)"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Build search index",
+          "services": [
+            "search_index"
+          ],
+          "stories": [
+            "ST-16"
+          ],
+          "reads_tables": [
+            "scv.clients"
+          ],
+          "writes_tables": [
+            "scv.search_index"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Normalise search fields",
+          "services": [
+            "search_index"
+          ],
+          "stories": [
+            "ST-17"
+          ],
+          "reads_tables": [
+            "scv.clients"
+          ],
+          "writes_tables": [
+            "scv.search_index"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.clients",
+          "scv.search_index"
+        ],
+        "writes": [
+          "scv.search_index"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Search index entries",
+          "channel": "SCV database",
+          "api_routes": [],
+          "reads_tables": [
+            "scv.search_index"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Index builds are repeatable for identical inputs",
+        "Normalisation is applied consistently across indexed fields"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-16",
+          "ST-17"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-09-FUZZY-SEARCH",
+      "name": "Fuzzy Search and Ranking",
+      "intent": "Let users find clients even with partial or imperfect queries, with ranked results.",
+      "domain": "Search",
+      "description": "Executes fuzzy search queries against the index and applies ranking logic so the most relevant client profiles appear first.",
+      "inputs": [
+        {
+          "name": "Search query string",
+          "source": "Operations user / UI",
+          "interface": "Search API request"
+        },
+        {
+          "name": "Search index",
+          "source": "SCV database",
+          "interface": "Index query"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Execute fuzzy search queries",
+          "services": [
+            "search"
+          ],
+          "stories": [
+            "ST-18"
+          ],
+          "reads_tables": [
+            "scv.search_index"
+          ],
+          "writes_tables": []
+        },
+        {
+          "step": 2,
+          "name": "Apply search ranking",
+          "services": [
+            "search"
+          ],
+          "stories": [
+            "ST-19"
+          ],
+          "reads_tables": [
+            "scv.search_index"
+          ],
+          "writes_tables": []
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.search_index"
+        ],
+        "writes": []
+      },
+      "outputs": [
+        {
+          "name": "Ranked search results",
+          "channel": "Search API / BFF",
+          "api_routes": [
+            "/api/search?q={query}"
+          ],
+          "reads_tables": [
+            "scv.search_index"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Ranking produces a stable ordering for identical inputs",
+        "If ranking cannot be applied, results are still returned and the issue is surfaced"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-18",
+          "ST-19"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-10-ASSEMBLE-PROFILE",
+      "name": "Assemble Canonical Profile",
+      "intent": "Return a deterministic, canonical client profile by reading persisted client data and shaping it into the agreed contract.",
+      "domain": "Client Profile Assembly",
+      "description": "Reads SCV persisted tables and assembles a canonical ClientProfile response. Base profile assembly is implemented; metadata assembly is planned as an extension.",
+      "inputs": [
+        {
+          "name": "Internal client identifier",
+          "source": "SCV platform",
+          "interface": "Profile API request parameter (client_id)"
+        },
+        {
+          "name": "Persisted client data",
+          "source": "SCV database",
+          "interface": "Direct reads by Profile Service"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Assemble base profile",
+          "services": [
+            "client_profile"
+          ],
+          "stories": [
+            "ST-20"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ],
+          "writes_tables": []
+        },
+        {
+          "step": 2,
+          "name": "Assemble metadata",
+          "services": [
+            "client_profile"
+          ],
+          "stories": [
+            "ST-21"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ],
+          "writes_tables": []
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.clients",
+          "scv.client_identifiers",
+          "scv.client_addresses"
+        ],
+        "writes": []
+      },
+      "outputs": [
+        {
+          "name": "ClientProfile (base + metadata)",
+          "channel": "Profile API / BFF",
+          "api_routes": [
+            "/api/client-profile/{client_id}"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Base profile assembly is deterministic and repeatable",
+        "Profile conforms to the Initial Logical Data Model contract",
+        "Read-only assembly (no mutation)"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-20",
+          "ST-21"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "live"
+      }
+    },
+    {
+      "capability_id": "BC-FT-11-LINEAGE-EXPOSURE",
+      "name": "Expose Lineage with Profile",
+      "intent": "Expose attribute-level provenance so consumers can see which source contributed each value.",
+      "domain": "Client Profile Lineage",
+      "description": "Returns lineage information alongside the profile and supports drill-down to field-level provenance for audit and explainability.",
+      "inputs": [
+        {
+          "name": "Internal client identifier",
+          "source": "SCV platform",
+          "interface": "Profile request"
+        },
+        {
+          "name": "Lineage records",
+          "source": "SCV database",
+          "interface": "Reads by Profile Service"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Expose lineage in profile response",
+          "services": [
+            "client_profile"
+          ],
+          "stories": [
+            "ST-22"
+          ],
+          "reads_tables": [
+            "scv.lineage_attributes"
+          ],
+          "writes_tables": []
+        },
+        {
+          "step": 2,
+          "name": "Drill down lineage",
+          "services": [
+            "client_profile"
+          ],
+          "stories": [
+            "ST-23"
+          ],
+          "reads_tables": [
+            "scv.lineage_attributes"
+          ],
+          "writes_tables": []
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.lineage_attributes"
+        ],
+        "writes": []
+      },
+      "outputs": [
+        {
+          "name": "Profile + lineage payload",
+          "channel": "Profile API / BFF",
+          "api_routes": [
+            "/api/client-profile/{client_id}?include=lineage"
+          ],
+          "reads_tables": [
+            "scv.lineage_attributes"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Lineage indicates source and processing step per attribute where available",
+        "If lineage is unavailable, the response indicates this explicitly"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-22",
+          "ST-23"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-12-CONFLICTS",
+      "name": "Present Conflicts and Alternatives",
+      "intent": "Show where sources disagree and allow operators to see competing values and confidence.",
+      "domain": "Conflict Management",
+      "description": "Surfaces conflicting attribute values and the competing source candidates, supporting operational review and rule tuning.",
+      "inputs": [
+        {
+          "name": "Client identifier",
+          "source": "Operations / UI",
+          "interface": "Conflict view request"
+        },
+        {
+          "name": "Candidate values + confidence",
+          "source": "SCV database",
+          "interface": "Reads from conflict store (planned)"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Detect conflicts",
+          "services": [
+            "conflicts"
+          ],
+          "stories": [
+            "ST-24"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_addresses",
+            "scv.client_identifiers"
+          ],
+          "writes_tables": [
+            "scv.attribute_conflicts"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Expose conflicts to UI",
+          "services": [
+            "conflicts"
+          ],
+          "stories": [
+            "ST-25"
+          ],
+          "reads_tables": [
+            "scv.attribute_conflicts"
+          ],
+          "writes_tables": []
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.clients",
+          "scv.client_addresses",
+          "scv.client_identifiers",
+          "scv.attribute_conflicts"
+        ],
+        "writes": [
+          "scv.attribute_conflicts"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Conflict set for client",
+          "channel": "BFF / UI",
+          "api_routes": [
+            "/api/client-profile/{client_id}/conflicts"
+          ],
+          "reads_tables": [
+            "scv.attribute_conflicts"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Conflicts are computed from declared source values and merge outcomes",
+        "Conflict payload includes competing values and their provenance"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-24",
+          "ST-25"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-13-LINEAGE-TRACKING",
+      "name": "Track Business Data Lineage",
+      "intent": "Persist and maintain attribute-level lineage across ingestion, mapping, matching, and merge steps.",
+      "domain": "Business Data Lineage",
+      "description": "Captures and persists lineage metadata so every output field can be traced back to its source system and transformation/selection logic.",
+      "inputs": [
+        {
+          "name": "Source system identifiers",
+          "source": "Source registry",
+          "interface": "Referenced by lineage records"
+        },
+        {
+          "name": "Transformation and selection events",
+          "source": "Ingestion/matching/merge services",
+          "interface": "Automatic lineage emission (planned)"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Capture lineage during processing",
+          "services": [
+            "lineage"
+          ],
+          "stories": [
+            "ST-26"
+          ],
+          "reads_tables": [
+            "scv.source_systems"
+          ],
+          "writes_tables": [
+            "scv.lineage_attributes"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Expose lineage store to downstream consumers",
+          "services": [
+            "lineage"
+          ],
+          "stories": [
+            "ST-27"
+          ],
+          "reads_tables": [
+            "scv.lineage_attributes"
+          ],
+          "writes_tables": []
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.source_systems",
+          "scv.lineage_attributes"
+        ],
+        "writes": [
+          "scv.lineage_attributes"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Lineage store",
+          "channel": "SCV database",
+          "api_routes": [],
+          "reads_tables": [
+            "scv.lineage_attributes"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Lineage is captured as part of normal processing, not as a separate manual step",
+        "Lineage records are immutable once written (planned invariant)"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-26",
+          "ST-27"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-14-DATA-QUALITY",
+      "name": "Score Data Quality",
+      "intent": "Quantify completeness and confidence for client profiles and attributes so consumers can make risk-based decisions.",
+      "domain": "Data Quality",
+      "description": "Computes data quality scores using completeness, freshness, and confidence signals, and attaches them to profiles and/or stores them for analytics.",
+      "inputs": [
+        {
+          "name": "Persisted client profile data",
+          "source": "SCV database",
+          "interface": "Quality scoring input"
+        },
+        {
+          "name": "Confidence and conflict signals",
+          "source": "Matching/merge layer",
+          "interface": "Candidate scores (planned)"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Compute profile quality score",
+          "services": [
+            "data_quality"
+          ],
+          "stories": [
+            "ST-28"
+          ],
+          "reads_tables": [
+            "scv.clients"
+          ],
+          "writes_tables": [
+            "scv.quality_scores"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Compute attribute quality score",
+          "services": [
+            "data_quality"
+          ],
+          "stories": [
+            "ST-29"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.lineage_attributes"
+          ],
+          "writes_tables": [
+            "scv.quality_scores"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.clients",
+          "scv.lineage_attributes",
+          "scv.quality_scores"
+        ],
+        "writes": [
+          "scv.quality_scores"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Quality score outputs",
+          "channel": "Profile API / analytics",
+          "api_routes": [
+            "/api/client-profile/{client_id}?include=quality"
+          ],
+          "reads_tables": [
+            "scv.quality_scores"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Scores are reproducible for the same inputs and scoring rules",
+        "Score definitions are transparent and can be tuned via configuration (planned)"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-28",
+          "ST-29"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-15-AUDIT-EVIDENCE",
+      "name": "Auditability and Evidence",
+      "intent": "Provide an auditable trail of ingestion and processing events, with evidence artefacts generated by MissionLog.",
+      "domain": "Audit & Evidence",
+      "description": "Records audit events for ingestion and processing, and emits evidence snapshots that demonstrate what ran, what changed, and what passed.",
+      "inputs": [
+        {
+          "name": "Processing events",
+          "source": "Ingestion/matching/profile services",
+          "interface": "Audit hooks"
+        },
+        {
+          "name": "MissionLog evidence pack",
+          "source": "Repo / CI",
+          "interface": "evidence/ and missionlog/ artefacts"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Audit ingestion events",
+          "services": [
+            "audit"
+          ],
+          "stories": [
+            "ST-30"
+          ],
+          "reads_tables": [],
+          "writes_tables": [
+            "scv.audit_log"
+          ]
+        },
+        {
+          "step": 2,
+          "name": "Persist evidence snapshots",
+          "services": [
+            "missionlog"
+          ],
+          "stories": [
+            "ST-31"
+          ],
+          "reads_tables": [],
+          "writes_tables": [
+            "evidence/snapshots"
+          ]
+        }
+      ],
+      "persistence": {
+        "reads": [],
+        "writes": [
+          "scv.audit_log"
+        ]
+      },
+      "outputs": [
+        {
+          "name": "Audit log entries",
+          "channel": "Audit API / UI",
+          "api_routes": [
+            "/api/audit?entity_id={id}"
+          ],
+          "reads_tables": [
+            "scv.audit_log"
+          ]
+        },
+        {
+          "name": "Evidence snapshot pack",
+          "channel": "Repo artefact",
+          "api_routes": [],
+          "reads_tables": []
+        }
+      ],
+      "guarantees": [
+        "Every ingestion run produces auditable events",
+        "Evidence artefacts are immutable per commit (by design of the repo)"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-30",
+          "ST-31"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-16-SEARCH-API",
+      "name": "Search API",
+      "intent": "Expose a governed API for searching clients, backed by the search index and ranking logic.",
+      "domain": "API Exposure",
+      "description": "Provides an HTTP API that supports searching by common fields and returns ranked candidate clients, designed for UI consumption via the BFF.",
+      "inputs": [
+        {
+          "name": "Search query parameters",
+          "source": "UI / consuming systems",
+          "interface": "HTTP GET /api/search"
+        },
+        {
+          "name": "Search index",
+          "source": "SCV database",
+          "interface": "Index read"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Expose search endpoint",
+          "services": [
+            "backend_api"
+          ],
+          "stories": [
+            "ST-32"
+          ],
+          "reads_tables": [
+            "scv.search_index"
+          ],
+          "writes_tables": []
+        },
+        {
+          "step": 2,
+          "name": "Apply response shaping & contracts",
+          "services": [
+            "backend_api"
+          ],
+          "stories": [
+            "ST-33"
+          ],
+          "reads_tables": [
+            "scv.search_index"
+          ],
+          "writes_tables": []
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.search_index"
+        ],
+        "writes": []
+      },
+      "outputs": [
+        {
+          "name": "Search results payload",
+          "channel": "Search API / BFF",
+          "api_routes": [
+            "/api/search"
+          ],
+          "reads_tables": [
+            "scv.search_index"
+          ]
+        }
+      ],
+      "guarantees": [
+        "API is versionable and contract-driven (planned)",
+        "Search responses are stable for identical query + data state"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-32",
+          "ST-33"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    },
+    {
+      "capability_id": "BC-FT-17-PROFILE-API",
+      "name": "Client Profile API",
+      "intent": "Expose the canonical client profile via a governed HTTP API for UI and downstream consumption.",
+      "domain": "API Exposure",
+      "description": "Provides an HTTP API to retrieve a client profile (and optional enrichments such as metadata, lineage, quality) backed by the profile assembly capability.",
+      "inputs": [
+        {
+          "name": "Client identifier",
+          "source": "UI / consuming systems",
+          "interface": "HTTP GET /api/client-profile/{client_id}"
+        },
+        {
+          "name": "Persisted client data",
+          "source": "SCV database",
+          "interface": "Reads by Profile Service"
+        }
+      ],
+      "orchestration": [
+        {
+          "step": 1,
+          "name": "Expose profile endpoint",
+          "services": [
+            "backend_api"
+          ],
+          "stories": [
+            "ST-34"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ],
+          "writes_tables": []
+        },
+        {
+          "step": 2,
+          "name": "Expose optional expansions (metadata/lineage/quality)",
+          "services": [
+            "backend_api"
+          ],
+          "stories": [
+            "ST-35"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses",
+            "scv.lineage_attributes",
+            "scv.quality_scores"
+          ],
+          "writes_tables": []
+        }
+      ],
+      "persistence": {
+        "reads": [
+          "scv.clients",
+          "scv.client_identifiers",
+          "scv.client_addresses",
+          "scv.lineage_attributes",
+          "scv.quality_scores"
+        ],
+        "writes": []
+      },
+      "outputs": [
+        {
+          "name": "ClientProfile API payload",
+          "channel": "Profile API / BFF",
+          "api_routes": [
+            "/api/client-profile/{client_id}"
+          ],
+          "reads_tables": [
+            "scv.clients",
+            "scv.client_identifiers",
+            "scv.client_addresses"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Profile API returns canonical shape defined by LDM contract",
+        "Optional expansions are additive and do not change base semantics"
+      ],
+      "proof": {
+        "story_ids": [
+          "ST-34",
+          "ST-35"
+        ],
+        "evidence_paths": [
+          "evidence/snapshots/<commit_sha>.json",
+          "missionlog/status/status_snapshot.md"
+        ],
+        "maturity": "planned"
+      }
+    }
+  ]
+}
+
+
+
+
 ===== FILE: app_frontend\src\data\initial_logical_data_model.json =====
 {
   "artifact_type": "logical_data_model",
@@ -18527,6 +20021,443 @@ export const technologyBOM = {
 };
 
 
+===== FILE: app_frontend\src\MissionAtlasBusinessCapabilitiesPanel.jsx =====
+import React, { useMemo, useState } from "react";
+import businessCapabilities from "./data/business_capabilities.json";
+
+function Chip({ children, variant = "neutral" }) {
+  const cls =
+    variant === "story"
+      ? "border-gray-300 bg-white text-gray-800"
+      : variant === "service"
+      ? "border-amber-300 bg-amber-50 text-gray-900"
+      : variant === "api"
+      ? "border-sky-200 bg-sky-50 text-gray-900"
+      : variant === "table"
+      ? "border-emerald-200 bg-emerald-50 text-gray-900"
+      : "border-gray-200 bg-gray-50 text-gray-700";
+
+  return (
+    <span
+      className={`inline-flex items-center font-mono text-[11px] px-2 py-0.5 rounded border ${cls}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function uniq(arr) {
+  return Array.from(new Set((arr || []).filter(Boolean)));
+}
+
+function deriveArtefacts(cap) {
+  const stories = uniq([
+    ...(cap.proof?.story_ids || []),
+    ...(cap.orchestration || []).flatMap((s) => s.stories || []),
+  ]);
+
+  const services = uniq(
+    (cap.orchestration || []).flatMap((s) => s.services || [])
+  );
+
+  const apis = uniq((cap.outputs || []).flatMap((o) => o.api_routes || []));
+
+  const tables = uniq([
+    ...(cap.persistence?.reads || []),
+    ...(cap.persistence?.writes || []),
+    ...(cap.orchestration || []).flatMap((s) => [
+      ...(s.reads_tables || []),
+      ...(s.writes_tables || []),
+    ]),
+    ...(cap.outputs || []).flatMap((o) => o.reads_tables || []),
+  ]);
+
+  return { stories, services, apis, tables };
+}
+
+export default function MissionAtlasBusinessCapabilitiesPanel() {
+  const capabilities = useMemo(
+    () => businessCapabilities?.capabilities || [],
+    []
+  );
+
+  const [query, setQuery] = useState("");
+  const [selectedCapabilityId, setSelectedCapabilityId] = useState(null);
+
+  const selectedCapability = useMemo(() => {
+    if (!selectedCapabilityId) return null;
+    return capabilities.find((c) => c.capability_id === selectedCapabilityId) || null;
+  }, [capabilities, selectedCapabilityId]);
+
+  const filtered = useMemo(() => {
+    const q = (query || "").trim().toLowerCase();
+    if (!q) return capabilities;
+
+    return capabilities.filter((c) => {
+      const a = deriveArtefacts(c);
+      const hay = [
+        c.capability_id,
+        c.name,
+        c.intent,
+        c.domain,
+        c.description,
+        ...a.stories,
+        ...a.services,
+        ...a.apis,
+        ...a.tables,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return hay.includes(q);
+    });
+  }, [capabilities, query]);
+
+  const renderCatalogue = () => (
+    <div className="space-y-4">
+      {/* Top row */}
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-xs font-body text-gray-600">
+            Capabilities provided by this platform, derived from stories, services and data.
+          </p>
+        </div>
+
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search capabilities, stories, services..."
+          className="w-full md:w-[360px] px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white text-gray-700"
+        />
+      </div>
+
+      {/* Capability list */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {filtered.map((cap) => {
+          const maturity = cap.proof?.maturity || "unknown";
+          const a = deriveArtefacts(cap);
+
+          return (
+            <button
+              key={cap.capability_id}
+              type="button"
+              onClick={() => setSelectedCapabilityId(cap.capability_id)}
+              className="text-left rounded-halo border border-gray-200 bg-white hover:bg-gray-50 shadow-sm p-4 transition"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-heading text-sm text-gray-900 truncate">
+                    {cap.name}
+                  </p>
+                  <p className="mt-1 text-xs font-body text-gray-600 line-clamp-2">
+                    {cap.intent}
+                  </p>
+                  <p className="mt-2 text-[11px] font-mono text-gray-500">
+                    {cap.capability_id} Â· {cap.domain}
+                  </p>
+                </div>
+
+                <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-teal-50 border-teal-200 text-gray-800">
+                  {maturity}
+                </span>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Chip variant="story">{a.stories.length} stories</Chip>
+                <Chip variant="service">{a.services.length} services</Chip>
+                <Chip variant="api">{a.apis.length} APIs</Chip>
+                <Chip variant="table">{a.tables.length} tables</Chip>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {!filtered.length ? (
+        <div className="rounded-halo border border-gray-200 bg-gray-50 p-5 text-xs font-body text-gray-700">
+          No capabilities match your search.
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const renderDetail = (cap) => {
+    const maturity = cap.proof?.maturity || "unknown";
+    const a = deriveArtefacts(cap);
+
+    return (
+      <div className="space-y-4">
+        {/* Back + search (optional keep search for consistency) */}
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <button
+            type="button"
+            onClick={() => setSelectedCapabilityId(null)}
+            className="px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 w-fit"
+          >
+            Back to all capabilities
+          </button>
+
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search capabilities, stories, services..."
+            className="w-full md:w-[360px] px-3 py-2 rounded-md text-sm font-body border border-gray-200 bg-white text-gray-700"
+          />
+        </div>
+
+        {/* Detail card (your improved layout) */}
+        <div className="rounded-halo border border-gray-200 bg-white shadow-sm">
+          {/* Header */}
+          <div className="px-5 py-4 border-b border-gray-200 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-heading text-sm text-gray-900">{cap.name}</p>
+                <span className="text-[11px] font-mono text-gray-500">
+                  {cap.capability_id} Â· {cap.domain}
+                </span>
+              </div>
+              <p className="mt-1 text-xs font-body text-gray-600">{cap.intent}</p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Chip variant="story">{a.stories.length} stories</Chip>
+                <Chip variant="service">{a.services.length} services</Chip>
+                <Chip variant="api">{a.apis.length} APIs</Chip>
+                <Chip variant="table">{a.tables.length} tables</Chip>
+              </div>
+            </div>
+
+            <span className="text-[11px] font-mono rounded-md px-2 py-1 border bg-teal-50 border-teal-200 text-gray-800">
+              {maturity}
+            </span>
+          </div>
+
+          {/* Body */}
+          <div className="p-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Left */}
+              <div className="lg:col-span-2 space-y-4">
+                {cap.description ? (
+                  <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+                    <p className="text-xs font-body text-gray-700">
+                      {cap.description}
+                    </p>
+                  </div>
+                ) : null}
+
+                {cap.inputs?.length ? (
+                  <div className="rounded-md border border-gray-200 bg-white p-3">
+                    <p className="font-heading text-xs text-gray-800 mb-2">Inputs</p>
+                    <div className="space-y-1">
+                      {cap.inputs.map((i, idx) => (
+                        <div
+                          key={`${cap.capability_id}-in-${idx}`}
+                          className="text-xs font-body text-gray-700"
+                        >
+                          <span className="text-gray-900">{i.name}</span>
+                          <span className="text-gray-500">
+                            {" "}
+                            Â· {i.source}
+                            {i.interface ? ` Â· ${i.interface}` : ""}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {cap.outputs?.length ? (
+                  <div className="rounded-md border border-gray-200 bg-white p-3">
+                    <p className="font-heading text-xs text-gray-800 mb-2">Outputs</p>
+                    <div className="space-y-2">
+                      {cap.outputs.map((o, idx) => (
+                        <div
+                          key={`${cap.capability_id}-out-${idx}`}
+                          className="text-xs font-body text-gray-700"
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-gray-900">{o.name}</span>
+                            <span className="text-gray-500">Â· {o.channel}</span>
+                          </div>
+
+                          {o.api_routes?.length ? (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {o.api_routes.map((r) => (
+                                <Chip key={r} variant="api">
+                                  {r}
+                                </Chip>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {cap.guarantees?.length ? (
+                  <div className="rounded-md border border-gray-200 bg-white p-3">
+                    <p className="font-heading text-xs text-gray-800 mb-2">
+                      Guarantees
+                    </p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {cap.guarantees.map((g, idx) => (
+                        <li
+                          key={`${cap.capability_id}-g-${idx}`}
+                          className="text-xs font-body text-gray-700"
+                        >
+                          {g}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Right */}
+              <div className="space-y-4">
+                {cap.orchestration?.length ? (
+                  <div className="rounded-md border border-gray-200 bg-white p-3">
+                    <p className="font-heading text-xs text-gray-800 mb-2">
+                      How it works
+                    </p>
+
+                    <div className="space-y-2">
+                      {cap.orchestration.map((s) => (
+                        <div
+                          key={`${cap.capability_id}-step-${s.step}`}
+                          className="rounded-md border border-gray-200 bg-gray-50 p-2"
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="font-mono text-[11px] text-gray-500 w-6 text-right">
+                              {s.step}.
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-body text-gray-900">
+                                {s.name}
+                              </div>
+
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {(s.stories || []).map((st) => (
+                                  <Chip key={st} variant="story">
+                                    {st}
+                                  </Chip>
+                                ))}
+                                {(s.services || []).map((svc) => (
+                                  <Chip key={svc} variant="service">
+                                    {svc}
+                                  </Chip>
+                                ))}
+                              </div>
+
+                              {(s.reads_tables?.length || s.writes_tables?.length) ? (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {(s.reads_tables || []).map((t) => (
+                                    <Chip key={`r-${t}`} variant="table">
+                                      {t}
+                                    </Chip>
+                                  ))}
+                                  {(s.writes_tables || []).map((t) => (
+                                    <Chip key={`w-${t}`} variant="table">
+                                      {t}
+                                    </Chip>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="rounded-md border border-gray-200 bg-white p-3">
+                  <p className="font-heading text-xs text-gray-800 mb-2">
+                    Artefacts
+                  </p>
+
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[11px] font-mono text-gray-500 mb-1">
+                        Stories
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {a.stories.length ? a.stories.map((st) => (
+                          <Chip key={st} variant="story">{st}</Chip>
+                        )) : <span className="text-xs font-body text-gray-500">-</span>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-mono text-gray-500 mb-1">
+                        Services
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {a.services.length ? a.services.map((svc) => (
+                          <Chip key={svc} variant="service">{svc}</Chip>
+                        )) : <span className="text-xs font-body text-gray-500">-</span>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-mono text-gray-500 mb-1">
+                        APIs
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {a.apis.length ? a.apis.map((api) => (
+                          <Chip key={api} variant="api">{api}</Chip>
+                        )) : <span className="text-xs font-body text-gray-500">-</span>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-mono text-gray-500 mb-1">
+                        Tables
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {a.tables.length ? a.tables.map((t) => (
+                          <Chip key={t} variant="table">{t}</Chip>
+                        )) : <span className="text-xs font-body text-gray-500">-</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {cap.proof?.evidence_paths?.length ? (
+                  <div className="rounded-md border border-gray-200 bg-white p-3">
+                    <p className="font-heading text-xs text-gray-800 mb-2">
+                      Evidence hooks
+                    </p>
+                    <div className="space-y-1">
+                      {cap.proof.evidence_paths.map((p) => (
+                        <div
+                          key={p}
+                          className="font-mono text-[11px] text-gray-700 border border-gray-200 bg-gray-50 rounded px-2 py-1"
+                        >
+                          {p}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (!selectedCapability) return renderCatalogue();
+  return renderDetail(selectedCapability);
+}
+
+
+
+
+
+
 ===== FILE: app_frontend\src\MissionAtlasLogicalDataModelPanel.jsx =====
 // C:\Dev\scv-repo\app_frontend\src\MissionAtlasLogicalDataModelPanel.jsx
 import React, { useMemo, useState } from "react";
@@ -19110,7 +21041,7 @@ import BusinessDataLineagePanel from "./BusinessDataLineagePanel";
 import MissionAtlasServiceTopologyPanel from "./MissionAtlasServiceTopologyPanel";
 import MissionAtlasLogicalDataModelPanel from "./MissionAtlasLogicalDataModelPanel";
 import MissionAtlasPhysicalDataModelPanel from "./MissionAtlasPhysicalDataModelPanel";
-
+import MissionAtlasBusinessCapabilitiesPanel from "./MissionAtlasBusinessCapabilitiesPanel";
 
 const domains = [
   {
@@ -19404,33 +21335,6 @@ export default function MissionAtlasPanel() {
     },
   ];
 
-  const viewTitle = (() => {
-    switch (atlasView) {
-      case "landing":
-        return "MissionAtlas â€” Live System Map";
-      case "businessCapabilities":
-        return "Business Capabilities";
-      case "businessDataLineage":
-        return "Business Data Lineage";
-      case "technologyArchitecture":
-        return "Technology Architecture";
-      case "serviceTopology":
-        return "Service Topology";
-      case "logicalDataModel":
-        return "Logical Data Model";
-      case "physicalDataModel":
-        return "Physical Data Model";
-      case "engineeringQuality":
-        return "Engineering Quality";
-      case "securityPosture":
-        return "Security Posture";
-      case "selfHealing":
-        return "Self-Healing";
-      default:
-        return "MissionAtlas â€” Live System Map";
-    }
-  })();
-
   const showBack = atlasView !== "landing";
 
   const renderLanding = () => (
@@ -19470,35 +21374,6 @@ export default function MissionAtlasPanel() {
               </span>
             </div>
           </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderBusinessCapabilities = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-3">
-        <h3 className="font-heading text-sm text-gray-800 mb-1">Capabilities</h3>
-        {domains.map((d) => (
-          <div key={d.id} className="rounded-md p-3 border bg-gray-50 border-gray-200">
-            <p className="font-heading text-sm text-gray-900">{d.name}</p>
-            <p className="text-xs font-body text-gray-600 mb-2">{d.description}</p>
-            <p className="text-[11px] font-mono text-gray-500">
-              Key entities: {d.keyEntities.join(", ")}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="font-heading text-sm text-gray-800 mb-1">Key Flows</h3>
-        {flows.map((flow) => (
-          <div key={flow.id} className="rounded-md p-3 border bg-gray-50 border-gray-200">
-            <p className="font-heading text-sm text-gray-900 mb-2">{flow.name}</p>
-            <p className="text-[11px] font-mono text-gray-700 whitespace-pre-wrap leading-5">
-              {flow.steps.join("  â†’  ")}
-            </p>
-          </div>
         ))}
       </div>
     </div>
@@ -19592,21 +21467,7 @@ export default function MissionAtlasPanel() {
     </div>
   );
 
-  const renderLogicalDataModel = () => (
-    <ComingSoonPanel
-      title="Logical Data Model"
-      subtitle="Business entities, relationships, and rules."
-      bullets={[
-        "Entity catalogue (Client, SourceRecord, MatchGroup, EvidenceArtefact, etc.)",
-        "Relationships and cardinality",
-        "Declarative invariants used by Self-Healing",
-      ]}
-    />
-  );
-
-  const renderPhysicalDataModel = () => (
-    <MissionAtlasPhysicalDataModelPanel />
-  );
+  const renderPhysicalDataModel = () => <MissionAtlasPhysicalDataModelPanel />;
 
   const renderEngineeringQuality = () => (
     <ComingSoonPanel
@@ -19649,9 +21510,12 @@ export default function MissionAtlasPanel() {
       case "landing":
         return renderLanding();
       case "businessCapabilities":
-        return renderBusinessCapabilities();
+        return (
+          <MissionAtlasBusinessCapabilitiesPanel
+            onBack={() => setAtlasView("landing")}
+          />
+        );
       case "businessDataLineage":
-        // IMPORTANT: unchanged wiring for Business Data Lineage
         return (
           <BusinessDataLineagePanel
             defaultClientId={1}
@@ -19663,10 +21527,7 @@ export default function MissionAtlasPanel() {
         return renderTechnologyArchitecture();
       case "serviceTopology":
         return (
-          <MissionAtlasServiceTopologyPanel
-            domains={domains}
-            services={services}
-          />
+          <MissionAtlasServiceTopologyPanel domains={domains} services={services} />
         );
       case "logicalDataModel":
         return <MissionAtlasLogicalDataModelPanel />;
@@ -19735,6 +21596,8 @@ export default function MissionAtlasPanel() {
     </section>
   );
 }
+
+
 
 
 
@@ -25249,6 +27112,129 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     }
   }
 }
+
+
+===== FILE: docs\mission_destination\business_capabilities.yaml =====
+version: 1
+
+# Business Capabilities for MissionAtlas
+#
+# Purpose
+# - Describe what the application actually does today, end-to-end
+# - Ground each capability in repo truth (stories, services, code files, evidence)
+# - Provide a narrative spine: inputs -> orchestration -> persistence -> outputs -> guarantees -> proof
+#
+# Design rule
+# - Capabilities can be authored, but references must be resolvable:
+#   story_ids must exist in docs/mission_destination/story_service_mapping.yaml
+
+capabilities:
+
+  - capability_id: BC-CLIENT-PROFILE-BASE
+    name: Assemble Base Client Profile
+    intent: Return a deterministic, canonical base client profile from persisted client data.
+    domain: Client Profile Assembly
+
+    description: |
+      This capability assembles and exposes the base Single Client View profile.
+      It reads an existing client record from persistence and shapes it into the ClientProfile
+      structure defined by the Initial Logical Data Model.
+
+      Scope is intentionally read-only and deterministic. No matching, merging, enrichment,
+      lineage computation, or quality scoring is performed as part of this capability.
+
+    inputs:
+      - name: Internal client identifier
+        source: SCV platform
+        interface: Profile API request parameter (client_id)
+        notes: Used to retrieve an existing persisted client record
+
+      - name: Persisted client record
+        source: SCV database
+        interface: Direct database read by Profile Service
+        notes: Record must exist for deterministic assembly
+
+    orchestration:
+      - step: 1
+        name: Map identity fields
+        services: ["client_profile"]
+        stories: ["ST-03"]
+
+      - step: 2
+        name: Map identifiers
+        services: ["client_profile"]
+        stories: ["ST-04"]
+
+      - step: 3
+        name: Match by tax ID
+        services: ["client_profile"]
+        stories: ["ST-09"]
+        notes: Matching is present in the story map but is out of scope for base profile assembly output
+
+      - step: 4
+        name: Assemble base profile (read-only LDM shaping)
+        services: ["client_profile"]
+        stories: ["ST-20"]
+        reads_tables:
+          - scv.clients
+        writes_tables: []
+        notes: Shapes a ClientProfile object and returns it via API/BFF
+
+    persistence:
+      reads:
+        - scv.clients
+      writes: []
+      notes: |
+        Base profile assembly is read-only. Persistence is consumed, not mutated.
+
+    outputs:
+      - name: ClientProfile (base)
+        channel: Profile Service API via BFF to frontend
+        api_routes:
+          - /api/client-profile/{client_id}
+        reads_tables:
+          - scv.clients
+        notes: Returned profile conforms to the Initial Logical Data Model shape
+
+    guarantees:
+      - Deterministic and repeatable assembly for the same input
+      - Returned structure conforms to the Initial Logical Data Model for ClientProfile
+      - No matching, merging, enrichment, lineage computation, or quality scoring applied in assembly
+
+    proof:
+      story_ids:
+        - ST-03
+        - ST-04
+        - ST-09
+        - ST-20
+
+      # Evidence hooks for MissionAtlas UI to light up badges and deep links.
+      # The exact files can evolve, but keep paths stable and machine-resolvable.
+      evidence_paths:
+        - evidence/snapshots/<commit_sha>.json
+        - missionlog/status/status_snapshot.md
+
+      # Optional UI hints (safe to ignore in rendering if not used yet)
+      ui:
+        display_order: 10
+        maturity: live
+        badges:
+          - deterministic
+          - ldm_contract
+          - evidence_hooked
+
+  # -------------------------------------------------------------------------
+  # Future capabilities for the demo can be added below as additional entries.
+  # Keep the schema identical. Avoid inventing behaviour not represented in Stories.
+  #
+  # Suggested next demo capabilities (add when you are ready):
+  # - Ingest CRM Data (ST-05)
+  # - Ingest KYC Data (ST-06)
+  # - Assemble Profile Metadata (ST-21)
+  # - Expose Lineage (ST-22) and Drill-down Lineage (ST-23)
+  # - Search (Epic EP-03 stories ST-16 to ST-19 when implemented)
+  # -------------------------------------------------------------------------
+
 
 
 ===== FILE: docs\mission_destination\database_schema12.sql =====

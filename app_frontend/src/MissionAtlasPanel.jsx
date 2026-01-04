@@ -4,6 +4,8 @@ import MissionAtlasServiceTopologyPanel from "./MissionAtlasServiceTopologyPanel
 import MissionAtlasLogicalDataModelPanel from "./MissionAtlasLogicalDataModelPanel";
 import MissionAtlasPhysicalDataModelPanel from "./MissionAtlasPhysicalDataModelPanel";
 import MissionAtlasBusinessCapabilitiesPanel from "./MissionAtlasBusinessCapabilitiesPanel";
+import MissionAtlasTechnologyStackPanel from "./MissionAtlasTechnologyStackPanel";
+
 
 const domains = [
   {
@@ -255,8 +257,8 @@ export default function MissionAtlasPanel() {
     },
     {
       key: "technologyArchitecture",
-      title: "Technology Architecture",
-      desc: "Domains, services, and flows across the SCV platform.",
+      title: "Technology Stack",
+      desc: "Application and DevOps stack curated direct from the live system.",
       badge: "Live",
     },
     {
@@ -486,7 +488,7 @@ export default function MissionAtlasPanel() {
           />
         );
       case "technologyArchitecture":
-        return renderTechnologyArchitecture();
+        return <MissionAtlasTechnologyStackPanel />;
       case "serviceTopology":
         return (
           <MissionAtlasServiceTopologyPanel domains={domains} services={services} />
