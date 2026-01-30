@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-31T21:49:32Z",
+  "generated_at": "2026-01-30T12:57:57Z",
   "epics": [
     {
       "epic_id": "E00",
@@ -56,7 +56,7 @@
     {
       "epic_id": "EP-01",
       "name": "Client Ingestion & Normalisation",
-      "overall_status": "Planned",
+      "overall_status": "In Progress",
       "features": [
         {
           "feature_id": "FT-01",
@@ -122,18 +122,18 @@
           "feature_id": "FT-03",
           "name": "Data Ingestion",
           "epic_id": "EP-01",
-          "overall_status": "Planned",
+          "overall_status": "In Progress",
           "stories": [
             {
               "story_id": "ST-05",
               "name": "Ingest CRM Data",
               "feature_id": "FT-03",
-              "overall_status": "Planned",
-              "testing_status": "not_run",
-              "halo_adherence": "not_run",
-              "guardrail_adherence": "not_run",
-              "code_quality_adherence": "not_run",
-              "security_policy_adherence": "not_run"
+              "overall_status": "Complete",
+              "testing_status": "pass",
+              "halo_adherence": "pass",
+              "guardrail_adherence": "pass",
+              "code_quality_adherence": "pass",
+              "security_policy_adherence": "pass"
             },
             {
               "story_id": "ST-06",

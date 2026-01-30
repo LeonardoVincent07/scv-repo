@@ -6,5 +6,80 @@
   ],
   "passed": true,
   "message": "No medium/high security issues found by Bandit.",
-  "issues": []
+  "issues": [],
+  "rule_family_basis": "Security gate for this repo is: no Bandit findings with severity in {MEDIUM,HIGH} and confidence in {MEDIUM,HIGH}. If the gate passes, each enabled security rule family is recorded as 'pass (no medium/high findings)'.",
+  "rule_family_results": [
+    {
+      "check": "High-risk function usage (injection & execution)",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "eval, exec, compile, pickle.loads, os.system, os.popen"
+    },
+    {
+      "check": "OS command injection risks",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "subprocess usage with shell=True or unsafe command construction"
+    },
+    {
+      "check": "Hardcoded secrets & credentials",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "hardcoded passwords, tokens, API keys, basic auth strings"
+    },
+    {
+      "check": "Insecure cryptography",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "weak hashes (md5/sha1), insecure randomness, weak SSL/TLS settings"
+    },
+    {
+      "check": "Unsafe deserialization",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "pickle, marshal, yaml.load without SafeLoader"
+    },
+    {
+      "check": "SQL injection patterns",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "string concatenation / formatting used to build SQL"
+    },
+    {
+      "check": "XML / YAML parser vulnerabilities",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "unsafe XML parsing patterns, unsafe yaml.load usage"
+    },
+    {
+      "check": "Temporary file insecurity",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "tempfile.mktemp, predictable temp filenames, race-prone patterns"
+    },
+    {
+      "check": "Network & transport security",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "disabled certificate validation, weak TLS settings"
+    },
+    {
+      "check": "Debug & information disclosure",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "debug flags enabled, risky asserts for security checks, leaking secrets"
+    },
+    {
+      "check": "Permissions & file access risks",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "overly permissive chmod, unsafe file writes, world-writable paths"
+    },
+    {
+      "check": "Miscellaneous unsafe patterns",
+      "status": "pass",
+      "detail": "no medium/high findings",
+      "examples": "deprecated security APIs and other high-risk constructs"
+    }
+  ]
 }

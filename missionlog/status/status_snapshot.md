@@ -6,7 +6,7 @@
 |------|------|---------|
 | E00 | Backend Foundation | Complete |
 | E00-UI | User Interface Foundation | Complete |
-| EP-01 | Client Ingestion & Normalisation | Planned |
+| EP-01 | Client Ingestion & Normalisation | In Progress |
 | EP-02 | Client Matching & Golden Record | Planned |
 | EP-03 | Client Search | Planned |
 | EP-04 | Client Profile Assembly | In Progress |
@@ -22,7 +22,7 @@
 | FT-00-UI | E00-UI | User Interface Foundation | Complete | ST-00-FRONTEND-UI-SHELL |
 | FT-01 | EP-01 | Source System Configuration | Planned | ST-01, ST-02 |
 | FT-02 | EP-01 | Schema Mapping to Canonical Model | Planned | ST-03, ST-04 |
-| FT-03 | EP-01 | Data Ingestion | Planned | ST-05, ST-06 |
+| FT-03 | EP-01 | Data Ingestion | In Progress | ST-05, ST-06 |
 | FT-04 | EP-01 | Incremental Ingestion & Change Detection | Planned | ST-07, ST-08 |
 | FT-05 | EP-02 | Exact Match Rules | Planned | ST-09, ST-10 |
 | FT-06 | EP-02 | Fuzzy & Probabilistic Matching | Planned | ST-11, ST-12 |
@@ -49,7 +49,7 @@
 | ST-02 | FT-01 | Register KYC source | Planned |
 | ST-03 | FT-02 | Map identity fields | Planned |
 | ST-04 | FT-02 | Map identifiers | Planned |
-| ST-05 | FT-03 | Ingest CRM Data | Planned |
+| ST-05 | FT-03 | Ingest CRM Data | Complete |
 | ST-06 | FT-03 | Ingest KYC Data | Planned |
 | ST-07 | FT-04 | Detect upstream deltas | Planned |
 | ST-08 | FT-04 | Apply deltas | Planned |
